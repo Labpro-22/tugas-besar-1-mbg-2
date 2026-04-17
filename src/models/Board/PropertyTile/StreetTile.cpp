@@ -21,7 +21,7 @@ void StreetTile::land(Player &p){
         }
         int rent = rentPrices[rentIndex];
         if (!p.canAfford(rent)) {
-            BankruptcyController::checkSolvency(p, rent);
+            BankruptcyController::checkSolvency(p, rent); // INI JELEK PERLU DIUBAH
         }
         p -= rent;
         *ownerPlayer += rent;
