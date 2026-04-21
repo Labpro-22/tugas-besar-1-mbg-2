@@ -6,12 +6,6 @@ using namespace std;
 
 class TurnController
 {
-private:
-    list<Player> players;
-    int currentPlayerIndex;
-    int currentTurn;
-    int maxTurns;
-    int startingMoney;
 public:
     void nextTurn();
     

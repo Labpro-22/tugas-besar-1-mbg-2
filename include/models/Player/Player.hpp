@@ -28,19 +28,21 @@ private:
 public:
     void move(int steps);
     void setPosition(int pos);
+    void setStatus(PlayerStatus status);
+    void setJailTurns(int currentJailAttempt);
     
-
+    
     Player operator+(int amount); // add money
-    Player operator+=(int amount); // add money
+    Player& operator+=(int amount); // add money
     Player operator-(int amount); // reduce money
-    Player operator-=(int amount); // reduce money
+    Player& operator-=(int amount); // reduce money
     bool operator>=(int amount) const; // can afford suggested by me
     bool operator<(int amount) const; // can't afford
 
     bool canAfford(int amount) const;
     
-    bool operator>(Player &other) const; // compare richness
-    bool operator<(Player &other) const; // compare richness
+    bool operator>(const Player &other) const; // compare richness
+    bool operator<(const Player &other) const; // compare richness
     bool operator==(Player &other) const; // compare richness
     bool operator>=(Player &other) const; // compare richness
     bool operator<=(Player &other) const; // compare richness
@@ -50,13 +52,17 @@ public:
 
     void addSkillCard(SkillCard* card);
     void removeSkillCard(SkillCard* card);
+    bool hasSkillCard(const SkillCard* card) const;
+    bool hasSkillCard(const string& cardName) const;
+    int getSkillCardCount() const;
+    bool canHoldMoreSkillCards() const;
 
     
-    string getName();
-    int getBalance();
-    int getPosition();
-    PlayerStatus getStatus();
-    int getJailTurns();
+    string getName() const;
+    int getBalance() const;
+    int getPosition() const;
+    PlayerStatus getStatus() const;
+    int getJailTurns() const;
     int countOwnerRailroads() const; // Untuk railroad tapi perlu di bahas
     int countOwnerUtilities() const; // Untuk utility tapi perlu di bahas
 };

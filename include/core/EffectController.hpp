@@ -9,10 +9,6 @@ using namespace std;
 
 class EffectController
 {
-private:
-    map<PropertyTile*, int> festivalModifiers; 
-    map<PropertyTile*, int> festivalDurations;
-    CardDeck<Card> specialCards; // bingung type apa yang harusnya disini, 
 public:
     void applyFestival(PropertyTile* tile);
     void decrementDurations();

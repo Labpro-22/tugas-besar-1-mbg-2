@@ -18,14 +18,26 @@ private:
     std::list<Player>* players;
     CardDeck<Card>* specialCards;
 
+    
+    // TURN
     int currentPlayerIndex;
     int currentTurn;
     int maxTurns;
     int startingMoney;
 
+
+    // ECONOMY
+    int goSalary;
+    int pph;
+    int pbm;
+    int jailFine;
+    map<int, int> railroadRent; // key: jumlah railroad yang dimiliki, value: rent
+    map<int, int> UtilityMultiplier; // key: jumlah utility yang dimiliki, value: multiplier
+
     bool gameOver;
     int winnerIndex;
 
+    // Effect
     std::map<PropertyTile*, FestivalState> festivalStates;
 
 public:
