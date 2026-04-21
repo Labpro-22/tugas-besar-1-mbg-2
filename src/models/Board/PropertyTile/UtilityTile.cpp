@@ -17,8 +17,9 @@ void UtilityTile::land(Player &p) {
         setStatus(OWNED);
     } else if (owner != &p && status == OWNED) {
         Player *ownerPlayer = owner;
-        Dice::roll();
-        int diceRoll = Dice::getTotal();
+        Dice dice;
+        dice.roll();
+        int diceRoll = dice.getTotal();
         ownerPlayer->countOwnerUtilities();
         int rent = diceRoll *  rentPrices[std::max(ownerPlayer->countOwnerUtilities() - 1, (int)(rentPrices.size() - 1))];
         if (!p.canAfford(rent)) {
