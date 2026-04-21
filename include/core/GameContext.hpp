@@ -1,0 +1,67 @@
+#pragma once
+
+#include <list>
+#include <map>
+
+#include "GameBoard.hpp"
+#include "Player.hpp"
+#include "CardDeck.hpp"
+#include "Card.hpp"
+#include "PropertyTile.hpp"
+#include "FestivalState.hpp"
+
+
+class GameContext
+{
+private:
+    GameBoard* board;
+    std::list<Player>* players;
+    CardDeck<Card>* specialCards;
+
+    int currentPlayerIndex;
+    int currentTurn;
+    int maxTurns;
+    int startingMoney;
+
+    bool gameOver;
+    int winnerIndex;
+
+    std::map<PropertyTile*, FestivalState> festivalStates;
+
+public:
+    GameContext();
+
+    void setBoard(GameBoard* board);
+    void setPlayers(std::list<Player>* players);
+    void setSpecialCards(CardDeck<Card>* specialCards);
+
+    GameBoard* getBoard() const;
+    std::list<Player>* getPlayers() const;
+    CardDeck<Card>* getSpecialCards() const;
+
+    int getCurrentPlayerIndex() const;
+    int getCurrentTurn() const;
+    int getMaxTurns() const;
+    int getStartingMoney() const;
+
+    bool isGameOver() const;
+    int getWinnerIndex() const;
+
+    const std::map<PropertyTile*, FestivalState>& getFestivalStates() const;
+    bool hasFestivalState(PropertyTile* tile) const;
+    FestivalState getFestivalState(PropertyTile* tile) const;
+
+    void setCurrentPlayerIndex(int index);
+    void setCurrentTurn(int turn);
+    void setMaxTurns(int turns);
+    void setStartingMoney(int money);
+    void setGameOver(bool value);
+    void setWinnerIndex(int index);
+
+    void setFestivalState(PropertyTile* tile, const FestivalState& state);
+    void clearFestivalState(PropertyTile* tile);
+    void clearAllFestivalStates();
+
+    Player* getCurrentPlayer() const;
+    void nextPlayer();
+};
