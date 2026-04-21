@@ -1,5 +1,6 @@
 #pragma once
 #include "PropertyTile.hpp"
+
 using namespace std;
 
 class UtilityTile : public PropertyTile
@@ -7,5 +8,5 @@ class UtilityTile : public PropertyTile
 public:
     UtilityTile(int idx, string code, string name, int price, 
         int morgageValue);
-    PropertyStatus land(Player &p) override;
+    LandResult land(GameContext &G) override;
 };

@@ -1,6 +1,8 @@
 #pragma once
 #include "PropertyTile.hpp"
 
+using namespace std;
+
 class StreetTile : public PropertyTile
 {
 private:
@@ -16,6 +18,6 @@ public:
         int morgageValue, vector<int> rentPrices, 
         int houseCost, int hotelCost);
     
-    void land(Player &p) override;
+    LandResult land(GameContext &G) override;
 };
 

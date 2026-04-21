@@ -29,6 +29,10 @@ string Tile::getType() const {
     }
 }
 
+string Tile::getColor() const {
+    return color;
+}
+
 // int main() {
 //     // Example usage
 //     Tile tile1(1, "P1", "Start", SPECIAL);
