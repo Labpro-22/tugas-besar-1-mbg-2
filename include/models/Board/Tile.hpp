@@ -1,5 +1,8 @@
 #pragma once
 #include <string>
+#include "Player.hpp"
+#include "LandResult.hpp"
+#include "GameContext.hpp"
 using namespace std;
 
 enum TileType
@@ -18,10 +21,7 @@ protected:
     TileType type; 
     string color = "DEFAULT"; // default color, bisa diubah untuk property tile @suggestion by me
 public:
-    // virtual land(Player &p) = default; 
-    // harusnya ga perlu pure virtual function karena tidak semua tile harus 
-    // di-land, misal tile aksi atau special yang efeknya langsung aktif 
-    // saat player melewati atau mendarat di tile tersebut
+    virtual LandResult land(GameContext &G) = 0; // pure virtual function
     Tile(int idx, string code, string name, TileType type);
     virtual ~Tile() = default; // virtual destructor
 
@@ -29,4 +29,5 @@ public:
     string getCode() const;
     string getName() const;
     string getType() const;
+    string getColor() const;
 };
