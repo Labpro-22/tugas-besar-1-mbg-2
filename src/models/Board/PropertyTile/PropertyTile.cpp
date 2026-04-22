@@ -18,3 +18,23 @@ void PropertyTile::setOwner(Player *newOwner){
 void PropertyTile::setStatus(PropertyStatus newStatus){
     this->status = newStatus;
 };
+
+Player* PropertyTile::getOwner() const {
+    return owner;
+}
+
+PropertyStatus PropertyTile::getStatus() const {
+    return status;
+}
+
+PropertyType PropertyTile::getPropertyType() const {
+    return propertyType;
+}
+
+int PropertyTile::getPrice() const {
+    return price;
+}
+
+int PropertyTile::getMorgageValue() const {
+    return morgageValue;
+}

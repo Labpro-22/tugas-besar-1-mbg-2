@@ -33,5 +33,11 @@ public:
     bool isOwned() const;
     void setOwner(Player *newOwner);
     void setStatus(PropertyStatus newStatus);
+
+    Player* getOwner() const;
+    PropertyStatus getStatus() const;
+    PropertyType getPropertyType() const;
+    int getPrice() const;
+    int getMorgageValue() const;
 };
 
