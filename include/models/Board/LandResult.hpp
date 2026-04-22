@@ -2,12 +2,17 @@
 #include <string>
 #include "Tile.hpp"
 #include "Player.hpp"
+#include "PropertyTile.hpp"
+
 using namespace std;
 
 enum class LandEventType
 {
     NONE,
+    DOFESTIVAL,
+    GIVEPROPERTY,
     OFFERBUYPROPERTY,
+    OFFERUPGRADEPROPERTY,
     PAYRENT,
     PAYTAX,
     GAINMONEY,

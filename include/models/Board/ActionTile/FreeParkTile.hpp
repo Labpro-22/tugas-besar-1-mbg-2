@@ -1,9 +1,11 @@
 #pragma once
 #include "ActionTile.hpp"
 
+using namespace std;
+
 class FreeParkTile : public ActionTile
 {
 public:
     FreeParkTile(int idx, string code, string name);
-    void land(Player &p) override;
+    LandResult land(GameContext &G) override;
 };

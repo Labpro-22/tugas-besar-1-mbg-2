@@ -1,10 +1,13 @@
 
 #pragma once
 #include "ActionTile.hpp"
+using namespace std;
+
+using namespace std;
 
 class StartTile : public ActionTile
 {
 public:
     StartTile(int idx, string code, string name);
-    void land(Player &p) override;
+    LandResult land(GameContext &G) override;
 };

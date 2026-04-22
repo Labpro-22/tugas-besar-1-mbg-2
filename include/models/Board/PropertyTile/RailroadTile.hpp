@@ -1,9 +1,11 @@
 #pragma once
 #include "PropertyTile.hpp"
 
+using namespace std;
+
 class RailroadTile : public PropertyTile
 {
 public:
-    RailroadTile(int idx, string code, string name, int price, int morgageValue, vector<int> rentPrices);
-    void land(Player &p) override;
+    RailroadTile(int idx, string code, string name, int price, int morgageValue);
+    LandResult land(GameContext &G) override;
 };

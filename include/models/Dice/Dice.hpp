@@ -3,14 +3,14 @@
 class Dice
 {
 private:
-    int dice1;
-    int dice2;
+    int dice1 = 1;
+    int dice2 = 1;
 public:
     void roll();
     void setRoll(int x, int y);
-    bool isDouble();
-    int getTotal();
-    int getDice1();
-    int getDice2();
+    bool isDouble() const;
+    int getTotal() const;
+    int getDice1() const;
+    int getDice2() const;
 };
 

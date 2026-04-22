@@ -56,6 +56,11 @@ public:
 
     void addSkillCard(SkillCard* card);
     void removeSkillCard(SkillCard* card);
+    SkillCard* getSkillCard(const string& cardName) const;
+    bool hasSkillCard(const SkillCard* card) const;
+    bool hasSkillCard(const string& cardName) const;
+    int getSkillCardCount() const;
+    bool canHoldMoreSkillCards() const;
 
     SkillCard* getSkillCard(const string &cardName) const;
     bool hasSkillCard(const SkillCard *card) const;

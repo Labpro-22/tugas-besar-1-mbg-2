@@ -1,4 +1,4 @@
-#include "utils/ConfigReader.hpp"
+#include "ConfigReader.hpp"
 #include <fstream>
 #include <sstream>
 #include <map>
@@ -51,6 +51,7 @@ void ConfigReader::loadProperty(string fileName, GameBoard &gameBoard){
     }
 
 }
+
 void ConfigReader::loadRailroad(string fileName, EconomyController &economyController){
     ifstream file(fileName);
     string line;
@@ -61,6 +62,7 @@ void ConfigReader::loadRailroad(string fileName, EconomyController &economyContr
         economyController.addRailroadRent(totalOwned, rent);
     }
 };
+
 void ConfigReader::loadUtility(string fileName, EconomyController &economyController){
     ifstream file(fileName);
     string line;
