@@ -21,7 +21,7 @@ Command TurnController::parseCommand(const string& cmdInput){
 }
 
 void TurnController::executeAction(GameContext* context, EconomyController& eco, EffectController& eff, AuctionController& auc, BankruptcyController& bank, Dice& dice, SaveLoader& sl){
-    Player* currentPlayer = context->getCurrentPlayer();
+    Player* currentPlayer = &context->getCurrentPlayer();
     
     if (currentPlayer->getStatus() == PlayerStatus::BANKRUPT){
         context->nextPlayer();
@@ -150,13 +150,13 @@ void TurnController::executeAction(GameContext* context, EconomyController& eco,
             case Command::SIMPAN : {
                 string filename; 
                 cin >> filename;
-                sl.saveGame(filename);
+                sl.saveGame(filename, *context);
                 break;
             }
             case Command::MUAT : {
                 string filename; 
                 cin >> filename; 
-                sl.loadGame(filename);
+                sl.loadGame(filename, *context);
                 break;
             }
             case Command::CETAK_LOG : 
@@ -182,7 +182,7 @@ void TurnController::executeAction(GameContext* context, EconomyController& eco,
             cout << "Melewati GO! Mendapat gaji M" << context->getGoSalary() << endl; // Belum ada implementasi 
         }
 
-        Tile* currentTile = context->getBoard()->getTile(currentPlayer->getPosition());
+        Tile* currentTile = context->getBoard().getTile(currentPlayer->getPosition());
         cout << "Bidak mendarat di " << currentTile->getName() << "." << endl;
         
         LandResult result = currentTile->land(*context);
