@@ -1,25 +1,11 @@
 #include "GameContext.hpp"
-
 #include <iterator>
 
-GameContext::GameContext(GameBoard &board, list<Player> &players, CardDeck<Card> &specialCards)
-    : board(board),
-      players(players),
-      specialCards(specialCards),
-      currentPlayerIndex(0),
-      currentTurn(1),
-      maxTurns(0),
-      startingMoney(0),
-      goSalary(0),
-      pph(0),
-      pbm(0),
-      jailFine(0),
-      gameOver(false),
-      winnerIndex(-1) {}
 
-GameBoard& GameContext::getBoard() const { return this->board; }
-list<Player>& GameContext::getPlayers() const { return this->players; }
-CardDeck<Card>& GameContext::getSpecialCards() const { return this->specialCards; }
+GameBoard& GameContext::getBoard()  { return board; }
+vector<Player>& GameContext::getPlayers()  { return players; }
+CardDeck<Card>& GameContext::getSpecialCards()  { return specialCards; }
+Dice& GameContext::getDice(){ return dice; }
 
 int GameContext::getCurrentPlayerIndex() const { return currentPlayerIndex; }
 int GameContext::getCurrentTurn() const { return currentTurn; }
@@ -68,7 +54,7 @@ void GameContext::clearFestivalState(PropertyTile* tile){
 void GameContext::clearAllFestivalStates(){
     festivalStates.clear();
 }
-Player& GameContext::getCurrentPlayer() const{
+Player& GameContext::getCurrentPlayer() {
     auto it = players.begin();
     advance(it, currentPlayerIndex);
     return *it;

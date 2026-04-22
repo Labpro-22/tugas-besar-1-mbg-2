@@ -3,6 +3,8 @@
 #include <sstream>
 #include <map>
 
+ConfigReader::ConfigReader(string filePath) : configFilePath{filePath}{}
+
 void ConfigReader::loadAllConfigs(GameBoard &gameBoard, EconomyController &economyController, TurnController &turnController){
     loadProperty("config/property.txt", gameBoard);
     loadRailroad("config/railroad.txt", economyController);
@@ -40,7 +42,7 @@ void ConfigReader::loadProperty(string fileName, GameBoard &gameBoard){
             ss >> houseCost >> hotelCost;
             for(int i = 0; i < 6; i++) ss >> rent[i];
 
-            gameBoard.addTile(new StreetTile(idx, code, name, price, morgageValue, rent, color, houseCost, hotelCost));
+            // gameBoard.addTile(new StreetTile(idx, code, name, price, morgageValue, rent, color, houseCost, hotelCost));
         }else if(type == "RAILROAD"){
             gameBoard.addTile(new Railroad(idx, code, name, price, morgageValue));
         }else if(type == "UTILITY"){

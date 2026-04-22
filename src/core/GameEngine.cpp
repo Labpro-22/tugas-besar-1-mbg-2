@@ -1,33 +1,26 @@
 #include "include/core/GameEngine.hpp"
 
-void GameEngine::initGame(GameBoard& gameBoard,
-                          list<Player>& players,
-                          CardDeck<Card>& specialCards,
-                          GameContext& gameContext,
-                          ConfigReader& configReader,
-                          SaveLoader& saveLoader,
+void GameEngine:: initGame(GameContext& gameContext,
                           TurnController& turnController,
+                          ConfigReader& configReader,
                           EconomyController& economyController)
 {
-    configReader.loadAllConfigs(gameBoard, economyController, turnController);
+    configReader.loadAllConfigs(gameContext.getBoard(), economyController, turnController);
 }
 
 void GameEngine::run()
 {
-    GameBoard gameBoard;
-    list<Player> players;
-    CardDeck<Card> specialCards;
-    GameContext gameContext(gameBoard,players,specialCards);
-    ConfigReader configReader;
+    string filePath = "Ayam";
+    GameContext gameContext;
+    ConfigReader configReader(filePath);
     SaveLoader saveLoader;
     TurnController turnController;
     EconomyController economyController;
 
-    initGame(gameBoard,players,
-            specialCards,gameContext,
-            configReader,saveLoader,
-            turnController,
-            economyController);
+    initGame(gameContext,
+             turnController,
+             configReader,
+             economyController);
     // TODO: game loop
 }
 
