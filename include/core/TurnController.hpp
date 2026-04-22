@@ -1,20 +1,21 @@
 #pragma once
 #include <list>
 #include "Player.hpp"
+#include "GameContext.hpp"
+#include "EffectController.hpp"
+#include "EconomyController.hpp"
+#include "AuctionController.hpp"
+#include "BankruptcyController.hpp"
+#include "SaveLoader.hpp"
+#include "Dice.hpp"
+#include "InputHandler.hpp"
+#include "GameLogger.hpp"
 
 using namespace std;
 
 class TurnController
 {
 public:
-    void nextTurn();
-    
-    void setMaxTurns(int maxTurns);
-    void setStartingMoney(int startingMoney);
-    
-    int getCurrentTurn();
     bool checkWinCondition();
-    void exportGameState(); 
-    void executeAction();
+    void executeAction(GameContext* context, EconomyController& eco, EffectController& eff, AuctionController& auc, BankruptcyController& bank, Dice& dice, SaveLoader& sl, InputHandler& input, GameLogger& logger);
 };
-

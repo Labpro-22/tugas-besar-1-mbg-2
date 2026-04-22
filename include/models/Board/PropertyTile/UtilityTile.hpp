@@ -7,6 +7,6 @@ class UtilityTile : public PropertyTile
 { 
 public:
     UtilityTile(int idx, string code, string name, int price, 
-        int morgageValue);
+        int morgageValue, string color);
     LandResult land(GameContext &G) override;
 };

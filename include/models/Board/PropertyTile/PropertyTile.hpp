@@ -29,12 +29,15 @@ protected:
     int morgageValue;
 public:
     LandResult land(GameContext &G) = 0; // override pure virtual function
-    PropertyTile(int idx, string code, string name, int price, int morgageValue);
+    PropertyTile(int idx, string code, string name, int price, int morgageValue, string color);
     bool isOwned() const;
-    int getPrice() const;
-    int getMorgageValue() const;
-    PropertyStatus getStatus() const;
     void setOwner(Player *newOwner);
     void setStatus(PropertyStatus newStatus);
+
+    Player* getOwner() const;
+    PropertyStatus getStatus() const;
+    PropertyType getPropertyType() const;
+    int getPrice() const;
+    int getMorgageValue() const;
 };
 

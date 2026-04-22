@@ -1,6 +1,6 @@
 #pragma once
 #include "GameBoard.hpp"
-#include "include/utils/ConfigReader.hpp"
+#include "../utils/ConfigReader.hpp"
 #include "GameContext.hpp"
 #include "SaveLoader.hpp"
 #include "TurnController.hpp"

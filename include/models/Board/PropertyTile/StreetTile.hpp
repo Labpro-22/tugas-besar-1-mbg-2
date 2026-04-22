@@ -16,8 +16,13 @@ private:
 public:
     StreetTile(int idx, string code, string name, int price, 
         int morgageValue, vector<int> rentPrices, 
-        int houseCost, int hotelCost);
+        int houseCost, int hotelCost, string color);
     
     LandResult land(GameContext &G) override;
+    int getHouseCost() const;
+    int getHotelCost() const;
+    int getHouseCount() const;
+    bool getHasHotel() const;
+    vector<int> getRentPrices() const;
 };
 

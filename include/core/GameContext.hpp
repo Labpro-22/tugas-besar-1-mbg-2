@@ -1,6 +1,8 @@
 #pragma once
 #include <vector>
 #include <map>
+#include <iostream>
+
 #include "GameBoard.hpp"
 #include "Player.hpp"
 #include "CardDeck.hpp"
@@ -44,7 +46,6 @@ public:
     GameBoard& getBoard() ;
     vector<Player>& getPlayers() ;
     CardDeck<Card>& getSpecialCards() ;
-    Dice& getDice() ;
 
     int getCurrentPlayerIndex() const;
     int getCurrentTurn() const;
