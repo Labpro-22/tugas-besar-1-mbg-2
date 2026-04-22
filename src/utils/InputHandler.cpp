@@ -1,8 +1,6 @@
-#include "../include/utils/InputHandler.hpp"
-
+#include "InputHandler.hpp"
 #include <algorithm>
 #include <cctype>
-#include <limits>
 
 const map<string, CommandType> InputHandler::commandMap = {
     {"LEMPAR_DADU", CommandType::LEMPAR_DADU},
@@ -24,7 +22,8 @@ InputHandler::InputHandler(istream& input) : inputSource(input), lastStringInput
 CommandType InputHandler::getCommand() {
     getStringInput();
     string commands = lastStringInput;
-    transform(commands.begin(), commands.end(), commands.begin(), [](unsigned char ch) {return static_cast<char>(toupper(ch));
+    transform(commands.begin(), commands.end(), commands.begin(), [](unsigned char ch) {
+        return static_cast<char>(toupper(ch));
     });
 
     auto i = commandMap.find(commands);
@@ -36,6 +35,11 @@ CommandType InputHandler::getCommand() {
 
 void InputHandler::getIntInput() {
     inputSource >> valInt1;
+    
+    if (inputSource.fail()) {
+        clearInputBuffer();
+        valInt1 = -1; 
+    }
 }
 
 void InputHandler::getStringInput() {
