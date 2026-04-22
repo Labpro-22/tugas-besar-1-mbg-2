@@ -5,5 +5,5 @@ FreeParkTile::FreeParkTile(int idx, string code, string name)
 }
 
 LandResult FreeParkTile::land(GameContext &G){
-    return LandResult{LandEventType::DONOTHING, this, nullptr, G.getCurrentPlayer(), nullptr, 0, false, string("You are in free park.")};
+    return LandResult{LandEventType::DONOTHING, this, nullptr, &G.getCurrentPlayer(), nullptr, 0, false, string("You are in free park.")};
 }

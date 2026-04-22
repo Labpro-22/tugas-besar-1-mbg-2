@@ -5,5 +5,5 @@ JailTile::JailTile(int idx, std::string code, std::string name)
 }
 
 LandResult JailTile::land(GameContext &G){
-    return LandResult{LandEventType::DONOTHING, this, nullptr, G.getCurrentPlayer(), nullptr, 0, false, string("You are in jail.")};
+    return LandResult{LandEventType::DONOTHING, this, nullptr, &G.getCurrentPlayer(), nullptr, 0, false, string("You are in jail.")};
 }
