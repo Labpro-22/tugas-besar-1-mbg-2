@@ -33,7 +33,8 @@ public:
     void setBalance(int amount);
     void setDoubleCount(int count);
     void setPosition(int pos);
-    
+    void setStatus(PlayerStatus status);
+    void setJailTurns(int currentJailAttempt);
 
     Player operator+(int amount); // add money
     Player& operator+=(int amount); // add money
@@ -44,24 +45,36 @@ public:
 
     bool canAfford(int amount) const;
     
-    bool operator>(Player &other) const; // compare richness
-    bool operator<(Player &other) const; // compare richness
-    bool operator==(Player &other) const; // compare richness
-    bool operator>=(Player &other) const; // compare richness
-    bool operator<=(Player &other) const; // compare richness
+    bool operator>(const Player &other) const; // compare richness
+    bool operator<(const Player &other) const; // compare richness
+    bool operator==(const Player &other) const; // compare richness
+    bool operator>=(const Player &other) const; // compare richness
+    bool operator<=(const Player &other) const; // compare richness
 
     void addProperty(PropertyTile* property);
     void removeProperty(PropertyTile* property);
 
     void addSkillCard(SkillCard* card);
     void removeSkillCard(SkillCard* card);
+    SkillCard* getSkillCard(const string& cardName) const;
+    bool hasSkillCard(const SkillCard* card) const;
+    bool hasSkillCard(const string& cardName) const;
+    int getSkillCardCount() const;
+    bool canHoldMoreSkillCards() const;
 
-    
-    string getName();
-    int getBalance();
-    int getPosition();
-    PlayerStatus getStatus();
-    int getJailTurns();
+    SkillCard* getSkillCard(const string &cardName) const;
+    bool hasSkillCard(const SkillCard *card) const;
+    bool hasSkillCard(const string &cardName) const;
+    int getSkillCardCount() const;
+    bool canHoldMoreSkillCards() const;
+    string getName() const;
+    int getBalance() const;
+    int getPosition() const;
+    PlayerStatus getStatus() const;
+    int getJailTurns() const;
+
+    int totalWealth() const;
+
     int countOwnerRailroads() const; // Untuk railroad tapi perlu di bahas
     int countOwnerUtilities() const; // Untuk utility tapi perlu di bahas
 };
