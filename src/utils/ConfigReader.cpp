@@ -42,7 +42,7 @@ void ConfigReader::loadProperty(string fileName, GameBoard &gameBoard){
             ss >> houseCost >> hotelCost;
             for(int i = 0; i < 6; i++) ss >> rent[i];
 
-            gameBoard.addTile(new StreetTile(idx, code, name, price, morgageValue, rent, color, houseCost, hotelCost));
+            gameBoard.addTile(new StreetTile(idx, code, name, price, morgageValue, rent,houseCost, hotelCost,  color));
         }else if(type == "RAILROAD"){
             gameBoard.addTile(new RailroadTile(idx, code, name, price, morgageValue, color));
         }else if(type == "UTILITY"){

@@ -1,5 +1,6 @@
 #pragma once
 #include "GameContext.hpp"
+#include "PropertyTile.hpp"
 #include "StreetTile.hpp"
 #include "RailroadTile.hpp"
 #include "UtilityTile.hpp"
@@ -29,8 +30,11 @@ public:
     void renderGetUtility(GameContext G, UtilityTile* tile);
     
     void renderDiceRoll(GameContext G);
-    
-    private:
+    void renderDiceControl(GameContext G);
+    void renderRent(GameContext G, PropertyTile* tile);
+    void renderMortgage(GameContext G, PropertyTile* tile);
+
+private:
     // Helper function to fit text to a specific width
     static const int CARD_INNER_WIDTH = 30;
     static const int BOARD_CELL_WIDTH = 10;
