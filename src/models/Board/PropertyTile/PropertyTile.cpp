@@ -11,6 +11,18 @@ bool PropertyTile::isOwned() const{
     return this->owner != nullptr;
 };
 
+int PropertyTile::getPrice() const {
+    return price;
+}
+
+int PropertyTile::getMorgageValue() const {
+    return morgageValue;
+}
+
+PropertyStatus PropertyTile::getStatus() const {
+    return status;
+}
+
 void PropertyTile::setOwner(Player *newOwner){
     this->owner = newOwner;
 };
