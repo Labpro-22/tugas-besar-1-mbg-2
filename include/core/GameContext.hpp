@@ -2,6 +2,7 @@
 
 #include <list>
 #include <map>
+#include <iostream>
 
 #include "GameBoard.hpp"
 #include "Player.hpp"
@@ -55,6 +56,7 @@ public:
     int getCurrentTurn() const;
     int getMaxTurns() const;
     int getStartingMoney() const;
+    int getJailFine() const;
 
     bool isGameOver() const;
     int getWinnerIndex() const;
