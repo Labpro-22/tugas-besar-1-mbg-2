@@ -118,10 +118,26 @@ void Player::addSkillCard(SkillCard *card) {
 }
 
 void Player::removeSkillCard(SkillCard *card) {
+    if (card == nullptr) {
+        return;
+    }
+
     auto it = std::find(skillCards.begin(), skillCards.end(), card);
     if (it != skillCards.end()) {
         skillCards.erase(it);
     }
+}
+
+SkillCard *Player::getSkillCard(const string &cardName) const {
+    auto it = std::find_if(skillCards.begin(), skillCards.end(), [&](const SkillCard *card) {
+        return card != nullptr && card->getName() == cardName;
+    });
+
+    if (it == skillCards.end()) {
+        return nullptr;
+    }
+
+    return *it;
 }
 
 bool Player::hasSkillCard(const SkillCard *card) const {
