@@ -6,6 +6,8 @@
 #include "EconomyController.hpp"
 #include "AuctionController.hpp"
 #include "BankruptcyController.hpp"
+#include "SaveLoader.hpp"
+#include "Dice.hpp"
 
 using namespace std;
 
@@ -31,5 +33,5 @@ private:
     Command parseCommand(const std::string& cmdInput);
 public:
     bool checkWinCondition();
-    void executeAction(GameContext* context, EconomyController& eco, EffectController& eff, AuctionController& auc, BankruptcyController& bank);
+    void executeAction(GameContext* context, EconomyController& eco, EffectController& eff, AuctionController& auc, BankruptcyController& bank, Dice& dice, SaveLoader& sl);
 };
