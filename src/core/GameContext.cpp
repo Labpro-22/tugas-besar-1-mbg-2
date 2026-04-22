@@ -5,6 +5,7 @@
 GameBoard& GameContext::getBoard()  { return board; }
 vector<Player>& GameContext::getPlayers()  { return players; }
 CardDeck<Card>& GameContext::getSpecialCards()  { return specialCards; }
+Dice& GameContext::getDice(){ return dice; }
 
 int GameContext::getCurrentPlayerIndex() const { return currentPlayerIndex; }
 int GameContext::getCurrentTurn() const { return currentTurn; }
