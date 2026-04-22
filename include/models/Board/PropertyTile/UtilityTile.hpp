@@ -13,5 +13,6 @@ public:
     vector<string> getAktaDetailLines(const GameContext& G) const override;
     vector<string> getRentDetailLines(GameContext& G) const override;
     int calculateRent(GameContext& G) const override;
+    string getPropertyDisplayInfo() const override;
 
 };

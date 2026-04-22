@@ -473,22 +473,13 @@ void DisplayView::renderProperty(GameContext G){
         cout << "[" << entry.first << "]" << endl;
 
         for (PropertyTile* prop : props) {
-            renderOneProperty(prop);
+            cout << "- " << prop->getPropertyDisplayInfo() << endl;
         }   
     }
 
-    
+    cout << "Total Wealth: M" << current->totalWealth() << endl;
 }
 
-void DisplayView::renderOneProperty(PropertyTile* prop){
-    string status = prop->getStatus() == MORTGAGED ? "MORTGAGED" : prop->getStatus() == OWNED ? "OWNED" : "BANK";
-    cout << "- [" << prop->getTypeLabel() << "] "
-         << prop->getName() << " (" << prop->getCode() << ")"
-         << prop->getDisplayExtra()
-         << " M" << prop->getPrice()
-         << " " << status
-         << endl;
-}
 
 void DisplayView::renderTile(GameContext G){
     cout << "You are on tile: " << G.getBoard().getTile(G.getCurrentPlayer().getPosition())->getName() << "(" << G.getBoard().getTile(G.getCurrentPlayer().getPosition())->getCode() << ")" << endl;
@@ -534,6 +525,15 @@ void DisplayView::renderMortgage(GameContext G, PropertyTile* tile){
 
 void DisplayView::renderCantPay(GameContext G, int amountOwed){
     cout << "You can't pay the required amount of rent." << "(M" << amountOwed << ")" << endl;
-    cout << "You need to mortgage or sell properties to pay your debt." << endl;
+    cout << "Your current balance: M" << G.getCurrentPlayer().getBalance() << endl;
 }
 
+void DisplayView::renderTax(GameContext G, TaxTile* tile){
+    cout << "You landed on a tax tile " << tile->getName() << " (" << tile->getCode() << ")." << endl;
+    cout << "Choose one of the following tax payment options:" << endl;
+    cout << "1. Pay a fixed amount of M" << G.getPph() << endl;
+    cout << "2. Pay 10% of your total wealth" << endl;
+    cout << "Enter your choice (1 or 2): ";
+}   
+
+void DisplayView::renderPayTax()

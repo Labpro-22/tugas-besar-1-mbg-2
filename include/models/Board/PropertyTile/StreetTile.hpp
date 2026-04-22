@@ -30,6 +30,7 @@ public:
     bool getHasHotel() const;
     vector<int> getRentPrices() const;
     int calculateRent(GameContext& G) const override;
+    string getPropertyDisplayInfo() const override;
 
 };
 

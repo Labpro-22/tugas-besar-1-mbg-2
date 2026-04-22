@@ -69,6 +69,24 @@ vector<string> StreetTile::getRentDetailLines(GameContext& G) const {
     return lines;
 }
 
+string StreetTile::getPropertyDisplayInfo() const {
+    string status = getStatus() == MORTGAGED ? "MORTGAGED [M]" : getStatus() == OWNED ? "OWNED" : "BANK";
+    string info = getName() + " (" + getCode() + ")";
+    if (hasHotel) {
+        info += " Hotel";
+    } else if (houseCount > 0) {
+        info += to_string(houseCount) + " House(s)";
+    }
+
+    if (isOwned()) {
+        info += " M" + to_string(getPrice());
+    } else {
+        info += " M" + to_string(getPrice());
+    }
+    info += " " + status;
+    
+    return info;
+}
 int StreetTile::calculateRent(GameContext& G) const {
     int rentIndex = houseCount;
     if (hasHotel) {

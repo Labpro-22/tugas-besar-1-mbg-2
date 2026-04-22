@@ -63,3 +63,8 @@ int RailroadTile::calculateRent(GameContext& G) const {
         return 0;
     }
 }
+
+string RailroadTile::getPropertyDisplayInfo() const {
+    string status = this->status == MORTGAGED ? "MORTGAGED [M]" : this->status == OWNED ? "OWNED" : "BANK";
+    return getName() + " (" + getCode() + ") M" + to_string(getPrice()) + " " + status;
+}

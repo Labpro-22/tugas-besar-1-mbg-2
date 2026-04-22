@@ -40,6 +40,7 @@ public:
     PropertyType getPropertyType() const;
     virtual string getTypeLabel() const;
     virtual string getDisplayExtra() const;
+    virtual string getPropertyDisplayInfo() const;
     virtual vector<string> getAktaDetailLines(const GameContext& G) const;
     virtual vector<string> getRentDetailLines(GameContext& G) const;
     virtual int calculateRent(GameContext& G) const;
