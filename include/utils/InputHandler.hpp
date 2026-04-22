@@ -23,7 +23,7 @@ enum class CommandType {
 class InputHandler
 {
 private:
-    istream &inputSource;
+    istream* inputSource;
     string lastStringInput;
     int valInt1;
     int valInt2;
@@ -31,8 +31,20 @@ private:
 public:
     InputHandler(istream& input = cin);
     CommandType getCommand();
-    void getIntInput();
-    void getStringInput();
+    static InputHandler& getInstance();
+
+    InputHandler(const InputHandler&) = delete;
+    InputHandler& operator=(const InputHandler&) = delete;
+
+    void setInputSource(istream& source);
+
+    int getIntInput(const string& prompt = "");
+    string getStringInput(const string& prompt = "");
+    bool getYesNoInput(const string& prompt = "");
+
+    int getLastIntInput() const;
+    string getLastStringInput() const;
+
     void clearInputBuffer();
 
     string getLastStringInput() const;

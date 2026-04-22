@@ -7,6 +7,6 @@ using namespace std;
 class JailTile : public ActionTile
 {
 public:
-    JailTile(int idx, std::string code, std::string name);
+    JailTile(int idx, std::string code, std::string name, string color = "DEFAULT");
     LandResult land(GameContext &G) override;
 };

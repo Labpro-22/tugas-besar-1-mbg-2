@@ -4,7 +4,7 @@
 
 StreetTile::StreetTile(int idx, string code, string name, int price, 
     int morgageValue, vector<int> rentPrices, 
-    int houseCost, int hotelCost) : PropertyTile(idx, code, name, price, morgageValue), 
+    int houseCost, int hotelCost, string color) : PropertyTile(idx, code, name, price, morgageValue, color), 
     rentPrices(rentPrices), houseCost(houseCost), hotelCost(hotelCost), houseCount(0), hasHotel(false) {
     this->propertyType = STREET;
 
@@ -12,12 +12,12 @@ StreetTile::StreetTile(int idx, string code, string name, int price,
 
 LandResult StreetTile::land(GameContext &G){
     if (this->status == MORTGAGED) {
-        return LandResult{LandEventType::DONOTHING, this, nullptr, G.getCurrentPlayer(), nullptr, 0, false};
+        return LandResult{LandEventType::DONOTHING, this, nullptr, &G.getCurrentPlayer(), nullptr, 0, false};
     } else if (this->status == BANK) {
-        return LandResult{LandEventType::OFFERBUYPROPERTY, this, nullptr, G.getCurrentPlayer(), nullptr, price, true};
+        return LandResult{LandEventType::OFFERBUYPROPERTY, this, nullptr, &G.getCurrentPlayer(), nullptr, price, true};
     } else if (this->status == OWNED) {
         Player* owner = this->owner;
-        Player* currentPlayer = G.getCurrentPlayer();
+        Player* currentPlayer = &G.getCurrentPlayer();
         if (owner == currentPlayer) {
             return LandResult{LandEventType::DONOTHING, this, nullptr, currentPlayer, owner, 0, false};
         } else {

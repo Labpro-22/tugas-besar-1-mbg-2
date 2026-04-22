@@ -1,5 +1,7 @@
 #include "GameBoard.hpp"
 
+GameBoard::GameBoard() : totalTiles(0) {}
+
 GameBoard::~GameBoard()
 {
     for (Tile* tile : tiles)
@@ -10,6 +12,10 @@ GameBoard::~GameBoard()
 
 void GameBoard::addTile(Tile* tile)
 {
+    if (tile == nullptr)
+    {
+        return;
+    }
     tiles.push_back(tile);
     totalTiles++;
 }

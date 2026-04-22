@@ -32,5 +32,4 @@ struct LandResult
     Player* targetPlayer = nullptr;
     int amount = 0;
     bool requiresChoice = false;
-    std::string message = "";
 };

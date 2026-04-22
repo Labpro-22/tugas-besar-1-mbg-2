@@ -11,6 +11,7 @@ private:
     vector<Tile*> tiles;
     int totalTiles;
 public:
+    GameBoard();
     ~GameBoard();
     void addTile(Tile* tile);
 
