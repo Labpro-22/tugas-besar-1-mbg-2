@@ -19,5 +19,10 @@ public:
         int houseCost, int hotelCost);
     
     LandResult land(GameContext &G) override;
+    int getHouseCost() const;
+    int getHotelCost() const;
+    int getHouseCount() const;
+    bool getHasHotel() const;
+    vector<int> getRentPrices() const;
 };
 

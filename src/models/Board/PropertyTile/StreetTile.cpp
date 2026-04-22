@@ -12,18 +12,38 @@ StreetTile::StreetTile(int idx, string code, string name, int price,
 
 LandResult StreetTile::land(GameContext &G){
     if (this->status == MORTGAGED) {
-        return LandResult{LandEventType::DONOTHING, this, nullptr, G.getCurrentPlayer(), nullptr, 0, false, string("This property is mortgaged. No rent is due.")};
+        return LandResult{LandEventType::DONOTHING, this, nullptr, G.getCurrentPlayer(), nullptr, 0, false};
     } else if (this->status == BANK) {
-        return LandResult{LandEventType::OFFERBUYPROPERTY, this, nullptr, G.getCurrentPlayer(), nullptr, price, true, string("Do you want to buy ") + this->getName() + string(" for M") + to_string(price) + string("?")};
+        return LandResult{LandEventType::OFFERBUYPROPERTY, this, nullptr, G.getCurrentPlayer(), nullptr, price, true};
     } else if (this->status == OWNED) {
         Player* owner = this->owner;
         Player* currentPlayer = G.getCurrentPlayer();
         if (owner == currentPlayer) {
-            return LandResult{LandEventType::OFFERUPGRADEPROPERTY, this, nullptr, currentPlayer, owner, 0, false, string("You own this property. No rent is due.")};
+            return LandResult{LandEventType::DONOTHING, this, nullptr, currentPlayer, owner, 0, false};
         } else {
-            return LandResult{LandEventType::PAYRENT, this, nullptr, currentPlayer, owner, 0, false, string("You landed on ") + owner->getName() + string("'s property.")};
+            return LandResult{LandEventType::PAYRENT, this, nullptr, currentPlayer, owner, 0, false};
         }
     }
+}
+
+int StreetTile::getHouseCost() const {
+    return houseCost;
+}
+
+int StreetTile::getHotelCost() const {
+    return hotelCost;
+}
+
+int StreetTile::getHouseCount() const {
+    return houseCount;
+}
+
+bool StreetTile::getHasHotel() const {
+    return hasHotel;
+}
+
+vector<int> StreetTile::getRentPrices() const {
+    return rentPrices;
 }
 
 
