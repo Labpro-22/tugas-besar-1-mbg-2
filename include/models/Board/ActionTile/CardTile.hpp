@@ -10,7 +10,7 @@ private:
     CardType cardType;
     
 public:
-    CardTile(int idx, string code, string name, CardType cardType);
+    CardTile(int idx, string code, string name, CardType cardType, string color = "DEFAULT");
     LandResult land(GameContext &G) override;
 };
 

@@ -6,24 +6,24 @@
 using namespace std;
 
 
-UtilityTile::UtilityTile(int idx, string code, string name, int price, int morgageValue) 
-    : PropertyTile(idx, code, name, price, morgageValue) {
+UtilityTile::UtilityTile(int idx, string code, string name, int price, int morgageValue, string color) 
+    : PropertyTile(idx, code, name, price, morgageValue, color) {
     this->propertyType = UTILITY;
 }
 
 LandResult UtilityTile::land(GameContext &G) {
     if(this->status == MORTGAGED) {
-        return LandResult{LandEventType::DONOTHING, this, nullptr, G.getCurrentPlayer(), nullptr, 0, false, string("This utility is mortgaged. No rent is due.")};
+        return LandResult{LandEventType::DONOTHING, this, nullptr, &G.getCurrentPlayer(), nullptr, 0, false};
     }else if(this->status == BANK) {
-        return LandResult{LandEventType::GIVEPROPERTY, this, nullptr, G.getCurrentPlayer(), nullptr, price, true, string("This utility is not owned. So you got it for free.")};
+        return LandResult{LandEventType::GIVEPROPERTY, this, nullptr, &G.getCurrentPlayer(), nullptr, price, true};
     }else if(this->status == OWNED) {
         Player* owner = this->owner;
-        Player* currentPlayer = G.getCurrentPlayer();
+        Player* currentPlayer = &G.getCurrentPlayer();
         if(owner == currentPlayer) {
-            return LandResult{LandEventType::DONOTHING, this, nullptr, currentPlayer, owner, 0, false, string("You own this utility. No rent is due.")};
+            return LandResult{LandEventType::DONOTHING, this, nullptr, currentPlayer, owner, 0, false};
         } else {
-            return LandResult{LandEventType::PAYRENT, this, nullptr, currentPlayer, owner, 0, false, string("You landed on ") + owner->getName() + string("'s utility. Calculate rent based on dice roll.")};
+            return LandResult{LandEventType::PAYRENT, this, nullptr, currentPlayer, owner, 0, false};
         }
     }
-    return LandResult{LandEventType::DONOTHING, this, nullptr, G.getCurrentPlayer(), nullptr, 0,  false, string("Unexpected property status.")};
+    return LandResult{LandEventType::DONOTHING, this, nullptr, &G.getCurrentPlayer(), nullptr, 0,  false};
 }

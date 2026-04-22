@@ -1,7 +1,8 @@
 #include "PropertyTile.hpp"
 
 PropertyTile::PropertyTile(int idx, string code, string name, 
-    int price, int morgageValue) : Tile(idx, code, name, PROPERTY), price(price), morgageValue(morgageValue){
+    int price, int morgageValue, string color) 
+    : Tile(idx, code, name, PROPERTY, color), price(price), morgageValue(morgageValue){
     owner = nullptr;
     type = PROPERTY;
     status = BANK;
