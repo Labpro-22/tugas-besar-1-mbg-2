@@ -402,31 +402,13 @@ void DisplayView::renderAkta(GameContext G, string code){
     printCardLine("Mortgage Value   : M" + to_string(prop->getMorgageValue()));
     cout << "+------------------------------+" << endl;
     
-    switch (prop->getPropertyType()) {
-        case STREET:
-            StreetTile* street = dynamic_cast<StreetTile*>(prop);
-            int i = 1;
-            for (const auto& rentPrice : street->getRentPrices()) {
-                printCardLine("Rent Fee (" + to_string(i++) + " Houses): M" + to_string(rentPrice));
-            }
+    vector<string> detailLines = prop->getAktaDetailLines(G);
+    for (const string& line : detailLines) {
+        if (line == "-") {
             cout << "+------------------------------+" << endl;
-            printCardLine("House Cost       : M" + to_string(street->getHouseCost()));
-            printCardLine("Hotel Cost       : M" + to_string(street->getHotelCost()));
-            break;
-        case RAILROAD:
-            RailroadTile* railroad = dynamic_cast<RailroadTile*>(prop);
-            for (const auto& rentPrice : G.getRailroadRentTable()) {
-                printCardLine("Rent Fee (" + to_string(rentPrice.first) + " owned): M" + to_string(rentPrice.second));
-            }
-            break;
-        case UTILITY:
-            UtilityTile* utility = dynamic_cast<UtilityTile*>(prop);
-            for (const auto& multiplier : G.getUtilityMultiplierTable()) {
-                printCardLine("Rent Multiplier (" + to_string(multiplier.first) + " owned): " + to_string(multiplier.second) + "x");
-            }
-         
-
-            break;
+        } else {
+            printCardLine(line);
+        }
     }
 
     cout << "+==============================+" << endl;
@@ -499,30 +481,13 @@ void DisplayView::renderProperty(GameContext G){
 }
 
 void DisplayView::renderOneProperty(PropertyTile* prop){
-    string status = prop->getStatus() == MORTGAGED ? " MORTGAGED" : prop->getStatus() == OWNED ? " OWNED" : " BANK";
-    if (prop->getPropertyType() == STREET) {
-        StreetTile* street = dynamic_cast<StreetTile*>(prop);
-        cout << "- " << prop->getName() << " (" << prop->getCode() << ")";
-        if (street != nullptr) {
-            if(street->getHasHotel()) {
-                cout << " Hotel";
-            } else if (street->getHouseCount() > 0) {
-                cout << " " << street->getHouseCount() << " houses";
-            }
-        }
-        cout << " M" << prop->getPrice();
-        cout << " " << status << endl;
-    } else if (prop->getPropertyType() == RAILROAD) {
-        RailroadTile* railroad = dynamic_cast<RailroadTile*>(prop);
-        cout << "- " << prop->getName() << " (" << prop->getCode() << ")";
-        cout << " M" << prop->getPrice();
-        cout << " " << status << endl;
-    } else if (prop->getPropertyType() == UTILITY) {
-        UtilityTile* utility = dynamic_cast<UtilityTile*>(prop);
-        cout << "- " << prop->getName() << " (" << prop->getCode() << ")";
-        cout << " M" << prop->getPrice();
-        cout << " " << status << endl;
-    }
+    string status = prop->getStatus() == MORTGAGED ? "MORTGAGED" : prop->getStatus() == OWNED ? "OWNED" : "BANK";
+    cout << "- [" << prop->getTypeLabel() << "] "
+         << prop->getName() << " (" << prop->getCode() << ")"
+         << prop->getDisplayExtra()
+         << " M" << prop->getPrice()
+         << " " << status
+         << endl;
 }
 
 void DisplayView::renderTile(GameContext G){
@@ -535,7 +500,40 @@ void DisplayView::showMenu(GameContext G){
 
 void DisplayView::renderDiceRoll(GameContext G){
     cout << "Rolling dice..." << endl;
-    Dice dice = G
-    cout << "You rolled a " << G.getDiceValue() << "!" << endl;
-
+    Dice dice = G.getDice();
+    cout << "You rolled a " << dice.getDice1() << " + " << dice.getDice2() << " = " << dice.getTotal() << endl;
+    cout << "Moving " << G.getCurrentPlayer().getName() << " " << dice.getTotal() << " spaces." << endl;
+    cout << "You landend on tile: " << G.getBoard().getTile(G.getCurrentPlayer().getPosition())->getName() << "." << endl;
 }
+
+void DisplayView::renderDiceControl(GameContext G){
+    cout << "You manually set the dice values." << endl;
+    Dice dice = G.getDice();
+    cout << "You rolled a " << dice.getDice1() << " + " << dice.getDice2() << " = " << dice.getTotal() << endl;
+    cout << "Moving " << G.getCurrentPlayer().getName() << " " << dice.getTotal() << " spaces." << endl;
+    cout << "You landend on tile: " << G.getBoard().getTile(G.getCurrentPlayer().getPosition())->getName() << "." << endl;
+}
+
+void DisplayView::renderRent(GameContext G, PropertyTile* tile){
+    cout << "You need to pay rent for landing on " << tile->getName() << "." ;
+    Player* owner = tile->getOwner();
+    if (owner != nullptr) {
+        cout << "Owned by " << owner->getName() << "." << endl;
+    }
+    
+    for (string line : tile->getRentDetailLines(G)) {
+        cout << line << endl;
+    }
+}
+
+void DisplayView::renderMortgage(GameContext G, PropertyTile* tile){
+    cout << "You have mortgaged " << tile->getName() << "(" << tile->getCode() << "),";
+    cout << "Owned by " << tile->getOwner()->getName() << "." << endl;
+    cout << "This property is now mortgaged [M]. No rent will be collected from this property." << endl;
+}
+
+void DisplayView::renderCantPay(GameContext G, int amountOwed){
+    cout << "You can't pay the required amount of rent." << "(M" << amountOwed << ")" << endl;
+    cout << "You need to mortgage or sell properties to pay your debt." << endl;
+}
+

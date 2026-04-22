@@ -46,6 +46,7 @@ public:
     GameBoard& getBoard() ;
     vector<Player>& getPlayers() ;
     CardDeck<Card>& getSpecialCards() ;
+    Dice& getDice() ;
 
     int getCurrentPlayerIndex() const;
     int getCurrentTurn() const;

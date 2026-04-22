@@ -1,5 +1,6 @@
 #pragma once
 #include "Tile.hpp"
+#include <vector>
 
 using namespace std;
 
@@ -37,6 +38,12 @@ public:
     Player* getOwner() const;
     PropertyStatus getStatus() const;
     PropertyType getPropertyType() const;
+    virtual string getTypeLabel() const;
+    virtual string getDisplayExtra() const;
+    virtual vector<string> getAktaDetailLines(const GameContext& G) const;
+    virtual vector<string> getRentDetailLines(GameContext& G) const;
+    virtual int calculateRent(GameContext& G) const;
+
     int getPrice() const;
     int getMorgageValue() const;
 };
