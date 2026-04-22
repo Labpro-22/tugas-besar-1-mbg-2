@@ -10,7 +10,14 @@ using namespace std;
 class GameEngine
 {
 public:
-    void initGame();
+    void initGame(GameBoard &gameBoard,
+                  list<Player> &players,
+                  CardDeck<Card> &specialCards,
+                  GameContext &gameContext,
+                  ConfigReader &configReader,
+                  SaveLoader &saveLoader,
+                  TurnController &turnController,
+                  EconomyController &economyController);
     void run();
 };
 
