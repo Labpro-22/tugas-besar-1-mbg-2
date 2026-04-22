@@ -25,6 +25,7 @@ class ConfigReader
 private:
     string configFilePath;
 public:
+    ConfigReader(string filePath);
     void loadAllConfigs(GameBoard &gameBoard, EconomyController &economyController, TurnController &turnController);
     void loadProperty(string fileName, GameBoard &gameBoard);
     void loadRailroad(string fileName, EconomyController &economyController);
