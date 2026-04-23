@@ -150,6 +150,10 @@ bool Player::hasAnySkillCard() const {
     return !skillCards.empty(); 
 }
 
+vector<SkillCard *> Player::getSkillCard(){
+    return skillCards;
+}
+
 int Player::getSkillCardCount() const {
     return skillCards.size();
 }
