@@ -34,6 +34,7 @@ public:
     CommandType getCommand();
     void getIntInput();
     void getStringInput();
+    bool getIntRemaining(int& value, bool& hasValue);
     
     void clearInputBuffer();
 
