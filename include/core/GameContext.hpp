@@ -1,6 +1,8 @@
 #pragma once
 #include <vector>
 #include <map>
+#include <iostream>
+
 #include "GameBoard.hpp"
 #include "Player.hpp"
 #include "CardDeck.hpp"
@@ -26,7 +28,8 @@ private:
 
     // ECONOMY
     int goSalary = 0;
-    int pph = 0;
+    int pphFlat = 0;
+    int pphPercentage = 0;
     int pbm = 0;
     int jailFine = 0;
     map<int, int> railroadRent; // key: jumlah railroad yang dimiliki, value: rent
@@ -44,14 +47,14 @@ public:
     GameBoard& getBoard() ;
     vector<Player>& getPlayers() ;
     CardDeck<Card>& getSpecialCards() ;
-    Dice& getDice() ;
 
     int getCurrentPlayerIndex() const;
     int getCurrentTurn() const;
     int getMaxTurns() const;
     int getStartingMoney() const;
     int getGoSalary() const;
-    int getPph() const;
+    int getPphFlat() const;
+    int getPphPercentage() const;
     int getPbm() const;
     int getJailFine() const;
     bool isGameOver() const;
@@ -66,7 +69,8 @@ public:
     void setMaxTurns(int turns);
     void setStartingMoney(int money);
     void setGoSalary(int amount);
-    void setPph(int amount);
+    void getPphFlat(int amount);
+    void getPphPercentage(int amount);
     void setPbm(int amount);
     void setJailFine(int amount);
     void setRailroadRent(int totalOwned, int rent);

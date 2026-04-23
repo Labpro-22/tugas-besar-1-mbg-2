@@ -1,33 +1,44 @@
 #pragma once
 #include <iostream>
 #include <string>
-
+#include <map>
 using namespace std;
+
+enum class CommandType {
+    LEMPAR_DADU,
+    ATUR_DADU,
+    CETAK_PAPAN,
+    CETAK_AKTA,
+    CETAK_PROPERTI,
+    GADAI,
+    TEBUS,
+    BANGUN,
+    GUNAKAN_KEMAMPUAN,
+    SIMPAN,
+    MUAT,
+    CETAK_LOG,
+    UNKNOWN_COMMAND
+};
 
 class InputHandler
 {
 private:
-    istream* inputSource;
+    istream& inputSource;
     string lastStringInput;
-    int lastIntInput;
-
-    InputHandler();
-
+    int valInt1;
+    int valInt2;
+    static const map<string, CommandType> commandMap;
 public:
-    static InputHandler& getInstance();
+    InputHandler(istream& input = cin);
 
-    InputHandler(const InputHandler&) = delete;
-    InputHandler& operator=(const InputHandler&) = delete;
-
-    void setInputSource(istream& source);
-
-    int getIntInput(const string& prompt = "");
-    string getStringInput(const string& prompt = "");
-    bool getYesNoInput(const string& prompt = "");
-
-    int getLastIntInput() const;
-    string getLastStringInput() const;
-
+    CommandType getCommand();
+    void getIntInput();
+    void getStringInput();
+    
     void clearInputBuffer();
+
+    string getLastStringInput() const;
+    int getIntValue1() const;
+    int getIntValue2() const;
 };
 
