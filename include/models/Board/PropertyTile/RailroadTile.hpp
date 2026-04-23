@@ -6,6 +6,6 @@ using namespace std;
 class RailroadTile : public PropertyTile
 {
 public:
-    RailroadTile(int idx, string code, string name, int price, int morgageValue);
+    RailroadTile(int idx, string code, string name, int price, int morgageValue, string color);
     LandResult land(GameContext &G) override;
 };

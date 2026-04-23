@@ -4,6 +4,26 @@
 #include "PropertyTile.hpp"
 #include "SkillCard.hpp"
 
+void Player::setName(string name) {
+    username = name;
+}
+
+void Player::setBalance(int amount) {
+    if (amount < 0) {
+        balance = 0;
+        return;
+    }
+    balance = amount;
+}
+
+void Player::setDoubleCount(int count) {
+    if (count < 0) {
+        doubleCount = 0;   
+        return;
+    }
+    doubleCount = count;   
+}
+
 void Player::move(int steps) {
     const int boardSize = 40;
     int nextPosition = (currentPosition + steps) % boardSize;
@@ -76,15 +96,15 @@ bool Player::operator<(const Player &other) const {
     return balance < other.balance;
 }
 
-bool Player::operator==(Player &other) const {
+bool Player::operator==(const Player &other) const {
     return balance == other.balance;
 }
 
-bool Player::operator>=(Player &other) const {
+bool Player::operator>=(const Player &other) const {
     return balance >= other.balance;
 }
 
-bool Player::operator<=(Player &other) const {
+bool Player::operator<=(const Player &other) const {
     return balance <= other.balance;
 }
 
@@ -156,6 +176,36 @@ PlayerStatus Player::getStatus() const {
 
 int Player::getJailTurns() const {
     return jailTurns;
+}
+
+vector<PropertyTile*>& Player::getOwnedProperties(){
+    return ownedProperties;
+}
+
+int Player::totalPropertyPrice() const {
+    int output = 0;
+    for (PropertyTile *property : ownedProperties) {
+        if (property == nullptr) {
+            continue;
+        }
+        output += property->getPrice();
+    }
+    return output;
+}
+int Player::totalBuildingValue() const {
+    int output = 0;
+    for (PropertyTile *property : ownedProperties) {
+        if (property == nullptr) {
+            continue;
+        }
+        output += property->getBuildingValue();
+    }
+    return output;
+}
+
+int Player::totalWealth() const
+{
+    return balance + totalPropertyPrice() + totalBuildingValue();
 }
 
 int Player::countOwnerRailroads() const {

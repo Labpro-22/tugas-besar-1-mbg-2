@@ -1,6 +1,6 @@
 #pragma once
 #include "GameBoard.hpp"
-#include "include/utils/ConfigReader.hpp"
+#include "../utils/ConfigReader.hpp"
 #include "GameContext.hpp"
 #include "SaveLoader.hpp"
 #include "TurnController.hpp"
@@ -10,13 +10,9 @@ using namespace std;
 class GameEngine
 {
 public:
-    void initGame(GameBoard &gameBoard,
-                  list<Player> &players,
-                  CardDeck<Card> &specialCards,
-                  GameContext &gameContext,
-                  ConfigReader &configReader,
-                  SaveLoader &saveLoader,
+    void initGame(GameContext &gameContext,
                   TurnController &turnController,
+                  ConfigReader &configReader,
                   EconomyController &economyController);
     void run();
 };

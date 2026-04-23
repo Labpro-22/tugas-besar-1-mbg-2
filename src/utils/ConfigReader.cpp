@@ -3,6 +3,8 @@
 #include <sstream>
 #include <map>
 
+ConfigReader::ConfigReader(string filePath) : configFilePath{filePath}{}
+
 void ConfigReader::loadAllConfigs(GameBoard &gameBoard, EconomyController &economyController, TurnController &turnController){
     loadProperty("config/property.txt", gameBoard);
     loadRailroad("config/railroad.txt", economyController);
@@ -14,18 +16,18 @@ void ConfigReader::loadAllConfigs(GameBoard &gameBoard, EconomyController &econo
 
 void ConfigReader::loadProperty(string fileName, GameBoard &gameBoard){
     // masih hardcode untuk tile aksi dan special, karena tidak ada txt
-    gameBoard.addTile(new StartTile(0, "GO", "Petak Mulai"));
-    gameBoard.addTile(new CardTile(2, "DNU", "Dana Umum", CardType::DANA_UMUM));
-    gameBoard.addTile(new TaxTile(4, "PPH", "Pajak Penghasilan", true));
-    gameBoard.addTile(new FestivalTile(7, "FES", "Festival"));
-    gameBoard.addTile(new JailTile(10, "PEN", "Penjara"));
-    gameBoard.addTile(new CardTile(17, "DNU", "Dana Umum", CardType::DANA_UMUM));
-    gameBoard.addTile(new FreeParkTile(20, "BBP", "Pajak Bumi dan Bangunan"));
-    gameBoard.addTile(new CardTile(22, "KSP", "Kesempatan", CardType::KESEMPATAN));
-    gameBoard.addTile(new GoToJailTile(30, "PPJ", "Petak Pergi ke Penjara"));
-    gameBoard.addTile(new FestivalTile(33, "FES", "Festival"));
-    gameBoard.addTile(new CardTile(36, "KSP", "Kesempatan", CardType::KESEMPATAN));
-    gameBoard.addTile(new TaxTile(38, "PBM", "Pajak Barang Mewah", false));
+    gameBoard.addTile(new StartTile(0, "GO", "Petak Mulai", "DEFAULT"));
+    gameBoard.addTile(new CardTile(2, "DNU", "Dana Umum", CardType::DANA_UMUM, "DEFAULT"));
+    gameBoard.addTile(new TaxTile(4, "PPH", "Pajak Penghasilan", true, "DEFAULT"));
+    gameBoard.addTile(new FestivalTile(7, "FES", "Festival", "DEFAULT"));
+    gameBoard.addTile(new JailTile(10, "PEN", "Penjara", "DEFAULT"));
+    gameBoard.addTile(new CardTile(17, "DNU", "Dana Umum", CardType::DANA_UMUM, "DEFAULT"));
+    gameBoard.addTile(new FreeParkTile(20, "BBP", "Pajak Bumi dan Bangunan", "DEFAULT"));
+    gameBoard.addTile(new CardTile(22, "KSP", "Kesempatan", CardType::KESEMPATAN, "DEFAULT"));
+    gameBoard.addTile(new GoToJailTile(30, "PPJ", "Petak Pergi ke Penjara", "DEFAULT"));
+    gameBoard.addTile(new FestivalTile(33, "FES", "Festival", "DEFAULT"));
+    gameBoard.addTile(new CardTile(36, "KSP", "Kesempatan", CardType::KESEMPATAN, "DEFAULT"));
+    gameBoard.addTile(new TaxTile(38, "PBM", "Pajak Barang Mewah", false, "DEFAULT"));
 
     ifstream file(fileName);
     string line;
@@ -42,9 +44,9 @@ void ConfigReader::loadProperty(string fileName, GameBoard &gameBoard){
 
             gameBoard.addTile(new StreetTile(idx, code, name, price, morgageValue, rent, color, houseCost, hotelCost));
         }else if(type == "RAILROAD"){
-            gameBoard.addTile(new Railroad(idx, code, name, price, morgageValue));
+            gameBoard.addTile(new RailroadTile(idx, code, name, price, morgageValue, color));
         }else if(type == "UTILITY"){
-            gameBoard.addTile(new UtilityTile(idx, code, name, price, morgageValue));
+            gameBoard.addTile(new UtilityTile(idx, code, name, price, morgageValue, color));
         }
     }
 
