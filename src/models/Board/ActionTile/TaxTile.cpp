@@ -8,4 +8,7 @@ LandResult TaxTile::land(GameContext &G){
     return LandResult{LandEventType::PAYTAX, this, nullptr, &G.getCurrentPlayer(), nullptr, 0, false};
 };
 
+bool TaxTile::getIsPPH() const {
+    return isPPH;
+}
     

@@ -1,6 +1,6 @@
 #pragma once
 #include "ActionTile.hpp"
-
+#include "GameContext.hpp"
 using namespace std;
 
 class FestivalTile : public ActionTile

@@ -4,6 +4,8 @@
 #include "StreetTile.hpp"
 #include "RailroadTile.hpp"
 #include "UtilityTile.hpp"
+#include "TaxTile.hpp"
+#include "FestivalTile.hpp"
 
 class DisplayView
 {
@@ -29,11 +31,30 @@ public:
     void renderGetRailroad(GameContext G, RailroadTile* tile);
     void renderGetUtility(GameContext G, UtilityTile* tile);
     
+    // Dice Display
     void renderDiceRoll(GameContext G);
-    void renderDiceControl(GameContext G);
+    void renderDiceControl(GameContext G);\
+
+    // Rendering rent, mortgage, and failed payment
     void renderRent(GameContext G, PropertyTile* tile);
     void renderMortgage(GameContext G, PropertyTile* tile);
+    void renderCantPay(GameContext G, int amountOwed);
 
+    // rendering tax tile
+    void renderTax(GameContext G, TaxTile *tile);
+    void renderPayTax(GameContext G, int choose);
+
+    // Auction 
+    void renderAuctionStart(GameContext G, PropertyTile* tile);
+    void renderAuctionLine(string playerName);
+    void HighestBidder(string playerName, int bidAmount);
+    void renderAuctionResult(string winnerName, int winningBid);
+
+    // Festival
+    void renderFestivalTile(GameContext G, FestivalTile *tile);
+    void renderFestivalResult(GameContext G, StreetTile* tile);
+    void InputUnvalidFestivalProperty(GameContext G);
+    
 private:
     // Helper function to fit text to a specific width
     static const int CARD_INNER_WIDTH = 30;
@@ -69,5 +90,4 @@ private:
     string buildOwnershipInfo(Tile* tile, GameContext G) const;
     string buildPlayerPositionInfo(int tileIdx, GameContext G) const;
 
-    void renderOneProperty(PropertyTile* tile);
 };

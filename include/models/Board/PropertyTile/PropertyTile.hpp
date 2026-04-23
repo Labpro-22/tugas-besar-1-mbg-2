@@ -4,6 +4,8 @@
 
 using namespace std;
 
+class GameContext;
+
 enum PropertyStatus
 {
     BANK,
@@ -34,12 +36,14 @@ public:
     bool isOwned() const;
     void setOwner(Player *newOwner);
     void setStatus(PropertyStatus newStatus);
-    virtual int getBuildingValue() const;
+
     Player* getOwner() const;
     PropertyStatus getStatus() const;
     PropertyType getPropertyType() const;
+    virtual int getBuildingValue() const;
     virtual string getTypeLabel() const;
     virtual string getDisplayExtra() const;
+    virtual string getPropertyDisplayInfo() const;
     virtual vector<string> getAktaDetailLines(const GameContext& G) const;
     virtual vector<string> getRentDetailLines(GameContext& G) const;
     virtual int calculateRent(GameContext& G) const;

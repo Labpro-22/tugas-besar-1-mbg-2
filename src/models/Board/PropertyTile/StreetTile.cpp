@@ -96,6 +96,12 @@ vector<string> StreetTile::getAktaDetailLines(const GameContext& G) const {
     lines.push_back("-");
     lines.push_back("House Cost       : M" + to_string(houseCost));
     lines.push_back("Hotel Cost       : M" + to_string(hotelCost));
+    if (isFestivalActive()) {
+        lines.push_back("-");
+        lines.push_back("FESTIVAL ACTIVE!");
+        lines.push_back("Festival Multiplier: " + to_string(festivalMult) + "x");
+        lines.push_back("Festival Duration: " + to_string(festivalDuration) + " turns remaining");
+    }
     return lines;
 }
 
@@ -116,6 +122,24 @@ vector<string> StreetTile::getRentDetailLines(GameContext& G) const {
     return lines;
 }
 
+string StreetTile::getPropertyDisplayInfo() const {
+    string status = getStatus() == MORTGAGED ? "MORTGAGED [M]" : getStatus() == OWNED ? "OWNED" : "BANK";
+    string info = getName() + " (" + getCode() + ")";
+    if (hasHotel) {
+        info += " Hotel";
+    } else if (houseCount > 0) {
+        info += to_string(houseCount) + " House(s)";
+    }
+
+    if (isOwned()) {
+        info += " M" + to_string(getPrice());
+    } else {
+        info += " M" + to_string(getPrice());
+    }
+    info += " " + status;
+    
+    return info;
+}
 int StreetTile::calculateRent(GameContext& G) const {
     int rentIndex = houseCount;
     if (hasHotel) {

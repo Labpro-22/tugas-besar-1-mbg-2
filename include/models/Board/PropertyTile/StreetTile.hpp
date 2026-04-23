@@ -35,6 +35,7 @@ public:
     int getBuildingValue() const override;
     string getTypeLabel() const override;
     string getDisplayExtra() const override;
+    string getPropertyDisplayInfo() const override;
     vector<string> getAktaDetailLines(const GameContext& G) const override;
     vector<string> getRentDetailLines(GameContext& G) const override;
 

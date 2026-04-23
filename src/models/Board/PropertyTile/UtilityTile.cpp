@@ -70,3 +70,8 @@ int UtilityTile::calculateRent(GameContext& G) const {
         return 0;
     }
 }
+
+string UtilityTile::getPropertyDisplayInfo() const {
+    string status = getStatus() == MORTGAGED ? "MORTGAGED [M]" : getStatus() == OWNED ? "OWNED" : "BANK";
+    return getName() + " (" + getCode() + ") M" + to_string(getPrice()) + " " + status;
+}
