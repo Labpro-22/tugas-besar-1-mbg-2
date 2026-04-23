@@ -3,23 +3,23 @@
 
 using namespace std;
 
+class GameContext;
+class LandResult;
+
 class StreetTile : public PropertyTile
 {
 private:
-    // string colorGroup;  // warna harusnya ga perlu sudah turunan dari kelas Tile
     int houseCost;
     int hotelCost;
     int houseCount;
     bool hasHotel;
     int festivalMult = 1;
     int festivalDuration = 0;
-    int festivalMult = 1;
-    int festivalDuration = 0;
     vector<int> rentPrices; 
 
 public:
     StreetTile(int idx, string code, string name, int price, 
-        int morgageValue, vector<int> rentPrices, 
+        int mortgageValue, vector<int> rentPrices, 
         int houseCost, int hotelCost, string color);
     
     LandResult land(GameContext &G) override;
@@ -45,6 +45,4 @@ public:
     bool getHasHotel() const;
     vector<int> getRentPrices() const;
     int calculateRent(GameContext& G) const override;
-
 };
-

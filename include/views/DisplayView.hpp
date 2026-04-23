@@ -1,12 +1,16 @@
 #pragma once
 #include "GameContext.hpp"
+
+// Tiles
 #include "PropertyTile.hpp"
 #include "StreetTile.hpp"
 #include "RailroadTile.hpp"
 #include "UtilityTile.hpp"
 #include "TaxTile.hpp"
 #include "FestivalTile.hpp"
+#include "CardTile.hpp"
 
+#include "GameLogger.hpp"
 class DisplayView
 {
 public:
@@ -55,6 +59,29 @@ public:
     void renderFestivalResult(GameContext G, StreetTile* tile);
     void InputUnvalidFestivalProperty(GameContext G);
     
+    // Mortgage
+    void renderMortgageStart(GameContext G, vector<PropertyTile*> mortgagedTiles);
+    void renderMortgageChoose(GameContext G, vector<PropertyTile*> mortgagedTiles, int choose);
+
+    //SaveLoad
+    void renderSaveSuccess(GameContext G, string filename);
+    void renderSaveFailure(GameContext G, string filename);
+    void renderSaveFilenameUsed(GameContext G, string filnename);
+    void renderOverwrite(GameContext G, string filename, string choice);
+    void renderLoadSuccess(GameContext G, string filename);
+    void renderLoadFailure(GameContext G, string filename, bool fileExists);
+    
+    //Finish Game
+    void renderGameOverMaxTurn(GameContext G);
+
+    // Card Tile
+    void renderCardTile(GameContext G, CardTile* tile);
+
+    // Use Card
+    void renderUseCardMenu(GameContext G, Card* card);
+    
+    // Player Info
+    void renderPlayerInfo(GameContext G, Player* player);
 private:
     // Helper function to fit text to a specific width
     static const int CARD_INNER_WIDTH = 30;

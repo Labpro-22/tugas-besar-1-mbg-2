@@ -42,6 +42,15 @@ void InputHandler::getIntInput() {
         valInt1 = -1; 
     }
 }
+void InputHandler::getIntTwoInput() {
+    inputSource >> valInt1 >> valInt2;
+    
+    if (inputSource.fail()) {
+        clearInputBuffer();
+        valInt1 = -1; 
+        valInt2 = -1; 
+    }
+}
 
 void InputHandler::getStringInput() {
     inputSource >> lastStringInput;
