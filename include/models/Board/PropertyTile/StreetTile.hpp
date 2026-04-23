@@ -20,10 +20,17 @@ public:
     
     LandResult land(GameContext &G) override;
     int getBuildingValue() const override;
+    string getTypeLabel() const override;
+    string getDisplayExtra() const override;
+    vector<string> getAktaDetailLines(const GameContext& G) const override;
+    vector<string> getRentDetailLines(GameContext& G) const override;
+
     int getHouseCost() const;
     int getHotelCost() const;
     int getHouseCount() const;
     bool getHasHotel() const;
     vector<int> getRentPrices() const;
+    int calculateRent(GameContext& G) const override;
+
 };
 

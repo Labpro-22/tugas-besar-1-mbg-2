@@ -34,6 +34,18 @@ PropertyType PropertyTile::getPropertyType() const {
     return propertyType;
 }
 
+string PropertyTile::getTypeLabel() const {
+    return "PR";
+}
+
+string PropertyTile::getDisplayExtra() const {
+    return "";
+}
+
+vector<string> PropertyTile::getAktaDetailLines(const GameContext& G) const {
+    return {};
+}
+
 int PropertyTile::getPrice() const {
     return price;
 }
@@ -41,3 +53,6 @@ int PropertyTile::getPrice() const {
 int PropertyTile::getMorgageValue() const {
     return morgageValue;
 }
+
+
+
