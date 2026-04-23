@@ -525,6 +525,7 @@ void DisplayView::renderMortgage(GameContext G, PropertyTile* tile){
     cout << "This property is now mortgaged [M]. No rent will be collected from this property." << endl;
 }
 
+
 void DisplayView::renderCantPay(GameContext G, int amountOwed){
     cout << "You can't pay the required amount of rent." << "(M" << amountOwed << ")" << endl;
     cout << "Your current balance: M" << G.getCurrentPlayer().getBalance() << endl;
@@ -730,8 +731,8 @@ void DisplayView::renderMortgageGroupColorResult(GameContext G, string choice, v
         for (StreetTile* tile : sameColorProps) {
             if (tile->getHouseCount() > 0 || tile->getHasHotel()){
                 cout << "All buildings on " << tile->getName() << " have been sold.";
-                cout << "You receive M" << tile->getBuildingValue() << endl;
-                totalValue += tile->getBuildingValue();
+                cout << "You receive M" << tile->getBuildingValue() / 2 << endl;
+                totalValue += tile->getBuildingValue() / 2;
             }
         }
         cout << "Your current balance: M" << G.getCurrentPlayer().getBalance() + totalValue << endl;
