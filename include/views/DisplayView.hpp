@@ -92,6 +92,8 @@ public:
     
     // Player Info
     void renderPlayerInfo(GameContext G, Player* player);
+    void renderPlayer(GameContext G);
+    
 private:
     // Helper function to fit text to a specific width
     static const int CARD_INNER_WIDTH = 30;
