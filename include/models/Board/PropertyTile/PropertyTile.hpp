@@ -1,11 +1,12 @@
 #pragma once
 #include "Tile.hpp"
+#include "LandResult.hpp"
 #include <vector>
 
 using namespace std;
 
 class GameContext;
-
+struct LandResult;
 enum PropertyStatus
 {
     BANK,
@@ -29,10 +30,10 @@ protected:
     PropertyStatus status;
     PropertyType propertyType;
     int price; 
-    int morgageValue;
+    int mortgageValue;
 public:
     LandResult land(GameContext &G) = 0; // override pure virtual function
-    PropertyTile(int idx, string code, string name, int price, int morgageValue, string color);
+    PropertyTile(int idx, string code, string name, int price, int mortgageValue, string color);
     bool isOwned() const;
     void setOwner(Player *newOwner);
     void setStatus(PropertyStatus newStatus);
@@ -49,6 +50,6 @@ public:
     virtual int calculateRent(GameContext& G) const;
 
     int getPrice() const;
-    int getMorgageValue() const;
+    int getMortgageValue() const;
 };
 

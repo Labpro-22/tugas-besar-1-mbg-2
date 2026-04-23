@@ -4,6 +4,7 @@
 #include <ostream>
 #include <istream>
 #include <iostream>
+#include <iomanip>
 
 using namespace std;
 
@@ -20,7 +21,7 @@ class GameLogger
 private:
     vector<LogEntry> logs; 
 public:
-    void addLog(int turn, const string& username, string& action, const string& details);
+    void addLog(int turn, const string& username, const string& action, const string& details);
     void printLogs(int count) const;
     int getLogCount() const;
     const vector<LogEntry>& getLogs() const;

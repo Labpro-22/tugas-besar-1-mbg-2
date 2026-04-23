@@ -1,6 +1,6 @@
 #pragma once
 #include "PropertyTile.hpp"
-
+#include "GameContext.hpp"
 using namespace std;
 
 class RailroadTile : public PropertyTile

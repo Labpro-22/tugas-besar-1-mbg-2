@@ -5,6 +5,7 @@
 #include <map>
 #include <sstream>
 #include <algorithm>
+
 using namespace std;
 
 // ============ EXISTING HELPERS (CARD RENDERING) ============
@@ -399,7 +400,7 @@ void DisplayView::renderAkta(GameContext G, string code){
     printCardLine("[" + prop->getColor() + "] " + prop->getName() + " (" + prop->getCode() + ")");
     cout << "+==============================+" << endl;
     printCardLine("Buy Price        : M" + to_string(prop->getPrice()));
-    printCardLine("Mortgage Value   : M" + to_string(prop->getMorgageValue()));
+    printCardLine("Mortgage Value   : M" + to_string(prop->getMortgageValue()));
     cout << "+------------------------------+" << endl;
     
     vector<string> detailLines = prop->getAktaDetailLines(G);
@@ -584,7 +585,7 @@ void DisplayView::renderPayTax(GameContext G, int choose){
 
 void DisplayView::renderAuctionStart(GameContext G, PropertyTile* tile){
     cout << "Auction started for " << tile->getName() << " (" << tile->getCode() << ")!" << endl;
-    cout << "Auction start from plyaer after current player: " << G.getPlayers()[(G.getCurrentPlayerIndex() + 1) % G.getPlayers().size()].getName() << endl;
+    cout << "Auction start from player after current player: " << G.getPlayers()[(G.getCurrentPlayerIndex() + 1) % G.getPlayers().size()].getName() << endl;
 }
 
 void DisplayView::renderAuctionLine(string playerName){
@@ -652,3 +653,192 @@ void DisplayView::renderFestivalResult(GameContext G, StreetTile* tile) {
     }
 }
 
+// Redeem Mortgage
+void DisplayView::renderRedeemStart(GameContext G, vector<PropertyTile*> mortgagedTiles){
+    if (mortgagedTiles.empty()) {
+        cout << "You don't have any mortgaged properties to redeem." << endl;
+        return;
+    }
+    cout << "=== PROPERTY MORTGAGED ===" << endl;
+    int i = 1;
+    for (const PropertyTile* tile : mortgagedTiles)
+    {
+        if (tile->getStatus() == MORTGAGED){
+            cout << i << ". " << tile->getName() << " (" << tile->getCode() << ")" << "[ << " << tile->getColor() << " >> ]" << "[M]"  << "Morgage Value: M" << tile->getPrice() << endl;
+            i++;
+        }
+    }
+    cout << "Your balance: M" << G.getCurrentPlayer().getBalance() << endl;
+    cout << "Choose a property to unmortgage (0 to skip): ";
+    
+}
+
+// Mortgage 
+void DisplayView::renderMortgageStart(GameContext G, vector<PropertyTile*> unmortgagedTiles){
+    if (unmortgagedTiles.empty()) {
+        cout << "You don't have any properties to mortgage." << endl;
+        return;
+    }
+    cout << "=== PROPERTY UNMORTGAGED ===" << endl;
+    int i = 1;
+    for (const PropertyTile* tile : unmortgagedTiles)
+    {
+        if (tile->getStatus() != MORTGAGED){
+            cout << i << ". " << tile->getName() << " (" << tile->getCode() << ")" << "[ << " << tile->getColor() << " >> ]"  << "Mortgage Value: M" << tile->getMortgageValue() << endl;
+            i++;
+        }
+    }
+    cout << "Choose a property to mortgage (0 to skip): ";
+}
+void DisplayView::renderMortgageResult(GameContext G, PropertyTile* tile){
+    cout << "You have mortgaged " << tile->getName() << "(" << tile->getCode() << "),";
+    cout << "You receive M" << tile->getMortgageValue() << " from the bank." << endl;
+    cout << "Your current balance: M" << G.getCurrentPlayer().getBalance() << endl;
+    cout << "This property is now mortgaged [M]. No rent will be collected from this property." << endl;
+}
+
+void DisplayView::renderMortgageGroupColorStart(GameContext G, vector<StreetTile*> sameColorProps){
+    cout << "There's still building in color group " << sameColorProps[0]->getColor() << endl << endl;
+
+    cout << "List of properties in the same color group:" << endl;
+    int i = 1;
+    for (const StreetTile* tile : sameColorProps)
+    {
+        if (tile->getHouseCount() > 0 || tile->getHasHotel()){
+            continue;
+        }
+
+        if (tile->getStatus() == MORTGAGED){
+            continue;
+        }
+        if (tile->getHasHotel()){
+            cout << i << ". " << tile->getName() << " (" << tile->getCode() << ") " << "- " << tile->getHouseCount() << endl;
+        } else {
+            cout << i << ". " << tile->getName() << " (" << tile->getCode() << ") " << "- " << tile->getHouseCount() << endl;
+        }
+        i++;
+    }   
+    cout << "Sell all building in the color group [" << sameColorProps[0]->getColor() << "]: (Y/N)" << endl;
+}
+
+void DisplayView::renderMortgageGroupColorResult(GameContext G, string choice, vector<StreetTile*> sameColorProps){
+    if (choice != "y" && choice != "Y") {
+        cout << "Mortgage cancelled. You cannot mortgage this property until you sell all buildings in the color group." << endl;
+        return;
+    }else{
+        int totalValue = 0;
+        for (StreetTile* tile : sameColorProps) {
+            if (tile->getHouseCount() > 0 || tile->getHasHotel()){
+                cout << "All buildings on " << tile->getName() << " have been sold.";
+                cout << "You receive M" << tile->getBuildingValue() << endl;
+                totalValue += tile->getBuildingValue();
+            }
+        }
+        cout << "Your current balance: M" << G.getCurrentPlayer().getBalance() + totalValue << endl;
+    }
+}
+
+void DisplayView::renderRedeemChoose(GameContext G, vector<PropertyTile*> mortgagedTiles, int choose){
+    if (choose == 0) {
+        cout << "You chose not to unmortgage any property." << endl;
+        return;
+    }
+
+    if (choose < 1 || choose > (int)mortgagedTiles.size()) {
+        cout << "Invalid choice. Please choose a valid property number." << endl;
+        return;
+    }
+
+    PropertyTile* chosenTile = mortgagedTiles[choose - 1];
+    // Jaga - jaga agar tidak terjadi error jika status tile berubah di tengah proses
+    if (chosenTile->getStatus() != MORTGAGED) {
+        cout << "The chosen property is not currently mortgaged." << endl;
+        return; 
+    }
+
+    int unmortgageCost = chosenTile->getPrice();
+    if (G.getCurrentPlayer().getBalance() < unmortgageCost) {
+        cout << "You don't have enough balance to unmortgage this property." << endl; 
+        cout << "Required: M" << unmortgageCost << "| Your Balance: M" << G.getCurrentPlayer().getBalance() << endl;
+        return;
+    }
+
+    cout << "You chose to unmortgage " << chosenTile->getName() << " (" << chosenTile->getCode() << ")." << endl;
+    cout << "You paying M" << unmortgageCost << "To the bank" << endl;
+    cout << "Your Current Balance: M" << G.getCurrentPlayer().getBalance() << " -> M" << G.getCurrentPlayer().getBalance() - unmortgageCost << endl;
+}
+// Build 
+void DisplayView::renderBuildStart(GameContext G, map<string, vector<StreetTile*>> tiles){
+    cout << "== Qualified Color Groups ==" << endl;
+
+}
+
+// SaveLoad
+
+void DisplayView::renderSaveSuccess(GameContext G, string filename){
+    cout << "Saving game to ..." << endl;
+    cout << "Game successfully saved to file: " << filename << endl;
+}
+
+void DisplayView::renderSaveFilenameUsed(GameContext G, string filnename){
+    cout << "Filename '" << filnename << "' is already used. " << endl;
+    cout << "Do you want to overwrite the existing file? (y/n): ";
+}
+
+void DisplayView::renderOverwrite(GameContext G, string filename, string choice){
+    if (choice != "y" && choice != "Y") {
+        cout << "Save operation cancelled. Your game was not saved." << endl;
+        return;
+    }else{
+        cout << "Overwriting file '" << filename << "'..." << endl;
+        cout << "Game successfully saved to file: " << filename << endl;
+    }
+}
+
+void DisplayView::renderSaveFailure(GameContext G, string filename){
+    cout << "Failed to save game to file: " << filename << endl;
+    cout << "Please check if the filename is valid and try again." << endl;
+}
+
+
+void DisplayView::renderLoadSuccess(GameContext G, string filename){
+    cout << "Loading game from file: " << filename << "..." << endl;
+    cout << "Game successfully loaded from file: " << filename << endl;
+}
+
+void DisplayView::renderLoadFailure(GameContext G, string filename, bool fileExists){
+    if (fileExists) {
+        cout << "Failed to load game from file: " << filename << endl;
+        cout << "Please check if the file is valid and try again." << endl;
+    } else {
+        cout << "File not found: " << filename << endl;
+        cout << "Please check the filename and try again." << endl;
+    }
+}
+
+void DisplayView::renderGameOverMaxTurn(GameContext G){
+    cout << "Game Over! " << endl;  
+    cout << "Final Standings:" << endl;
+    vector<Player> players = G.getPlayers();
+    for (size_t i = 0; i < players.size(); ++i) {
+        renderPlayerInfo(G, &players[i]);
+    }
+    
+    sort(players.begin(), players.end(), [](const Player& a, const Player& b) {
+        return a.totalWealth() > b.totalWealth();
+    });
+
+    cout << "Winner: " << players[0].getName() << " with total wealth of M" << players[0].totalWealth() << "!" << endl;
+}
+
+void DisplayView::renderPlayerInfo(GameContext G, Player* player){
+    cout << "=== Player Info: " << player->getName() << " ===" << endl;
+    cout << "Balance: M" << player->getBalance() << endl;
+    if (!player->getOwnedProperties().empty()) {
+        cout << "Properties Owned: " << player->getOwnedProperties().size() << endl;
+    }
+    if (player->getSkillCardCount() > 0) {
+        cout << "Skill Cards: " << player->getSkillCardCount() << endl;
+    }
+    cout << "" << endl;
+}
