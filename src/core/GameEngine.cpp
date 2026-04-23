@@ -166,7 +166,6 @@ void GameEngine::run() {
                     break;
 
                 case CommandType::SIMPAN:
-                    cout << "Masukkan nama file save: ";
                     inputHandler.getStringInput();
                     saveLoader.saveGame(inputHandler.getLastStringInput(), gameContext);
                     logger.addLog(gameContext.getCurrentTurn(), currentPlayer->getName(), "SIMPAN", inputHandler.getLastStringInput());

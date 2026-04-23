@@ -57,7 +57,11 @@ public:
     
     // Build
     void renderBuildStart(GameContext G, map<string, vector<StreetTile*>> tiles);
-    void renderBuildResult(GameContext G, StreetTile* tile, string choice);
+    void renderBuildMid(GameContext G, vector<StreetTile*> buildableTiles);
+    void renderStreetBuilt(vector<StreetTile*> tiles, int maxHouseCount, int minHouseCount);
+    void renderBuildCancel(GameContext G);
+    void renderBuildInvalid(GameContext G);
+    void renderbuildHouses(GameContext G, StreetTile* tile, vector<StreetTile*> buildableTiles);
     
     // Auction 
     void renderAuctionStart(GameContext G, PropertyTile* tile);
