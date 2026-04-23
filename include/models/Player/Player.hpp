@@ -58,6 +58,7 @@ public:
     void removeProperty(PropertyTile* property);
 
     void addCardToHand(SkillCard* card);
+    vector<SkillCard*> getSkillCard();
     SkillCard* useSkillCard(int idx);
     SkillCard* dropSkillCard(int idx);
     bool hasAnySkillCard() const;
@@ -71,8 +72,7 @@ public:
     int getJailTurns() const;
 
     vector<PropertyTile*>& getOwnedProperties();
-    const vector<PropertyTile*>& getOwnedProperties() const;
-
+  
     int totalWealth() const;
     int totalPropertyPrice() const;
     int totalBuildingValue() const;
