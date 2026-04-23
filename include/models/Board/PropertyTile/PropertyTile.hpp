@@ -34,7 +34,7 @@ public:
     bool isOwned() const;
     void setOwner(Player *newOwner);
     void setStatus(PropertyStatus newStatus);
-
+    virtual int getBuildingValue() const;
     Player* getOwner() const;
     PropertyStatus getStatus() const;
     PropertyType getPropertyType() const;

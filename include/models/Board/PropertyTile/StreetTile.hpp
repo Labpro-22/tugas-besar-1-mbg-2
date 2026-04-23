@@ -19,6 +19,7 @@ public:
         int houseCost, int hotelCost, string color);
     
     LandResult land(GameContext &G) override;
+    int getBuildingValue() const override;
     string getTypeLabel() const override;
     string getDisplayExtra() const override;
     vector<string> getAktaDetailLines(const GameContext& G) const override;
