@@ -99,3 +99,17 @@ vector<PropertyTile*> GameBoard::getTileByColor(int position) const
     return result;
 }
 
+
+map<string, vector<PropertyTile*>> GameBoard::getMapColorProperty() {
+    map<string, vector<PropertyTile*>> colorMap;
+    for (Tile* tile : tiles) {
+        if (tile->getType() == "PROPERTY") {
+            PropertyTile* propertyTile = dynamic_cast<PropertyTile*>(tile);
+            if (propertyTile != nullptr) {
+                string color = propertyTile->getColor();
+                colorMap[color].push_back(propertyTile);
+            }
+        }
+    }
+    return colorMap;
+}

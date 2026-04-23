@@ -69,6 +69,8 @@ public:
     void setMaxTurns(int turns);
     void setStartingMoney(int money);
     void setGoSalary(int amount);
+    void setPphFlat(int amount);
+    void setPphPercentage(int amount);
     void getPphFlat(int amount);
     void getPphPercentage(int amount);
     void setPbm(int amount);

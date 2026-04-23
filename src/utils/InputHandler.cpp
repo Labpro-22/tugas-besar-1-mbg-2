@@ -1,6 +1,7 @@
 #include "InputHandler.hpp"
 #include <algorithm>
 #include <cctype>
+#include <sstream>
 
 const map<string, CommandType> InputHandler::commandMap = {
     {"LEMPAR_DADU", CommandType::LEMPAR_DADU},
@@ -41,9 +42,34 @@ void InputHandler::getIntInput() {
         valInt1 = -1; 
     }
 }
+void InputHandler::getIntTwoInput() {
+    inputSource >> valInt1 >> valInt2;
+    
+    if (inputSource.fail()) {
+        clearInputBuffer();
+        valInt1 = -1; 
+        valInt2 = -1; 
+    }
+}
 
 void InputHandler::getStringInput() {
     inputSource >> lastStringInput;
+}
+
+bool InputHandler::getIntRemaining(int& value, bool& hasValue) {
+    string rest;
+    getline(inputSource, rest);
+
+    stringstream ss(rest);
+    int val;
+
+    if (ss >> val) {
+        hasValue = true;
+        value = val;
+        return true;
+    }
+    hasValue = false;
+    return false;
 }
 
 void InputHandler::clearInputBuffer() {

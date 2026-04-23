@@ -19,24 +19,14 @@ bool GameContext::isGameOver() const { return gameOver; }
 int GameContext::getWinnerIndex() const { return winnerIndex; }
 const map<int, int> &GameContext::getRailroadRentTable() const { return this->railroadRent; }
 const map<int, int> &GameContext::getUtilityMultiplierTable() const { return this->UtilityMultiplier; }
-const map<PropertyTile*, FestivalState> &GameContext::getFestivalStates() const { return this->festivalStates; }
-
-bool GameContext::hasFestivalState(PropertyTile* tile) const{
-    return festivalStates.find(tile) != festivalStates.end();
-}
-
-FestivalState GameContext::getFestivalState(PropertyTile* tile) const{
-    auto it = festivalStates.find(tile);
-    if (it != festivalStates.end())
-        return it->second;
-    return FestivalState();
-}
 
 void GameContext::setCurrentPlayerIndex(int index) { currentPlayerIndex = index; }
 void GameContext::setCurrentTurn(int turn) { currentTurn = turn; }
 void GameContext::setMaxTurns(int turns) { maxTurns = turns; }
 void GameContext::setStartingMoney(int money) { startingMoney = money; }
 void GameContext::setGoSalary(int amount) { goSalary = amount; }
+void GameContext::setPphFlat(int amount) { pphFlat = amount; }
+void GameContext::setPphPercentage(int amount) { pphPercentage = amount; }
 void GameContext::getPphFlat(int amount)  { pphFlat = amount; }
 void GameContext::getPphPercentage(int amount)  { pphPercentage = amount; }
 void GameContext::setJailFine(int amount) { jailFine = amount; }
@@ -45,15 +35,6 @@ void GameContext::setUtilityMultiplier(int totalOwned, int multiplier) { Utility
 void GameContext::setGameOver(bool value) { gameOver = value; }
 void GameContext::setWinnerIndex(int index) { winnerIndex = index; }
 
-void GameContext::setFestivalState(PropertyTile* tile, const FestivalState &state){
-    festivalStates[tile] = state;
-}
-void GameContext::clearFestivalState(PropertyTile* tile){
-    festivalStates.erase(tile);
-}
-void GameContext::clearAllFestivalStates(){
-    festivalStates.clear();
-}
 Player& GameContext::getCurrentPlayer() {
     auto it = players.begin();
     advance(it, currentPlayerIndex);

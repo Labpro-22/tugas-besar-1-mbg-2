@@ -9,7 +9,7 @@
 using namespace std;
 
 void GameEngine::initGame(GameContext& gameContext, TurnController& turnController, ConfigReader& configReader, EconomyController& economyController) {
-    configReader.loadAllConfigs(gameContext.getBoard(), economyController, turnController);
+    configReader.loadAllConfigs(&gameContext, gameContext.getBoard(), economyController, turnController);
 }
 
 void GameEngine::run() {
@@ -131,11 +131,9 @@ void GameEngine::run() {
                     break;
 
                 case CommandType::ATUR_DADU: {
-                    cout << "Masukkan dua angka dadu (x y): ";
-                    inputHandler.getIntInput();
+                    inputHandler.getIntTwoInput();
                     int x = inputHandler.getIntValue1();
-                    inputHandler.getIntInput();
-                    int y = inputHandler.getIntValue1();
+                    int y = inputHandler.getIntValue2();
                     dice.setRoll(x, y);
                     turnController.executeAction(&gameContext, economyController, effectController, auctionController, bankruptcyController, dice, saveLoader, inputHandler, logger);
                     turnEnded = true;
@@ -182,8 +180,20 @@ void GameEngine::run() {
                     break;
 
                 case CommandType::CETAK_LOG:
-                    // belum ada implementasi
+                {
+                    int count = 0;
+                    bool hasValue = false;
+                    bool isInt = inputHandler.getIntRemaining(count, hasValue);
+
+                    if (!hasValue) {
+                        logger.printLogs(0);
+                    } else if (isInt) {
+                        logger.printLogs(count);
+                    } else {
+                        cout << "Argumen CETAK_LOG harus angka." << endl; // gw rasa ini nanti bisa dibuat exception kalau mau
+                    }
                     break;
+                }
 
                 case CommandType::UNKNOWN_COMMAND:
                 default:

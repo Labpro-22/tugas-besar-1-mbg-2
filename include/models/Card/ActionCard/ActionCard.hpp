@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 #pragma once
 #include "Card.hpp"
 #include "Player.hpp"
@@ -19,3 +20,17 @@ public:
 
     virtual ActionCardType getActionType() const = 0;
 };
+=======
+#pragma once
+#include "Card.hpp"
+#include "Player.hpp"
+
+class ActionCard : public Card
+{
+public:
+    ActionCard(string name, string desc);
+    virtual void execute(Player &p) = 0; 
+    ~ActionCard() override;
+};
+
+>>>>>>> 2242d01afd5f4da5b17612f349db6105653b5b58

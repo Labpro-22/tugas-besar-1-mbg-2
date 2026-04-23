@@ -1,6 +1,6 @@
 #pragma once
 #include "ActionTile.hpp"
-
+#include "GameContext.hpp"
 using namespace std;
 
 class TaxTile : public ActionTile
@@ -10,4 +10,5 @@ private:
 public:
     TaxTile(int idx, string code, string name, bool isPPH, string color = "DEFAULT");
     LandResult land(GameContext &G) override;
+    bool getIsPPH() const;
 };
