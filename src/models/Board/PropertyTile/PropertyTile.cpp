@@ -1,8 +1,8 @@
 #include "PropertyTile.hpp"
 
 PropertyTile::PropertyTile(int idx, string code, string name, 
-    int price, int morgageValue, string color) 
-    : Tile(idx, code, name, PROPERTY, color), price(price), morgageValue(morgageValue){
+    int price, int mortgageValue, string color) 
+    : Tile(idx, code, name, PROPERTY, color), price(price), mortgageValue(mortgageValue){
     owner = nullptr;
     type = PROPERTY;
     status = BANK;
@@ -50,8 +50,8 @@ int PropertyTile::getPrice() const {
     return price;
 }
 
-int PropertyTile::getMorgageValue() const {
-    return morgageValue;
+int PropertyTile::getMortgageValue() const {
+    return mortgageValue;
 }
 
 

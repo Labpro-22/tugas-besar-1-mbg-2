@@ -33,6 +33,7 @@ public:
 
     CommandType getCommand();
     void getIntInput();
+    void getIntTwoInput();
     void getStringInput();
     bool getIntRemaining(int& value, bool& hasValue);
     

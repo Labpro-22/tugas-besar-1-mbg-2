@@ -3,7 +3,7 @@
 #include "Player.hpp"
 #include "PropertyTile.hpp"
 #include "SkillCard.hpp"
-
+#include "StreetTile.hpp"
 void Player::setName(string name) {
     username = name;
 }
@@ -213,6 +213,10 @@ vector<PropertyTile*>& Player::getOwnedProperties(){
     return ownedProperties;
 }
 
+const vector<PropertyTile*>& Player::getOwnedProperties() const {
+    return ownedProperties;
+}
+
 int Player::totalPropertyPrice() const {
     int output = 0;
     for (PropertyTile *property : ownedProperties) {
@@ -267,4 +271,56 @@ int Player::countOwnerUtilities() const {
         }
     }
     return count;
+}
+
+vector<PropertyTile*> Player::getMortgagedProperties() {
+    vector<PropertyTile*> mortgagedProperties;
+    for (PropertyTile* property : ownedProperties) {
+        if (property != nullptr && property->getStatus() == MORTGAGED) {
+            mortgagedProperties.push_back(property);
+        }
+    }
+    return mortgagedProperties;
+}
+
+map<string, vector<PropertyTile*>> Player::getMapColorOwnedProperty() {
+    map<string, vector<PropertyTile*>> colorMap;
+    for (PropertyTile* property : ownedProperties) {
+        if (property != nullptr) {
+            colorMap[property->getColor()].push_back(property);
+        }
+    }
+    return colorMap;
+}
+
+map<string, vector<StreetTile*>> Player::getColorOwnedStreetTile() {
+    map<string, vector<StreetTile*>> StreetTileMap;
+    for (PropertyTile* property : ownedProperties) {
+        StreetTile* street = dynamic_cast<StreetTile*>(property);
+        if (street != nullptr && street->getStatus() != MORTGAGED && street->getTypeLabel() == "ST") {
+            StreetTileMap[street->getColor()].push_back(street);
+        }
+    }
+    return StreetTileMap;
+}
+
+vector<StreetTile*> Player::getStreetTileByColor(const string& color) {
+    vector<StreetTile*> streetTiles;
+    for (PropertyTile* property : ownedProperties) {
+        StreetTile* street = dynamic_cast<StreetTile*>(property);
+        if (street != nullptr && street->getColor() == color) {
+            streetTiles.push_back(street);
+        }
+    }
+    return streetTiles;
+}
+
+map<string, vector<PropertyTile*>> Player::getUnmortgagedGroups() {
+    map<string, vector<PropertyTile*>> unmortgagedGroups;
+    for (PropertyTile* property : ownedProperties) {
+        if (property != nullptr && property->getStatus() != MORTGAGED) {
+            unmortgagedGroups[property->getColor()].push_back(property);
+        }
+    }
+    return unmortgagedGroups;
 }

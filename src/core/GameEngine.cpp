@@ -9,7 +9,7 @@
 using namespace std;
 
 void GameEngine::initGame(GameContext& gameContext, TurnController& turnController, ConfigReader& configReader, EconomyController& economyController) {
-    configReader.loadAllConfigs(gameContext.getBoard(), economyController, turnController);
+    configReader.loadAllConfigs(&gameContext, gameContext.getBoard(), economyController, turnController);
 }
 
 void GameEngine::run() {
@@ -131,11 +131,9 @@ void GameEngine::run() {
                     break;
 
                 case CommandType::ATUR_DADU: {
-                    cout << "Masukkan dua angka dadu (x y): ";
-                    inputHandler.getIntInput();
+                    inputHandler.getIntTwoInput();
                     int x = inputHandler.getIntValue1();
-                    inputHandler.getIntInput();
-                    int y = inputHandler.getIntValue1();
+                    int y = inputHandler.getIntValue2();
                     dice.setRoll(x, y);
                     turnController.executeAction(&gameContext, economyController, effectController, auctionController, bankruptcyController, dice, saveLoader, inputHandler, logger);
                     turnEnded = true;
@@ -185,7 +183,7 @@ void GameEngine::run() {
                 {
                     int count = 0;
                     bool hasValue = false;
-                    bool isInt = inputHandler.getIntRemaining(value, hasValue);
+                    bool isInt = inputHandler.getIntRemaining(count, hasValue);
 
                     if (!hasValue) {
                         logger.printLogs(0);

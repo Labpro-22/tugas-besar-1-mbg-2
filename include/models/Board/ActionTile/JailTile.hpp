@@ -1,6 +1,7 @@
 #pragma once
 #include <string>
 #include "ActionTile.hpp"
+#include "GameContext.hpp"
 
 using namespace std;
 
