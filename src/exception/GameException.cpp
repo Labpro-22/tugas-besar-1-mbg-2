@@ -8,43 +8,48 @@ const char* GameException::what() const noexcept{
 
 // ECONOMY
 InsufficientFundsException::InsufficientFundsException(const int& required, const int& cur)
-    : GameException("Uang tidak mencukup! Butuh: M" + to_string(required) + ", Anda hanya memiliki M" + to_string(cur)),required(required),cur(cur) {}
+    : GameException("Insufficient funds! Required: M" + to_string(required) + ", you only have M" + to_string(cur)),required(required),cur(cur) {}
 
 // CARD
-InventoryFullException::InventoryFullException():GameException("Inventory kamu penuh! Anda sudah memiliki 3 kartu."){}
+InventoryFullException::InventoryFullException():GameException("Your inventory is full! You already have 3 cards."){}
 
-CardNotFoundException::CardNotFoundException(const string& cardName): GameException("Kamu tidak memiliki kartu: " + cardName + "!"),cardName(cardName){}
+CardNotFoundException::CardNotFoundException(const string& cardName): GameException("You do not own the card: " + cardName + "!"),cardName(cardName){}
 
-AlreadyUseCardException::AlreadyUseCardException():GameException("Kamu hanya boleh menggunakan satu kartu dalam satu giliran!"){}
+AlreadyUseCardException::AlreadyUseCardException():GameException("You can only use one card per turn!"){}
 
-UseCardAfterDiceException::UseCardAfterDiceException():GameException("Kamu tidak bisa menggunakan kartu setelah mengocok dadu!"){}
+UseCardAfterDiceException::UseCardAfterDiceException():GameException("You can't use a card after rolling the dice!"){}
 
 // Property
-TileNotFoundException::TileNotFoundException(const string& code): GameException("Petak dengan kode " + code + " tidak ditemukan!"), code(code){}
+TileNotFoundException::TileNotFoundException(const string& code): GameException("Tile with code " + code + " not found!"), code(code){}
 
-PropertyNotOwnedException::PropertyNotOwnedException(): GameException("Properti ini belum dimiliki oleh siapapun!"){}
+PropertyNotOwnedException::PropertyNotOwnedException(): GameException("Property isn't owned by anyone!"){}
 
-PropertyAlreadyOwnedException::PropertyAlreadyOwnedException(): GameException("Properti ini sudah dimiliki oleh orang lain!"){}
+PropertyAlreadyOwnedException::PropertyAlreadyOwnedException(): GameException("Property is already owned by another player!"){}
 
-PropertyMortgagedException::PropertyMortgagedException(): GameException("Properti ini sedang digadaikan!"){}
+PropertyMortgagedException::PropertyMortgagedException(): GameException("Property is currently mortgaged!"){}
 
-NotMortgagedException::NotMortgagedException(): GameException("Properti ini tidak sedang digadaikan!"){}
+NotMortgagedException::NotMortgagedException(): GameException("This property is not currently mortgaged!"){}
 
-HasBuildingForMortgage::HasBuildingForMortgage(): GameException("Masih ada bangunan di color group ini. Bangunan harus dijual terlebih dahulu!"){}
+UnevenBuildingException::UnevenBuildingException(const string& color): GameException("Buildings need to be even! The difference in the number of houses in color group " + color + " can't be more than one!"){}
 
-UnevenBuildingException::UnevenBuildingException(const string& color): GameException("Pembangunan harus merata! Selisih jumlah rumah di color group " + color + " tidak boleh lebih dari satu!"){}
+MaxBuildingException::MaxBuildingException():GameException("Tile has reached maximum building limit!"){}
 
-MaxBuildingException::MaxBuildingException():GameException("Petak ini sudah mencapai batas pembangunan!"){}
-
-UpgradeHotelException::UpgradeHotelException():GameException("Seluruh petak dalam color group harus memiliki 4 rumah sebelum bisa upgrade ke Hotel!"){}
+UpgradeHotelException::UpgradeHotelException():GameException("All tiles in color group must have 4 houses before upgrading to a hotel!"){}
 
 // INPUT 
-InvalidCommandException::InvalidCommandException():GameException("Perintah tidak valid!"){}
+InvalidCommandException::InvalidCommandException():GameException("Invalid command!"){}
 
-InvalidArgumentException::InvalidArgumentException(const string& arg):GameException("Argumen: " + arg + " tidak valid!"), arg(arg){}
+InvalidArgumentException::InvalidArgumentException(const string& arg):GameException("Argument: " + arg + " is invalid!"), arg(arg){}
+
+// Player
+DuplicateNameException::DuplicateNameException(const string& name):GameException("Name " + name + " has already been used! Please use another name!"){}
 
 // DICE
-RollDiceException::RollDiceException(): GameException("Angka dadu harus berada di antara 1 sampai 6!"){}
+RollDiceException::RollDiceException(): GameException("Dice number must be between 1 to 6!"){}
 
 // SYSTEM 
-FileNotFoundException::FileNotFoundException(const string& filename): GameException("File: " + filename + " tidak ditemukan!"){}
+FileNotFoundException::FileNotFoundException(const string& filename): GameException("File: " + filename + " not found!"){}
+
+SaveGameException::SaveGameException(const string& filename): GameException("Failed to save to " + filename){}
+
+LoadGameException::LoadGameException(const string& filename): GameException("Failed to load game from " + filename){}
