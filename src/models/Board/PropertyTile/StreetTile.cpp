@@ -27,41 +27,29 @@ LandResult StreetTile::land(GameContext &G){
     return LandResult{LandEventType::DONOTHING, this, nullptr, &G.getCurrentPlayer(), nullptr, 0, false};
 }
 
-int StreetTile::getFestivalMult() const {
-    return festivalMult;
+int StreetTile::getFestivalStack() const {
+    return festivalState.getStacks();
 }
 
-int StreetTile::getFestivalDuration() const {
-    return festivalDuration;
+int StreetTile::getFestivalTurn() const {
+    return festivalState.getTurnsLeft();
 }
 
 bool StreetTile::isFestivalActive() const {
-    return festivalDuration > 0 && festivalMult > 1;
+    return festivalState.getTurnsLeft() > 0 && festivalState.getStacks() > 1;
 }
 
 void StreetTile::applyFestival() {
-    if (festivalDuration <= 0) {
-        festivalMult = 2;
-        festivalDuration = 3;
-        return;
-    }
-
-    festivalMult += 1;
-    festivalDuration = 3;
+    festivalState.activateFestival();
 }
 
-void StreetTile::tickFestival() {
-    if (festivalDuration <= 0) {
-        festivalDuration = 0;
-        festivalMult = 1;
-        return;
-    }
+void StreetTile::playerReenterFestival(){
+    festivalState.resetDuration();
+    festivalState.increaseStack();
+}
 
-    festivalDuration -= 1;
-    if (festivalDuration <= 0) {
-        festivalDuration = 0;
-        festivalMult = 1;
-    }
+void StreetTile::decreaseFestivalTurn(){
+    festivalState.decrementTurn();
 }
 
 int StreetTile::getBuildingValue() const  {
