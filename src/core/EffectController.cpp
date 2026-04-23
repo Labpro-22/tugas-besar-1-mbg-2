@@ -48,21 +48,21 @@ void EffectController::execute(ActionCard& card, Player& currentPlayer, GameCont
         case ActionCardType::BIRTHDAY: {
             for (Player& p : ctx.getPlayers()) {
                 if (&p != &currentPlayer && p.getStatus() != PlayerStatus::BANKRUPT) {
-                    p.reduceBalance(100);
-                    currentPlayer.addBalance(100);
+                    p -= 100;
+                    currentPlayer += 100;
                 }
             }
             break;
         }
         case ActionCardType::DOCTOR_FEE: {
-            currentPlayer.reduceBalance(700);
+            currentPlayer -= 700;
             break;
         }
         case ActionCardType::NYALEG: {
             for (Player& p : ctx.getPlayers()) {
                 if (&p != &currentPlayer && p.getStatus() != PlayerStatus::BANKRUPT) {
-                    currentPlayer.reduceBalance(200);
-                    p.addBalance(200);
+                    currentPlayer -= 200;
+                    p += 200;
                 }
             }
             break;
