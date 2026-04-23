@@ -71,8 +71,6 @@ public:
     void setGoSalary(int amount);
     void setPphFlat(int amount);
     void setPphPercentage(int amount);
-    void getPphFlat(int amount);
-    void getPphPercentage(int amount);
     void setPbm(int amount);
     void setJailFine(int amount);
     void setRailroadRent(int totalOwned, int rent);
