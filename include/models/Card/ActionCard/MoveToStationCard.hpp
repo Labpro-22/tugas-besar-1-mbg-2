@@ -2,12 +2,9 @@
 #include "ActionCard.hpp"
 #include "GameBoard.hpp"
 
-class MoveToStationCard: public ActionCard
-{
-private:
-    GameBoard* gameBoard; // pointer ke game board untuk memindahkan pemain
+class MoveToStationCard : public ActionCard {
 public:
-    MoveToStationCard(string name, string desc, GameBoard* board);
-    void execute(Player &p) override;
-    ~MoveToStationCard() override;
+    MoveToStationCard();
+    ~MoveToStationCard() override = default;
+    ActionCardType getActionType() const override;
 };

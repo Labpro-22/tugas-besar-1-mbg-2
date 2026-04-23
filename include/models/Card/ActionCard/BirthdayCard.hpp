@@ -1,12 +1,9 @@
 #pragma once
 #include "ActionCard.hpp"
 
-class BirthdayCard : public ActionCard
-{
-private:
-    vector<Player*> players; 
+class BirthdayCard : public ActionCard {
 public:
-    BirthdayCard(string name, string desc, vector<Player*> players);
-    void execute(Player &p) override;
-    ~BirthdayCard() override;
+    BirthdayCard();
+    ~BirthdayCard() override = default;
+    ActionCardType getActionType() const override;
 };

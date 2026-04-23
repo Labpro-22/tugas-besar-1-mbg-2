@@ -1,12 +1,9 @@
 #pragma once
-#include "AttackSkillCard.hpp"
+#include "SkillCard.hpp"
 
-class LassoCard : public AttackSkillCard
-{
-
+class LassoCard : public SkillCard {
 public:
-    LassoCard(string name, string desc);
-    void useSkill(Player* user, Player* target, GameBoard* board) override;
-    ~LassoCard() override;
+    LassoCard();
+    ~LassoCard() override = default;
+    SkillCardType getSkillType() const override;
 };
-

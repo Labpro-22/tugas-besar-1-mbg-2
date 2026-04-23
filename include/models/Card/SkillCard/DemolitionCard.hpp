@@ -1,13 +1,9 @@
 #pragma once
-#include "AttackSkillCard.hpp"
+#include "SkillCard.hpp"
 
-class DemolitionCard : public AttackSkillCard
-{
-private:
-    int propertyIndex;
+class DemolitionCard : public SkillCard {
 public:
-    DemolitionCard(string name, string desc);
-    void setTargetProperty(int index);
-    void useSkill(Player* user, Player* target, GameBoard* board) override;
-    ~DemolitionCard() override;
+    DemolitionCard();
+    ~DemolitionCard() override = default;
+    SkillCardType getSkillType() const override;
 };
