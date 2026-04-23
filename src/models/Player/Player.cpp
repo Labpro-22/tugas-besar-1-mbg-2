@@ -126,67 +126,36 @@ void Player::removeProperty(PropertyTile *property) {
     }
 }
 
-void Player::addSkillCard(SkillCard *card) {
-    if (card == nullptr) {
-        return;
-    }
-
-    auto it = std::find(skillCards.begin(), skillCards.end(), card);
-    if (it == skillCards.end()) {
+void Player::addCardToHand(SkillCard *card) {
+    if (canHoldMoreSkillCards()) {
         skillCards.push_back(card);
     }
 }
 
-void Player::removeSkillCard(SkillCard *card) {
-    if (card == nullptr) {
-        return;
+SkillCard* Player::useSkillCard(int idx) {
+    if (idx < 0 || idx >= skillCards.size()) {
+        return nullptr; 
     }
 
-    auto it = std::find(skillCards.begin(), skillCards.end(), card);
-    if (it != skillCards.end()) {
-        skillCards.erase(it);
-    }
+    SkillCard* cardToUse = skillCards[idx];
+    skillCards.erase(skillCards.begin() + idx);
+    return cardToUse;
 }
 
-SkillCard *Player::getSkillCard(const string &cardName) const {
-    auto it = std::find_if(skillCards.begin(), skillCards.end(), [&](const SkillCard *card) {
-        return card != nullptr && card->getName() == cardName;
-    });
-
-    if (it == skillCards.end()) {
-        return nullptr;
-    }
-
-    return *it;
+SkillCard* Player::dropSkillCard(int idx) {
+    return useSkillCard(idx);
 }
 
-bool Player::hasSkillCard(const SkillCard *card) const {
-    if (card == nullptr) {
-        return false;
-    }
-
-    return std::find(skillCards.begin(), skillCards.end(), card) != skillCards.end();
-}
-
-bool Player::hasSkillCard(const string &cardName) const {
-    return std::find_if(skillCards.begin(), skillCards.end(), [&](const SkillCard *card) {
-        return card != nullptr && card->getName() == cardName;
-    }) != skillCards.end();
+bool Player::hasAnySkillCard() const {
+    return !skillCards.empty(); 
 }
 
 int Player::getSkillCardCount() const {
-    int count = 0;
-    for (const SkillCard *card : skillCards) {
-        if (card != nullptr) {
-            count++;
-        }
-    }
-    return count;
+    return skillCards.size();
 }
 
 bool Player::canHoldMoreSkillCards() const {
-    const int maxHandSize = 3;
-    return getSkillCardCount() < maxHandSize;
+    return getSkillCardCount() < MAX_CARDS;
 }
 
 string Player::getName() const {
