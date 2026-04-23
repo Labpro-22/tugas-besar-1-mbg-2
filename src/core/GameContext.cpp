@@ -4,7 +4,9 @@
 
 GameBoard& GameContext::getBoard()  { return board; }
 vector<Player>& GameContext::getPlayers()  { return players; }
-CardDeck<Card>& GameContext::getSpecialCards()  { return specialCards; }
+CardDeck<ActionCard> &GameContext::getChanceDeck() { return chanceDeck;}
+CardDeck<ActionCard> &GameContext::getCommunityChestDeck() {return communityChestDeck;}
+CardDeck<SkillCard> &GameContext::getSkillDeck() {return skillDeck;}
 
 int GameContext::getCurrentPlayerIndex() const { return currentPlayerIndex; }
 int GameContext::getCurrentTurn() const { return currentTurn; }
@@ -27,8 +29,6 @@ void GameContext::setStartingMoney(int money) { startingMoney = money; }
 void GameContext::setGoSalary(int amount) { goSalary = amount; }
 void GameContext::setPphFlat(int amount) { pphFlat = amount; }
 void GameContext::setPphPercentage(int amount) { pphPercentage = amount; }
-void GameContext::getPphFlat(int amount)  { pphFlat = amount; }
-void GameContext::getPphPercentage(int amount)  { pphPercentage = amount; }
 void GameContext::setJailFine(int amount) { jailFine = amount; }
 void GameContext::setRailroadRent(int totalOwned, int rent) { railroadRent[totalOwned] = rent; }
 void GameContext::setUtilityMultiplier(int totalOwned, int multiplier) { UtilityMultiplier[totalOwned] = multiplier; }
