@@ -1,6 +1,9 @@
 #pragma once
-#include <list>
 #include <string>
+#include <vector>
+#include <ostream>
+#include <istream>
+#include <iostream>
 
 using namespace std;
 
@@ -8,15 +11,21 @@ struct LogEntry
 {
     int turn;
     string username;
-    string aksi;
+    string action;
     string details;
 };
 
 class GameLogger
 {
 private:
-    list<LogEntry> logs; 
+    vector<LogEntry> logs; 
 public:
-    void addLog(int turn, string username, string aksi, string details);
-    void printLogs(int count);
+    void addLog(int turn, const string& username, string& action, const string& details);
+    void printLogs(int count) const;
+    int getLogCount() const;
+    const vector<LogEntry>& getLogs() const;
+    void clearLogs();
+
+    void saveToStream(ostream& out) const;
+    void loadFromStream(istream& in);
 };

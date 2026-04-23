@@ -24,6 +24,53 @@ LandResult StreetTile::land(GameContext &G){
             return LandResult{LandEventType::PAYRENT, this, nullptr, currentPlayer, owner, 0, false};
         }
     }
+    return LandResult{LandEventType::DONOTHING, this, nullptr, &G.getCurrentPlayer(), nullptr, 0, false};
+}
+
+int StreetTile::getFestivalMult() const {
+    return festivalMult;
+}
+
+int StreetTile::getFestivalDuration() const {
+    return festivalDuration;
+}
+
+bool StreetTile::isFestivalActive() const {
+    return festivalDuration > 0 && festivalMult > 1;
+}
+
+void StreetTile::applyFestival() {
+    if (festivalDuration <= 0) {
+        festivalMult = 2;
+        festivalDuration = 3;
+        return;
+    }
+
+    festivalMult += 1;
+    festivalDuration = 3;
+}
+
+void StreetTile::tickFestival() {
+    if (festivalDuration <= 0) {
+        festivalDuration = 0;
+        festivalMult = 1;
+        return;
+    }
+
+    festivalDuration -= 1;
+    if (festivalDuration <= 0) {
+        festivalDuration = 0;
+        festivalMult = 1;
+    }
+}
+
+int StreetTile::getBuildingValue() const  {
+    int total = 0;
+    if (getHasHotel()){
+        total += getHotelCost();
+    }
+    total += getHouseCost() * getHouseCount();
+    return total;
 }
 
 string StreetTile::getTypeLabel() const {
@@ -113,6 +160,18 @@ int StreetTile::getHouseCount() const {
 
 bool StreetTile::getHasHotel() const {
     return hasHotel;
+}
+
+void StreetTile::setHouseCount(int count) {
+    if (count < 0) {
+        houseCount = 0;
+        return;
+    }
+    houseCount = count;
+}
+
+void StreetTile::setHasHotel(bool value) {
+    hasHotel = value;
 }
 
 vector<int> StreetTile::getRentPrices() const {

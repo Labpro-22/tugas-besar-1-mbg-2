@@ -11,6 +11,10 @@ private:
     int hotelCost;
     int houseCount;
     bool hasHotel;
+    int festivalMult = 1;
+    int festivalDuration = 0;
+    int festivalMult = 1;
+    int festivalDuration = 0;
     vector<int> rentPrices; 
 
 public:
@@ -19,6 +23,16 @@ public:
         int houseCost, int hotelCost, string color);
     
     LandResult land(GameContext &G) override;
+    
+    int getFestivalMult() const;
+    int getFestivalDuration() const;
+    bool isFestivalActive() const;
+    void applyFestival();
+    void tickFestival();
+    void setHouseCount(int count);
+    void setHasHotel(bool value);
+    
+    int getBuildingValue() const override;
     string getTypeLabel() const override;
     string getDisplayExtra() const override;
     vector<string> getAktaDetailLines(const GameContext& G) const override;
@@ -30,7 +44,6 @@ public:
     bool getHasHotel() const;
     vector<int> getRentPrices() const;
     int calculateRent(GameContext& G) const override;
-    string getPropertyDisplayInfo() const override;
 
 };
 

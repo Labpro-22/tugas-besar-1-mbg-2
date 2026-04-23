@@ -209,20 +209,38 @@ int Player::getJailTurns() const {
     return jailTurns;
 }
 
-int Player::totalWealth() const{
-    int wealth = balance;
+vector<PropertyTile*>& Player::getOwnedProperties(){
+    return ownedProperties;
+}
+
+const vector<PropertyTile*>& Player::getOwnedProperties() const {
+    return ownedProperties;
+}
+
+int Player::totalPropertyPrice() const {
+    int output = 0;
     for (PropertyTile *property : ownedProperties) {
         if (property == nullptr) {
             continue;
         }
-        
-        if (property->getStatus() == MORTGAGED) {
-            wealth += property->getMorgageValue();
-        } else {
-            wealth += property->getPrice();
-        }
+        output += property->getPrice();
     }
-    return wealth;
+    return output;
+}
+int Player::totalBuildingValue() const {
+    int output = 0;
+    for (PropertyTile *property : ownedProperties) {
+        if (property == nullptr) {
+            continue;
+        }
+        output += property->getBuildingValue();
+    }
+    return output;
+}
+
+int Player::totalWealth() const
+{
+    return balance + totalPropertyPrice() + totalBuildingValue();
 }
 
 int Player::countOwnerRailroads() const {

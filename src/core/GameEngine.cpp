@@ -9,7 +9,7 @@
 using namespace std;
 
 void GameEngine::initGame(GameContext& gameContext, TurnController& turnController, ConfigReader& configReader, EconomyController& economyController) {
-    configReader.loadAllConfigs(gameContext.getBoard(), economyController, turnController);
+    configReader.loadAllConfigs(&gameContext, gameContext.getBoard(), economyController, turnController);
 }
 
 void GameEngine::run() {
@@ -182,8 +182,20 @@ void GameEngine::run() {
                     break;
 
                 case CommandType::CETAK_LOG:
-                    // belum ada implementasi
+                {
+                    int count = 0;
+                    bool hasValue = false;
+                    bool isInt = inputHandler.getIntRemaining(value, hasValue);
+
+                    if (!hasValue) {
+                        logger.printLogs(0);
+                    } else if (isInt) {
+                        logger.printLogs(count);
+                    } else {
+                        cout << "Argumen CETAK_LOG harus angka." << endl; // gw rasa ini nanti bisa dibuat exception kalau mau
+                    }
                     break;
+                }
 
                 case CommandType::UNKNOWN_COMMAND:
                 default:
