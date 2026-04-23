@@ -482,7 +482,7 @@ void DisplayView::renderProperty(GameContext G){
 
 
 void DisplayView::renderTile(GameContext G){
-    cout << "You are on tile: " << G.getBoard().getTile(G.getCurrentPlayer().getPosition())->getName() << "(" << G.getBoard().getTile(G.getCurrentPlayer().getPosition())->getCode() << ")" << endl;
+    cout << "You landed on " << G.getBoard().getTile(G.getCurrentPlayer().getPosition())->getName() << "(" << G.getBoard().getTile(G.getCurrentPlayer().getPosition())->getCode() << ")" << endl;
 }
 
 void DisplayView::showMenu(GameContext G){
@@ -502,7 +502,7 @@ void DisplayView::renderDiceControl(GameContext G){
     Dice dice = G.getDice();
     cout << "You rolled a " << dice.getDice1() << " + " << dice.getDice2() << " = " << dice.getTotal() << endl;
     cout << "Moving " << G.getCurrentPlayer().getName() << " " << dice.getTotal() << " spaces." << endl;
-    cout << "You landend on tile: " << G.getBoard().getTile(G.getCurrentPlayer().getPosition())->getName() << "." << endl;
+    cout << "You landed on tile: " << G.getBoard().getTile(G.getCurrentPlayer().getPosition())->getName() << "." << endl;
 }
 
 void DisplayView::renderRent(GameContext G, PropertyTile* tile){
@@ -529,11 +529,69 @@ void DisplayView::renderCantPay(GameContext G, int amountOwed){
 }
 
 void DisplayView::renderTax(GameContext G, TaxTile* tile){
-    cout << "You landed on a tax tile " << tile->getName() << " (" << tile->getCode() << ")." << endl;
-    cout << "Choose one of the following tax payment options:" << endl;
-    cout << "1. Pay a fixed amount of M" << G.getPph() << endl;
-    cout << "2. Pay " << G.getTaxRate() * 100 << "% of your total wealth" << endl;
-    cout << "Enter your choice (1 or 2): ";
+    if (tile->getIsPPH()) {
+        cout << "You landed on tax tile " << tile->getName() << " (" << tile->getCode() << ")." << endl;
+        cout << "Choose one of the following tax payment options:" << endl;
+        cout << "1. Pay a fixed amount of M" << G.getPphFlat() << endl;
+        cout << "2. Pay " << G.getPphPercentage() << "% of your total wealth" << endl;
+        cout << "Enter your choice (1 or 2): ";
+    } else {
+        cout << "You landed on a tax tile " << tile->getName() << " (" << tile->getCode() << ")." << endl;
+        cout << "You must pay a fixed amount of M" << G.getPbm() << "." << endl;
+        cout << "Your Balance : M" << G.getCurrentPlayer().getBalance() << "-> M" << G.getCurrentPlayer().getBalance() - G.getPbm() << endl;
+    }
 }   
 
-void DisplayView::renderPayTax()
+void DisplayView::renderPayTax(GameContext G, int choose){
+    if (choose == 2) {
+        cout << "Total wealth: " << G.getCurrentPlayer().totalWealth() << endl;
+        cout << "- Cash Balance : M" << G.getCurrentPlayer().getBalance() << endl;
+        cout << "- Property Value : M" << G.getCurrentPlayer().totalPropertyValues() << endl;
+    } else {
+        // Default to option 1 if input is invalid
+        cout << "You chose to pay a fixed amount of M" << G.getPphFlat() << "." << endl;
+        cout << "Your Balance : M" << G.getCurrentPlayer().getBalance() << "-> M" << G.getCurrentPlayer().getBalance() - G.getPphFlat() << endl;
+    }
+}
+
+
+// RENDER LELANG
+
+// USAGE :
+// 1. Panggil renderAuctionLine(playerName) untuk menampilkan prompt lelang
+// 2. Panggil Input handler
+// 3. Setelah input diterima, panggil HighestBidder(playerName, bidAmount) untuk menampilkan penawaran tertinggi saat ini
+// 4. Ulangi langkah 1-3 sampai lelang selesai
+// 5. 
+
+void DisplayView::renderAuctionStart(GameContext G, PropertyTile* tile){
+    cout << "Auction started for " << tile->getName() << " (" << tile->getCode() << ")!" << endl;
+    cout << "Auction start from plyaer after current player: " << G.getPlayers()[(G.getCurrentPlayerIndex() + 1) % G.getPlayers().size()].getName() << endl;
+}
+
+void DisplayView::renderAuctionLine(string playerName){
+    cout << "Turn : " << playerName << endl;
+    cout << "Enter your bid (BID <amount> / PASS): ";
+}
+
+void DisplayView::HighestBidder(string playerName, int bidAmount){
+    cout << "The Highest bid : " << bidAmount << "(" << playerName << ")" << endl;
+}
+
+void DisplayView::renderAuctionResult(string winnerName, int winningBid){
+    cout << "Auction Finished!" << endl;
+    cout << "Winner : " << winnerName << endl;
+    cout << "Winning Bid : M" << winningBid << endl;
+}
+
+// Festival 
+void DisplayView::renderFestivalTile(GameContext G, FestivalTile *tile) {
+    cout << "You landed on " << tile->getName() << " (" << tile->getCode() << ")!" << endl;
+    
+    for (auto &&i : G.getCurrentPlayer().get)
+    {
+        
+    }
+    
+    
+}

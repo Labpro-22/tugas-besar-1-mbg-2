@@ -215,7 +215,7 @@ int Player::totalWealth() const{
         if (property == nullptr) {
             continue;
         }
-
+        
         if (property->getStatus() == MORTGAGED) {
             wealth += property->getMorgageValue();
         } else {

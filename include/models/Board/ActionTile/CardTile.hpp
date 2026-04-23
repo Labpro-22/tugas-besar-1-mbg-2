@@ -1,6 +1,7 @@
 #pragma once
 #include "ActionTile.hpp"
 #include "Card.hpp"
+#include "GameContext.hpp"
 
 using namespace std;
 
