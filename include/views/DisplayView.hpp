@@ -54,14 +54,25 @@ public:
     void HighestBidder(string playerName, int bidAmount);
     void renderAuctionResult(string winnerName, int winningBid);
 
+    // Build
+    void renderBuildStart(GameContext G, StreetTile* tile);
+    void renderBuildResult(GameContext G, StreetTile* tile, string choice);
+    
     // Festival
     void renderFestivalTile(GameContext G, FestivalTile *tile);
     void renderFestivalResult(GameContext G, StreetTile* tile);
     void InputUnvalidFestivalProperty(GameContext G);
     
+    // Redeem Mortgage
+    void renderRedeemStart(GameContext G, vector<PropertyTile*> mortgagedTiles);
+    void renderRedeemChoose(GameContext G, vector<PropertyTile*> mortgagedTiles, int choose);
+
     // Mortgage
-    void renderMortgageStart(GameContext G, vector<PropertyTile*> mortgagedTiles);
-    void renderMortgageChoose(GameContext G, vector<PropertyTile*> mortgagedTiles, int choose);
+    void renderMortgageStart(GameContext G, vector<PropertyTile*> unmortgagedTiles);
+    void renderMortgageResult(GameContext G, PropertyTile* tile);
+    void renderMortgageGroupColorStart(GameContext G, vector<StreetTile*> sameColorProps);
+    void renderMortgageGroupColorResult(GameContext G, string choice, vector<StreetTile*> sameColorProps);
+
 
     //SaveLoad
     void renderSaveSuccess(GameContext G, string filename);

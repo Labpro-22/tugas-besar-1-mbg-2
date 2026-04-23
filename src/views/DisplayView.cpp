@@ -653,8 +653,12 @@ void DisplayView::renderFestivalResult(GameContext G, StreetTile* tile) {
     }
 }
 
-// Mortgage
-void DisplayView::renderMortgageStart(GameContext G, vector<PropertyTile*> mortgagedTiles){
+// Redeem Mortgage
+void DisplayView::renderRedeemStart(GameContext G, vector<PropertyTile*> mortgagedTiles){
+    if (mortgagedTiles.empty()) {
+        cout << "You don't have any mortgaged properties to redeem." << endl;
+        return;
+    }
     cout << "=== PROPERTY MORTGAGED ===" << endl;
     int i = 1;
     for (const PropertyTile* tile : mortgagedTiles)
@@ -669,7 +673,72 @@ void DisplayView::renderMortgageStart(GameContext G, vector<PropertyTile*> mortg
     
 }
 
-void DisplayView::renderMortgageChoose(GameContext G, vector<PropertyTile*> mortgagedTiles, int choose){
+// Mortgage 
+void DisplayView::renderMortgageStart(GameContext G, vector<PropertyTile*> unmortgagedTiles){
+    if (unmortgagedTiles.empty()) {
+        cout << "You don't have any properties to mortgage." << endl;
+        return;
+    }
+    cout << "=== PROPERTY UNMORTGAGED ===" << endl;
+    int i = 1;
+    for (const PropertyTile* tile : unmortgagedTiles)
+    {
+        if (tile->getStatus() != MORTGAGED){
+            cout << i << ". " << tile->getName() << " (" << tile->getCode() << ")" << "[ << " << tile->getColor() << " >> ]"  << "Mortgage Value: M" << tile->getMortgageValue() << endl;
+            i++;
+        }
+    }
+    cout << "Choose a property to mortgage (0 to skip): ";
+}
+void DisplayView::renderMortgageResult(GameContext G, PropertyTile* tile){
+    cout << "You have mortgaged " << tile->getName() << "(" << tile->getCode() << "),";
+    cout << "You receive M" << tile->getMortgageValue() << " from the bank." << endl;
+    cout << "Your current balance: M" << G.getCurrentPlayer().getBalance() << endl;
+    cout << "This property is now mortgaged [M]. No rent will be collected from this property." << endl;
+}
+
+void DisplayView::renderMortgageGroupColorStart(GameContext G, vector<StreetTile*> sameColorProps){
+    cout << "There's still building in color group " << sameColorProps[0]->getColor() << endl << endl;
+
+    cout << "List of properties in the same color group:" << endl;
+    int i = 1;
+    for (const StreetTile* tile : sameColorProps)
+    {
+        if (tile->getHouseCount() > 0 || tile->getHasHotel()){
+            continue;
+        }
+
+        if (tile->getStatus() == MORTGAGED){
+            continue;
+        }
+        if (tile->getHasHotel()){
+            cout << i << ". " << tile->getName() << " (" << tile->getCode() << ") " << "- " << tile->getHouseCount() << endl;
+        } else {
+            cout << i << ". " << tile->getName() << " (" << tile->getCode() << ") " << "- " << tile->getHouseCount() << endl;
+        }
+        i++;
+    }   
+    cout << "Sell all building in the color group [" << sameColorProps[0]->getColor() << "]: (Y/N)" << endl;
+}
+
+void DisplayView::renderMortgageGroupColorResult(GameContext G, string choice, vector<StreetTile*> sameColorProps){
+    if (choice != "y" && choice != "Y") {
+        cout << "Mortgage cancelled. You cannot mortgage this property until you sell all buildings in the color group." << endl;
+        return;
+    }else{
+        int totalValue = 0;
+        for (StreetTile* tile : sameColorProps) {
+            if (tile->getHouseCount() > 0 || tile->getHasHotel()){
+                cout << "All buildings on " << tile->getName() << " have been sold.";
+                cout << "You receive M" << tile->getBuildingValue() << endl;
+                totalValue += tile->getBuildingValue();
+            }
+        }
+        cout << "Your current balance: M" << G.getCurrentPlayer().getBalance() + totalValue << endl;
+    }
+}
+
+void DisplayView::renderRedeemChoose(GameContext G, vector<PropertyTile*> mortgagedTiles, int choose){
     if (choose == 0) {
         cout << "You chose not to unmortgage any property." << endl;
         return;
@@ -689,13 +758,19 @@ void DisplayView::renderMortgageChoose(GameContext G, vector<PropertyTile*> mort
 
     int unmortgageCost = chosenTile->getPrice();
     if (G.getCurrentPlayer().getBalance() < unmortgageCost) {
-        cout << "You don't have enough balance to unmortgage this property. Required: M" << unmortgageCost << ", Your Balance: M" << G.getCurrentPlayer().getBalance() << endl;
+        cout << "You don't have enough balance to unmortgage this property." << endl; 
+        cout << "Required: M" << unmortgageCost << "| Your Balance: M" << G.getCurrentPlayer().getBalance() << endl;
         return;
     }
 
     cout << "You chose to unmortgage " << chosenTile->getName() << " (" << chosenTile->getCode() << ")." << endl;
     cout << "You paying M" << unmortgageCost << "To the bank" << endl;
     cout << "Your Current Balance: M" << G.getCurrentPlayer().getBalance() << " -> M" << G.getCurrentPlayer().getBalance() - unmortgageCost << endl;
+}
+// Build 
+void DisplayView::renderBuildStart(GameContext G, map<string, vector<StreetTile*>> tiles){
+    cout << "== Qualified Color Groups ==" << endl;
+
 }
 
 // SaveLoad

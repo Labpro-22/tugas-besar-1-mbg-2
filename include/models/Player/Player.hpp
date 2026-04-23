@@ -2,11 +2,13 @@
 #include <string>
 #include <list>
 #include <vector>
+#include <map>
 
 using namespace std;
 
 class PropertyTile;
 class SkillCard;
+class StreetTile;
 
 enum PlayerStatus
 {
@@ -77,5 +79,13 @@ public:
 
     int countOwnerRailroads() const; // Untuk railroad tapi perlu di bahas
     int countOwnerUtilities() const; // Untuk utility tapi perlu di bahas
+
+    vector<PropertyTile*> getMortgagedProperties();
+    vector<PropertyTile*> getUnmortgagedProperties();
+    vector<StreetTile*> getOwnedStreetTiles();
+    
+    map<string, vector<PropertyTile*>> getUnmortgagedGroups();
+    map<string, vector<PropertyTile*>> getMapColorOwnedProperty();
+    map<string, vector<StreetTile*>> getColorOwnedStreetTile();
 };
 

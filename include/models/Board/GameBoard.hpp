@@ -21,5 +21,6 @@ public:
     int getTotalTile() const;
     int getIndexOfTile(Tile* tile) const;
     vector<PropertyTile*> getTileByColor(int position) const;
+    map<string, vector<PropertyTile*>> getMapColorProperty();
 };
 
