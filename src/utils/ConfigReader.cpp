@@ -91,9 +91,10 @@ void ConfigReader::loadTax(string fileName, EconomyController &economyController
     string line;
     while (getline(file, line)) {
         stringstream ss(line);
-        int pph, pbm;
-        ss >> pph >> pbm;
-        economyController.setPph(pph);
+        int pphFlat, pphPercentage, pbm;
+        ss >> pphFlat >> pphPercentage >> pbm;
+        economyController.setPphFlat(pphFlat);
+        economyController.setPphPercentage(pphPercentage);
         economyController.setPbm(pbm);
     }
 };
