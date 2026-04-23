@@ -88,6 +88,9 @@ public:
     //Finish Game
     void renderGameOverMaxTurn(GameContext G);
 
+    // Bankruptcy / liquidation
+    void renderBankruptFirstScene(GameContext G, Player* bankruptPlayer, Player* creditorPlayer, PropertyTile* bankruptTile);
+
     // Card Tile
     void renderCardTile(GameContext G, CardTile* tile, Card );
 

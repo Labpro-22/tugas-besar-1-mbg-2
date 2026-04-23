@@ -1,5 +1,9 @@
 #include "SaveLoader.hpp"
-
+#include "Card.hpp"
+#include "DiscountCard.hpp"
+#include "MoveCard.hpp"
+#include "ShieldCard.hpp"
+#include "GameContext.hpp"
 #include <fstream>
 #include <iostream>
 
@@ -10,11 +14,14 @@ void SaveLoader::saveGame(string fileName, GameContext &gameContext) {
         return;
     }
 
+    // Turn 
     out << gameContext.getCurrentTurn() << " " << gameContext.getMaxTurns() << "\n";
-    out << gameContext.getCurrentPlayerIndex() << "\n";
 
+    // Total Player
     vector<Player> players = gameContext.getPlayers();
     out << players.size() << "\n";
+
+    // State Pemain
     for (Player &player : players) {
         string status = player.getStatus() == PlayerStatus::ACTIVE ? "ACTIVE" :
                         player.getStatus() == PlayerStatus::JAILED ? "JAILED" : "BANKRUPT";
@@ -25,10 +32,65 @@ void SaveLoader::saveGame(string fileName, GameContext &gameContext) {
         out << player.getSkillCardCount() << "\n";
         for (SkillCard* card : player.getSkillCard())
         {
-            
+            out << card->getName();
+            if (card->getSkillType() == SkillCardType::DISCOUNT) {
+                out << " " << static_cast<DiscountCard*>(card)->getDiscountPercentage();
+            }else if(card->getSkillType() == SkillCardType::MOVE) {
+                out << " " << static_cast<MoveCard*>(card)->getSteps();
+            }
+            out << "\n";
+        }
+    }
+
+
+    // Player Turn Order
+    for (Player &player : players)
+    {
+        out << player.getName();
+    }
+
+    out << "\n";
+
+    // Current player in this turn
+    out << gameContext.getCurrentPlayer().getName() << "\n";
+
+    // Properti State
+    out << gameContext.getBoard().getPropertyTile().size() << "\n";
+    for (PropertyTile* prop : gameContext.getBoard().getPropertyTile())
+    {
+        string typeLabel = prop->getPropertyType() == PropertyType::STREET ? "STREET" :
+                           prop->getPropertyType() == PropertyType::RAILROAD ? "RAILROAD" : "UTILITY";
+        string ownerName = prop->isOwned() ? prop->getOwner()->getName() : "BANK";
+        string status = prop->getStatus() == OWNED ? "OWNED" : 
+                        prop->getStatus() == MORTGAGED ? "MORTGAGED" : "BANK";
+        
+        string fmult = "1";
+        string fdur = "0";
+        string nBuilding = "0";
+
+        if (prop->getPropertyType() == STREET) {
+            StreetTile* street = dynamic_cast<StreetTile*>(prop);
+            fmult = to_string(street->getFestivalStack());
+            fdur = to_string(street->getFestivalTurn());
+            if (street->getHasHotel()) {
+                nBuilding = "H"; // 5 untuk hotel
+            } else {
+                nBuilding = to_string(street->getHouseCount());
+            }
         }
         
+        out << prop->getCode() << " " << typeLabel << " " << ownerName << " " << status << " " << fmult << " " << fdur << " " << nBuilding << "\n";
     }
+
+
+    for (const auto& card : gameContext.getSkillCards())
+    {
+        
+    }
+    
+    
+
+    
 
 
     out.close();

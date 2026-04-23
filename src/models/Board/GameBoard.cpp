@@ -113,3 +113,16 @@ map<string, vector<StreetTile*>> GameBoard::getMapColorProperty() {
     }
     return colorMap;
 }
+
+vector<PropertyTile*> GameBoard::getPropertyTile() const {
+    vector<PropertyTile*> properties;
+    for (Tile* tile : tiles) {
+        if (tile->getType() == "PROPERTY") {
+            PropertyTile* propertyTile = dynamic_cast<PropertyTile*>(tile);
+            if (propertyTile != nullptr) {
+                properties.push_back(propertyTile);
+            }
+        }
+    }
+    return properties;
+}
