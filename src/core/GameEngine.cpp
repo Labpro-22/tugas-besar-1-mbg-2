@@ -1,4 +1,4 @@
-#include "include/core/GameEngine.hpp"
+#include "../include/core/GameEngine.hpp"
 
 void GameEngine::initGame(GameBoard& gameBoard,
                           list<Player>& players,

@@ -2,21 +2,23 @@
 #include <string>
 using namespace std;
 
-enum CardType
+enum CardCategory
 {
-    DANA_UMUM,
-    KESEMPATAN,
+    ACTION,
+    SKILL,
 };
 
 class Card
 {
 protected:
-    string cardName;
+    string name;
     string description;
-    CardType type; 
 public:
     Card(string name, string desc);
+    virtual ~Card() = default;
+
     string getName() const;
     string getDescription() const;
-    virtual ~Card() = default; // virtual destructor
+
+    virtual CardCategory getCategory() const = 0;
 };
