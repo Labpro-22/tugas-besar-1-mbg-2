@@ -24,11 +24,12 @@ public:
     
     LandResult land(GameContext &G) override;
     
-    int getFestivalMult() const;
-    int getFestivalDuration() const;
+    int getFestivalStack() const;
+    int getFestivalTurn() const;
     bool isFestivalActive() const;
     void applyFestival();
-    void tickFestival();
+    void playerReenterFestival();
+    void decreaseFestivalTurn();
     void setHouseCount(int count);
     void setHasHotel(bool value);
     

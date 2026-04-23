@@ -16,15 +16,16 @@ class DisplayView
 public:
     // Rendering board 
     void renderBoard(GameContext G);
+    
+    // Dice Display
+    void renderDiceRoll(GameContext G);
+    void renderDiceControl(GameContext G);\
 
     // Rendering Akta
     void renderAkta(GameContext G, string code);
-
+    
     // Rendering property owned by current player
     void renderProperty(GameContext G);
-
-    // Rendering game menu
-    void showMenu(GameContext G);
     
     // for buying unowned properties
     // buying StreetTile specific rendering
@@ -34,10 +35,6 @@ public:
     // getting railroad and utility specific rendering
     void renderGetRailroad(GameContext G, RailroadTile* tile);
     void renderGetUtility(GameContext G, UtilityTile* tile);
-    
-    // Dice Display
-    void renderDiceRoll(GameContext G);
-    void renderDiceControl(GameContext G);\
 
     // Rendering rent, mortgage, and failed payment
     void renderRent(GameContext G, PropertyTile* tile);
@@ -48,31 +45,33 @@ public:
     void renderTax(GameContext G, TaxTile *tile);
     void renderPayTax(GameContext G, int choose);
 
-    // Auction 
-    void renderAuctionStart(GameContext G, PropertyTile* tile);
-    void renderAuctionLine(string playerName);
-    void HighestBidder(string playerName, int bidAmount);
-    void renderAuctionResult(string winnerName, int winningBid);
-
-    // Build
-    void renderBuildStart(GameContext G, StreetTile* tile);
-    void renderBuildResult(GameContext G, StreetTile* tile, string choice);
-    
-    // Festival
-    void renderFestivalTile(GameContext G, FestivalTile *tile);
-    void renderFestivalResult(GameContext G, StreetTile* tile);
-    void InputUnvalidFestivalProperty(GameContext G);
-    
-    // Redeem Mortgage
-    void renderRedeemStart(GameContext G, vector<PropertyTile*> mortgagedTiles);
-    void renderRedeemChoose(GameContext G, vector<PropertyTile*> mortgagedTiles, int choose);
-
     // Mortgage
     void renderMortgageStart(GameContext G, vector<PropertyTile*> unmortgagedTiles);
     void renderMortgageResult(GameContext G, PropertyTile* tile);
     void renderMortgageGroupColorStart(GameContext G, vector<StreetTile*> sameColorProps);
     void renderMortgageGroupColorResult(GameContext G, string choice, vector<StreetTile*> sameColorProps);
+    
+    // Redeem Mortgage
+    void renderRedeemStart(GameContext G, vector<PropertyTile*> mortgagedTiles);
+    void renderRedeemChoose(GameContext G, vector<PropertyTile*> mortgagedTiles, int choose);
+    
+    // Build
+    void renderBuildStart(GameContext G, map<string, vector<StreetTile*>> tiles);
+    void renderBuildResult(GameContext G, StreetTile* tile, string choice);
+    
+    // Auction 
+    void renderAuctionStart(GameContext G, PropertyTile* tile);
+    void renderAuctionLine(string playerName);
+    void HighestBidder(string playerName, int bidAmount);
+    void renderAuctionResult(string winnerName, int winningBid);
+    
+    // Rendering game menu
+    void showMenu(GameContext G);
 
+    // Festival
+    void renderFestivalTile(GameContext G, FestivalTile *tile);
+    void renderFestivalResult(GameContext G, StreetTile* tile);
+    void InputUnvalidFestivalProperty(GameContext G);
 
     //SaveLoad
     void renderSaveSuccess(GameContext G, string filename);
@@ -86,13 +85,15 @@ public:
     void renderGameOverMaxTurn(GameContext G);
 
     // Card Tile
-    void renderCardTile(GameContext G, CardTile* tile);
+    void renderCardTile(GameContext G, CardTile* tile, Card );
 
     // Use Card
     void renderUseCardMenu(GameContext G, Card* card);
     
     // Player Info
     void renderPlayerInfo(GameContext G, Player* player);
+    void renderPlayer(GameContext G);
+    
 private:
     // Helper function to fit text to a specific width
     static const int CARD_INNER_WIDTH = 30;
