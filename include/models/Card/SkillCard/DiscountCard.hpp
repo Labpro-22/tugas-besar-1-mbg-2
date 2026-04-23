@@ -4,7 +4,6 @@
 class DiscountCard : public SkillCard {
 private:
     int discountPercentage; 
-    int duration;
 public:
     DiscountCard();
     ~DiscountCard() override = default;
@@ -13,4 +12,3 @@ public:
     int getDiscountPercentage() const;
     int getDuration() const;
 };
-

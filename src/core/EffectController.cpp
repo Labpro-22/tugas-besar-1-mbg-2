@@ -86,11 +86,11 @@ void EffectController::execute(SkillCard& card, Player& currentPlayer, GameConte
         case SkillCardType::DISCOUNT: {
             DiscountCard& dCard = dynamic_cast<DiscountCard&>(card);
             
-            currentPlayer.applyDiscount(dCard.getDiscountPercentage(), dCard.getDuration());
+            currentPlayer.applyDiscount(dCard.getDiscountPercentage());
             break;
         }
         case SkillCardType::SHIELD: {
-            currentPlayer.applyShield(1); 
+            currentPlayer.applyShield(); 
             break;
         }
         case SkillCardType::TELEPORT: {
