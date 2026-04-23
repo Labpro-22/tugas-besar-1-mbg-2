@@ -1,7 +1,9 @@
 #pragma once
 #include "PropertyTile.hpp"
+#include "GameContext.hpp"
 
 using namespace std;
+
 
 class UtilityTile : public PropertyTile
 { 

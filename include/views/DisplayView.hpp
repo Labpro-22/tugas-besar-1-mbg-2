@@ -50,6 +50,11 @@ public:
     void HighestBidder(string playerName, int bidAmount);
     void renderAuctionResult(string winnerName, int winningBid);
 
+    // Festival
+    void renderFestivalTile(GameContext G, FestivalTile *tile);
+    void renderFestivalResult(GameContext G, StreetTile* tile);
+    void InputUnvalidFestivalProperty(GameContext G);
+    
 private:
     // Helper function to fit text to a specific width
     static const int CARD_INNER_WIDTH = 30;

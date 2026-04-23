@@ -412,6 +412,7 @@ void DisplayView::renderAkta(GameContext G, string code){
     }
 
     cout << "+==============================+" << endl;
+
     if (prop->isOwned()) {
         Player* owner = prop->getOwner();
         printCardLine("Status: OWNED (" + owner->getName() + ")");
@@ -546,11 +547,28 @@ void DisplayView::renderPayTax(GameContext G, int choose){
     if (choose == 2) {
         cout << "Total wealth: " << G.getCurrentPlayer().totalWealth() << endl;
         cout << "- Cash Balance : M" << G.getCurrentPlayer().getBalance() << endl;
-        cout << "- Property Value : M" << G.getCurrentPlayer().totalPropertyValues() << endl;
+        cout << "- Property Price : M" << G.getCurrentPlayer().totalPropertyPrice() << endl;
+        cout << "- Building Value : M" << G.getCurrentPlayer().totalBuildingValue() << endl;
+        cout << "Total : M" << G.getCurrentPlayer().totalWealth() << endl;
+        int taxAmount = (G.getPphPercentage() * G.getCurrentPlayer().totalWealth()) / 100;
+        if (taxAmount > G.getCurrentPlayer().getBalance()) {
+            cout << "However, you don't have enough balance to pay this tax M" << taxAmount << endl;
+            cout << "Your Balance : M" << G.getCurrentPlayer().getBalance() << endl;
+        } else {
+            cout << "You chose to pay " << G.getPphPercentage() << "% of your total wealth." << endl;
+            cout << "You paid M" << taxAmount << " in taxes." << endl;
+            cout << "Your Balance : M" << G.getCurrentPlayer().getBalance() << "-> M" << G.getCurrentPlayer().getBalance() - taxAmount << endl;
+        }
     } else {
         // Default to option 1 if input is invalid
         cout << "You chose to pay a fixed amount of M" << G.getPphFlat() << "." << endl;
-        cout << "Your Balance : M" << G.getCurrentPlayer().getBalance() << "-> M" << G.getCurrentPlayer().getBalance() - G.getPphFlat() << endl;
+        if (G.getPphFlat() > G.getCurrentPlayer().getBalance()) {
+            cout << "However, you don't have enough balance to pay this tax M" << G.getPphFlat() << endl;
+            cout << "Your Balance : M" << G.getCurrentPlayer().getBalance() << endl;
+        } else {
+            cout << "You paid M" << G.getPphFlat() << " in taxes." << endl;
+            cout << "Your Balance : M" << G.getCurrentPlayer().getBalance() << "-> M" << G.getCurrentPlayer().getBalance() - G.getPphFlat() << endl;
+        }
     }
 }
 
@@ -587,11 +605,50 @@ void DisplayView::renderAuctionResult(string winnerName, int winningBid){
 // Festival 
 void DisplayView::renderFestivalTile(GameContext G, FestivalTile *tile) {
     cout << "You landed on " << tile->getName() << " (" << tile->getCode() << ")!" << endl;
-    
-    for (auto &&i : G.getCurrentPlayer().get)
-    {
-        
+
+    if (G.getCurrentPlayer().getOwnedProperties().empty()) {
+        cout << "You don't have any properties to apply the festival on." << endl;
+        return;
     }
-    
-    
+
+    cout << "Your owned properties:" << endl;
+    for (const PropertyTile* Tile : G.getCurrentPlayer().getOwnedProperties())
+    {
+        cout << "- " << Tile->getCode() << " (" << Tile->getName() << ")" << endl;
+    }
+
+    cout << "Insert code proerty: ";
 }
+
+void DisplayView::InputUnvalidFestivalProperty(GameContext G){
+    cout << "Invalid property code. Please enter a valid property code from your owned properties." << endl;
+    cout << "Your owned properties:" << endl;
+    for (const PropertyTile* Tile : G.getCurrentPlayer().getOwnedProperties())
+    {
+        cout << "- " << Tile->getCode() << " (" << Tile->getName() << ")" << endl;
+    }
+    cout << "Insert code property: ";
+}
+
+void DisplayView::renderFestivalResult(GameContext G, StreetTile* tile) {
+    int rentPrice;
+    if (tile->getHasHotel()) {
+        rentPrice = tile->getRentPrices()[5]; // Rent untuk hotel
+    } else {
+        int houseCount = tile->getHouseCount();
+        rentPrice = tile->getRentPrices()[houseCount];
+    }
+    if (tile->isFestivalActive()) {
+        cout << "Festival activated!" << endl << endl;
+        cout << "First Rent: M" << rentPrice << endl;
+        cout << "After Festival rent : M" << rentPrice * tile->getFestivalMult() << endl;
+        cout << "Duration : " << tile->getFestivalDuration() << " turns" << endl;
+    }else 
+    {
+        cout << "Festival Upgraded!" << endl << endl;
+        cout << "First Rent: M" << rentPrice << endl;
+        cout << "After Festival rent : M" << rentPrice * tile->getFestivalMult() << endl;
+        cout << "Duration Resets: " << tile->getFestivalDuration() << " turns" << endl;
+    }
+}
+

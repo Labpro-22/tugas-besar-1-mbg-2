@@ -40,6 +40,7 @@ public:
     Player* getOwner() const;
     PropertyStatus getStatus() const;
     PropertyType getPropertyType() const;
+    virtual int getBuildingValue() const;
     virtual string getTypeLabel() const;
     virtual string getDisplayExtra() const;
     virtual string getPropertyDisplayInfo() const;
