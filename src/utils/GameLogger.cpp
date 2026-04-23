@@ -1,7 +1,7 @@
 #include "GameLogger.hpp"
 
 
-void GameLogger::addLog(int turn, const string& username, string& action, const string& details){
+void GameLogger::addLog(int turn, const string& username, const string& action, const string& details){
     logs.push_back(LogEntry{turn, username, action, details});
 }
 
