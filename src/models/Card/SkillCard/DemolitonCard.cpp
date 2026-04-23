@@ -1,7 +1,7 @@
 #include "DemolitionCard.hpp"
 
 DemolitionCard::DemolitionCard() 
-: SkillCard("Kartu Demolition", "Menghancurkan satu properti lawan.") {}
+: SkillCard("Demolition", "Demolish enemy's property.") {}
 
 SkillCardType DemolitionCard::getSkillType() const { 
     return SkillCardType::DEMOLITION;

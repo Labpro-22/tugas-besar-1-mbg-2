@@ -1,7 +1,7 @@
 #include "BirthdayCard.hpp"
 
 BirthdayCard::BirthdayCard() 
-: ActionCard("Ulang Tahun", "Ini adalah hari ulang tahun Anda. Dapatkan M100 dari setiap pemain.") {}
+: ActionCard("Birthday", "It is your birthday. Collect M100 from every player.") {}
 
 ActionCardType BirthdayCard::getActionType() const {
     return ActionCardType::BIRTHDAY;
