@@ -6,7 +6,8 @@
 #include "GameBoard.hpp"
 #include "Player.hpp"
 #include "CardDeck.hpp"
-#include "Card.hpp"
+#include "ActionCard.hpp"
+#include "SkillCard.hpp"
 #include "PropertyTile.hpp"
 #include "FestivalState.hpp"
 #include "Dice.hpp"
@@ -17,7 +18,9 @@ class GameContext
 private:
     GameBoard board;
     vector<Player> players;
-    CardDeck<Card> specialCards;
+    CardDeck<ActionCard> chanceDeck;
+    CardDeck<ActionCard> communityChestDeck;
+    CardDeck<SkillCard> skillDeck;
     Dice dice;
 
     // TURN
@@ -44,7 +47,9 @@ public:
 
     GameBoard& getBoard() ;
     vector<Player>& getPlayers() ;
-    CardDeck<Card>& getSpecialCards() ;
+    CardDeck<ActionCard>& getChanceDeck();
+    CardDeck<ActionCard>& getCommunityChestDeck();
+    CardDeck<SkillCard>& getSkillDeck();
 
     int getCurrentPlayerIndex() const;
     int getCurrentTurn() const;
