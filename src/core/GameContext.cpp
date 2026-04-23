@@ -7,6 +7,7 @@ vector<Player>& GameContext::getPlayers()  { return players; }
 CardDeck<ActionCard> &GameContext::getChanceDeck() { return chanceDeck;}
 CardDeck<ActionCard> &GameContext::getCommunityChestDeck() {return communityChestDeck;}
 CardDeck<SkillCard> &GameContext::getSkillDeck() {return skillDeck;}
+Dice& GameContext::getDice() {return dice;} 
 
 int GameContext::getCurrentPlayerIndex() const { return currentPlayerIndex; }
 int GameContext::getCurrentTurn() const { return currentTurn; }
@@ -19,6 +20,7 @@ int GameContext::getPbm() const { return pbm; }
 int GameContext::getJailFine() const { return jailFine; }
 bool GameContext::isGameOver() const { return gameOver; }
 int GameContext::getWinnerIndex() const { return winnerIndex; }
+
 const map<int, int> &GameContext::getRailroadRentTable() const { return this->railroadRent; }
 const map<int, int> &GameContext::getUtilityMultiplierTable() const { return this->UtilityMultiplier; }
 
