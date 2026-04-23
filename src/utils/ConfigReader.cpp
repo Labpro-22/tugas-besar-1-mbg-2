@@ -5,12 +5,12 @@
 
 ConfigReader::ConfigReader(string filePath) : configFilePath{filePath}{}
 
-void ConfigReader::loadAllConfigs(GameBoard &gameBoard, EconomyController &economyController, TurnController &turnController){
+void ConfigReader::loadAllConfigs(GameContext *gameContext, GameBoard &gameBoard, EconomyController &economyController, TurnController &turnController){
     loadProperty("config/property.txt", gameBoard);
-    loadRailroad("config/railroad.txt", economyController);
-    loadUtility("config/utility.txt", economyController);
-    loadSpecial("config/special.txt", economyController);
-    loadTax("config/tax.txt", economyController);
+    loadRailroad(gameContext, "config/railroad.txt", economyController);
+    loadUtility(gameContext, "config/utility.txt", economyController);
+    loadSpecial(gameContext, "config/special.txt", economyController);
+    loadTax(gameContext, "config/tax.txt", economyController);
     loadMisc("config/misc.txt", turnController);
 }
 
@@ -52,50 +52,50 @@ void ConfigReader::loadProperty(string fileName, GameBoard &gameBoard){
 
 }
 
-void ConfigReader::loadRailroad(string fileName, EconomyController &economyController){
+void ConfigReader::loadRailroad(GameContext *gameContext, string fileName, EconomyController &economyController){
     ifstream file(fileName);
     string line;
     while (getline(file, line)) {
         stringstream ss(line);
         int totalOwned, rent;
         ss >> totalOwned >> rent;
-        economyController.addRailroadRent(totalOwned, rent);
+        economyController.addRailroadRent(gameContext, totalOwned, rent);
     }
 };
 
-void ConfigReader::loadUtility(string fileName, EconomyController &economyController){
+void ConfigReader::loadUtility(GameContext *gameContext, string fileName, EconomyController &economyController){
     ifstream file(fileName);
     string line;
     while (getline(file, line)) {
         stringstream ss(line);
         int totalOwned, multiplier;
         ss >> totalOwned >> multiplier;
-        economyController.addUtilityMultiplier(totalOwned, multiplier);
+        economyController.addUtilityMultiplier(gameContext, totalOwned, multiplier);
     }
 };
 
-void ConfigReader::loadSpecial(string fileName, EconomyController &economyController){
+void ConfigReader::loadSpecial(GameContext *gameContext, string fileName, EconomyController &economyController){
     ifstream file(fileName);
     string line;
     while (getline(file, line)) {
         stringstream ss(line);
         int goSalary, jailFine;
         ss >> goSalary >> jailFine;
-        economyController.setGoSalary(goSalary);
-        economyController.setJailFine(jailFine);
+        economyController.setGoSalary(gameContext, goSalary);
+        economyController.setJailFine(gameContext, jailFine);
     }
 };
 
-void ConfigReader::loadTax(string fileName, EconomyController &economyController){
+void ConfigReader::loadTax(GameContext *gameContext, string fileName, EconomyController &economyController){
     ifstream file(fileName);
     string line;
     while (getline(file, line)) {
         stringstream ss(line);
         int pphFlat, pphPercentage, pbm;
         ss >> pphFlat >> pphPercentage >> pbm;
-        economyController.setPphFlat(pphFlat);
-        economyController.setPphPercentage(pphPercentage);
-        economyController.setPbm(pbm);
+        economyController.setPphFlat(gameContext, pphFlat);
+        economyController.setPphPercentage(gameContext, pphPercentage);
+        economyController.setPbm(gameContext, pbm);
     }
 };
 

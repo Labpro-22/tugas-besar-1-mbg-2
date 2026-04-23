@@ -213,6 +213,10 @@ vector<PropertyTile*>& Player::getOwnedProperties(){
     return ownedProperties;
 }
 
+const vector<PropertyTile*>& Player::getOwnedProperties() const {
+    return ownedProperties;
+}
+
 int Player::totalPropertyPrice() const {
     int output = 0;
     for (PropertyTile *property : ownedProperties) {

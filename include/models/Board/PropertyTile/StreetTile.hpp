@@ -13,6 +13,8 @@ private:
     bool hasHotel;
     int festivalMult = 1;
     int festivalDuration = 0;
+    int festivalMult = 1;
+    int festivalDuration = 0;
     vector<int> rentPrices; 
 
 public:

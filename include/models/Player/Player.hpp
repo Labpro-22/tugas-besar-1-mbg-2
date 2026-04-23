@@ -75,6 +75,7 @@ public:
     int getJailTurns() const;
 
     vector<PropertyTile*>& getOwnedProperties();
+    const vector<PropertyTile*>& getOwnedProperties() const;
 
     int totalWealth() const;
     int totalPropertyPrice() const;

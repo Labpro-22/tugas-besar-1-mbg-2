@@ -9,7 +9,7 @@
 using namespace std;
 
 void GameEngine::initGame(GameContext& gameContext, TurnController& turnController, ConfigReader& configReader, EconomyController& economyController) {
-    configReader.loadAllConfigs(gameContext.getBoard(), economyController, turnController);
+    configReader.loadAllConfigs(&gameContext, gameContext.getBoard(), economyController, turnController);
 }
 
 void GameEngine::run() {
