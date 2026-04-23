@@ -843,3 +843,11 @@ void DisplayView::renderPlayerInfo(GameContext G, Player* player){
     }
     cout << "" << endl;
 }
+
+void DisplayView::renderPlayer(GameContext G){
+    for (Player& p : G.getPlayers()) {
+        if (p.getStatus() != PlayerStatus::BANKRUPT) {
+            cout << "- " << p.getName() << " (Currently at tile: " << p.getPosition() << ")\n";
+        }
+    }
+}
