@@ -20,6 +20,8 @@ void PropertyTile::setStatus(PropertyStatus newStatus){
     this->status = newStatus;
 };
 
+int PropertyTile::getBuildingValue() const {return 0;}
+
 Player* PropertyTile::getOwner() const {
     return owner;
 }

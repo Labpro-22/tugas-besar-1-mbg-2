@@ -26,6 +26,15 @@ LandResult StreetTile::land(GameContext &G){
     }
 }
 
+int StreetTile::getBuildingValue() const  {
+    int total = 0;
+    if (getHasHotel()){
+        total += getHotelCost();
+    }
+    total += getHouseCost() * getHouseCount();
+    return total;
+}
+
 int StreetTile::getHouseCost() const {
     return houseCost;
 }

@@ -19,6 +19,7 @@ public:
         int houseCost, int hotelCost, string color);
     
     LandResult land(GameContext &G) override;
+    int getBuildingValue() const override;
     int getHouseCost() const;
     int getHotelCost() const;
     int getHouseCount() const;
