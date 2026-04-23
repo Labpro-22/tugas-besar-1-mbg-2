@@ -78,7 +78,7 @@ void EconomyController::mortgageProperty(Player &player, PropertyTile *tile) {
     if (tile == nullptr || tile->getOwner() != &player || tile->getStatus() == MORTGAGED) {
         return;
     }
-    player += tile->getMorgageValue();
+    player += tile->getMortgageValue();
     tile->setStatus(MORTGAGED);
 }
 
@@ -87,7 +87,7 @@ void EconomyController::redeemProperty(Player &player, PropertyTile *tile) {
         return;
     }
 
-    int redeemCost = (tile->getMorgageValue() * 11 + 9) / 10;
+    int redeemCost = (tile->getMortgageValue() * 11 + 9) / 10;
     if (!player.canAfford(redeemCost)) {
         return;
     }
@@ -325,7 +325,7 @@ int EconomyController::calculateStreetRent(GameContext *gameContext, StreetTile 
 
     int rent = rentPrices[rentIndex];
     if (tile->isFestivalActive()) {
-        rent *= tile->getFestivalMult();
+        rent *= tile->getFestivalStack();
     }
 
     return rent;
