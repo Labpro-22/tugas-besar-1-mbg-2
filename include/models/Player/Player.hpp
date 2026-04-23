@@ -2,6 +2,7 @@
 #include <string>
 #include <list>
 #include <vector>
+#include "StreetTile.hpp"
 
 using namespace std;
 
@@ -23,7 +24,7 @@ private:
     PlayerStatus status = ACTIVE;
     int jailTurns = 0;
     int doubleCount = 0;
-    list<PropertyTile*> ownedProperties;
+    vector<PropertyTile*> ownedProperties;
     vector<SkillCard*> skillCards;
 public:
 
@@ -73,7 +74,11 @@ public:
     PlayerStatus getStatus() const;
     int getJailTurns() const;
 
+    vector<PropertyTile*>& getOwnedProperties();
+
     int totalWealth() const;
+    int totalPropertyPrice() const;
+    int totalBuildingValue() const;
 
     int countOwnerRailroads() const; // Untuk railroad tapi perlu di bahas
     int countOwnerUtilities() const; // Untuk utility tapi perlu di bahas

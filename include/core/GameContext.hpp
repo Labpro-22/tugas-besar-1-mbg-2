@@ -38,8 +38,6 @@ private:
     bool gameOver = false;
     int winnerIndex = -1;
 
-    // Effect
-    map<PropertyTile*, FestivalState> festivalStates;
 
 public:
     GameContext() = default;
@@ -62,9 +60,6 @@ public:
     int getWinnerIndex() const; 
     const map<int, int> &getRailroadRentTable() const;
     const map<int, int> &getUtilityMultiplierTable() const;
-    const map<PropertyTile*, FestivalState>& getFestivalStates() const;
-    bool hasFestivalState(PropertyTile* tile) const;
-    FestivalState getFestivalState(PropertyTile* tile) const;
     void setCurrentPlayerIndex(int index);
     void setCurrentTurn(int turn);
     void setMaxTurns(int turns);
@@ -78,8 +73,6 @@ public:
     void setUtilityMultiplier(int totalOwned, int multiplier);
     void setGameOver(bool value);
     void setWinnerIndex(int index);
-    void setFestivalState(PropertyTile* tile, const FestivalState& state);
-    void clearFestivalState(PropertyTile* tile);
     void clearAllFestivalStates();
     Player& getCurrentPlayer();
     void nextPlayer();
