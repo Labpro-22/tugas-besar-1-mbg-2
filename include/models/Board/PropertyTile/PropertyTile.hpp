@@ -4,6 +4,8 @@
 
 using namespace std;
 
+class GameContext;
+
 enum PropertyStatus
 {
     BANK,

@@ -2,8 +2,11 @@
 #include <string>
 #include "Player.hpp"
 #include "LandResult.hpp"
-#include "GameContext.hpp"
+
 using namespace std;
+
+// Forward declaration
+class GameContext;
 
 enum TileType
 {

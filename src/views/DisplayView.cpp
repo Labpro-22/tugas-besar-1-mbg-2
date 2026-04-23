@@ -532,7 +532,7 @@ void DisplayView::renderTax(GameContext G, TaxTile* tile){
     cout << "You landed on a tax tile " << tile->getName() << " (" << tile->getCode() << ")." << endl;
     cout << "Choose one of the following tax payment options:" << endl;
     cout << "1. Pay a fixed amount of M" << G.getPph() << endl;
-    cout << "2. Pay 10% of your total wealth" << endl;
+    cout << "2. Pay " << G.getTaxRate() * 100 << "% of your total wealth" << endl;
     cout << "Enter your choice (1 or 2): ";
 }   
 
