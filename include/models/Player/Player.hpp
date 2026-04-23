@@ -82,7 +82,7 @@ public:
 
     vector<PropertyTile*> getMortgagedProperties();
     vector<PropertyTile*> getUnmortgagedProperties();
-    vector<StreetTile*> getOwnedStreetTiles();
+    vector<StreetTile*> getStreetTileByColor(const string& color);
     
     map<string, vector<PropertyTile*>> getUnmortgagedGroups();
     map<string, vector<PropertyTile*>> getMapColorOwnedProperty();
