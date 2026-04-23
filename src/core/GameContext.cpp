@@ -4,7 +4,9 @@
 
 GameBoard& GameContext::getBoard()  { return board; }
 vector<Player>& GameContext::getPlayers()  { return players; }
-CardDeck<Card>& GameContext::getSpecialCards()  { return specialCards; }
+CardDeck<ActionCard> &GameContext::getChanceDeck() { return chanceDeck;}
+CardDeck<ActionCard> &GameContext::getCommunityChestDeck() {return communityChestDeck;}
+CardDeck<SkillCard> &GameContext::getSkillDeck() {return skillDeck;}
 
 int GameContext::getCurrentPlayerIndex() const { return currentPlayerIndex; }
 int GameContext::getCurrentTurn() const { return currentTurn; }
