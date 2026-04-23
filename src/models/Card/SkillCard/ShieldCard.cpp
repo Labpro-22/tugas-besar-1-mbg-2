@@ -1,7 +1,7 @@
 #include "ShieldCard.hpp"
 
 ShieldCard::ShieldCard() 
-: SkillCard("Kartu Perisai", "Melindungi dari tagihan sewa/sanksi selama 1 giliran.") {}
+: SkillCard("Shield", "Protect against rent charges/penalties for 1 turn.") {}
 
 SkillCardType ShieldCard::getSkillType() const { 
     return SkillCardType::SHIELD;

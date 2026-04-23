@@ -5,6 +5,7 @@
 #include "SaveLoader.hpp"
 #include "TurnController.hpp"
 #include <string>
+#include "AllCards.hpp"
 
 using namespace std;
 class GameEngine

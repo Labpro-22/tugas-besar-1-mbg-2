@@ -1,7 +1,7 @@
 #include "MoveToStationCard.hpp"
 
 MoveToStationCard::MoveToStationCard() 
-: ActionCard("Pergi ke Stasiun", "Pergi ke stasiun terdekat.") {}
+: ActionCard("Move To Station", "Go to the nearest station.") {}
 
 ActionCardType MoveToStationCard::getActionType() const {
     return ActionCardType::MOVE_TO_STATION;

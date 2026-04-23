@@ -7,11 +7,11 @@ static mt19937& getRNG() {
     return gen;
 }
 
-MoveCard::MoveCard() : SkillCard("Kartu Maju", "Bergerak maju sejumlah petak secara acak.") {
-    uniform_int_distribution<> dist(1, 10);
+MoveCard::MoveCard() : SkillCard("Move", "Move forward random spaces.") {
+    uniform_int_distribution<> dist(1, 12);
     this->steps = dist(getRNG());
     
-    this->description = "Bergerak maju " + to_string(this->steps) + " petak.";
+    this->description = "Move forward " + to_string(this->steps) + " tile(s).";
 }
 
 SkillCardType MoveCard::getSkillType() const { 

@@ -50,7 +50,7 @@ public:
     CardDeck<ActionCard>& getChanceDeck();
     CardDeck<ActionCard>& getCommunityChestDeck();
     CardDeck<SkillCard>& getSkillDeck();
-    Dice& getDice() ;
+    Dice& getDice();
 
     int getCurrentPlayerIndex() const;
     int getCurrentTurn() const;

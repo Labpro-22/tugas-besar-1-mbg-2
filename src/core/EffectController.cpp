@@ -48,21 +48,21 @@ void EffectController::execute(ActionCard& card, Player& currentPlayer, GameCont
         case ActionCardType::BIRTHDAY: {
             for (Player& p : ctx.getPlayers()) {
                 if (&p != &currentPlayer && p.getStatus() != PlayerStatus::BANKRUPT) {
-                    p.reduceBalance(100);
-                    currentPlayer.addBalance(100);
+                    p -= 100;
+                    currentPlayer += 100;
                 }
             }
             break;
         }
         case ActionCardType::DOCTOR_FEE: {
-            currentPlayer.reduceBalance(700);
+            currentPlayer -= 700;
             break;
         }
         case ActionCardType::NYALEG: {
             for (Player& p : ctx.getPlayers()) {
                 if (&p != &currentPlayer && p.getStatus() != PlayerStatus::BANKRUPT) {
-                    currentPlayer.reduceBalance(200);
-                    p.addBalance(200);
+                    currentPlayer -= 200;
+                    p += 200;
                 }
             }
             break;
@@ -86,11 +86,11 @@ void EffectController::execute(SkillCard& card, Player& currentPlayer, GameConte
         case SkillCardType::DISCOUNT: {
             DiscountCard& dCard = dynamic_cast<DiscountCard&>(card);
             
-            currentPlayer.applyDiscount(dCard.getDiscountPercentage(), dCard.getDuration());
+            currentPlayer.applyDiscount(dCard.getDiscountPercentage());
             break;
         }
         case SkillCardType::SHIELD: {
-            currentPlayer.applyShield(1); 
+            currentPlayer.applyShield(); 
             break;
         }
         case SkillCardType::TELEPORT: {

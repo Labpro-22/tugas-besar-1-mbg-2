@@ -7,12 +7,11 @@ static mt19937& getRNG() {
     return gen;
 }
 
-DiscountCard::DiscountCard() : SkillCard("Kartu Diskon", "Diskon sewa/sanksi."), duration(1) {
+DiscountCard::DiscountCard() : SkillCard("Discount", "Get a random discount.") {
     uniform_int_distribution<> dist(1, 9);
     this->discountPercentage = dist(getRNG()) * 10; 
     
-    this->description = "Memberikan diskon " + std::to_string(this->discountPercentage) + 
-                        "% selama " + to_string(this->duration) + " giliran.";
+    this->description = "Get a " + to_string(this->discountPercentage) + "% discount for 1 turn.";
 }
 
 SkillCardType DiscountCard::getSkillType() const { 
@@ -24,5 +23,5 @@ int DiscountCard::getDiscountPercentage() const {
 }
 
 int DiscountCard::getDuration() const { 
-    return duration; 
+    return 1; 
 }
