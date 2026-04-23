@@ -194,10 +194,6 @@ vector<PropertyTile*>& Player::getOwnedProperties(){
     return ownedProperties;
 }
 
-const vector<PropertyTile*>& Player::getOwnedProperties() const {
-    return ownedProperties;
-}
-
 bool Player::hasShield() const {
     return this->shieldActive;
 }
@@ -229,7 +225,7 @@ int Player::totalBuildingValue() const {
 
 int Player::totalWealth() const
 {
-    return balance + totalPropertyPrice() + totalBuildingValue();
+    return balance + totalPropertyPrice() + totalBuildingValue() / 2;
 }
 
 int Player::countOwnerRailroads() const {
