@@ -2,21 +2,16 @@
 #include <string>
 using namespace std;
 
-enum CardType
-{
-    DANA_UMUM,
-    KESEMPATAN,
-};
-
 class Card
 {
 protected:
-    string cardName;
+    string name;
     string description;
-    CardType type; 
-public:
+    
     Card(string name, string desc);
+public:
+    virtual ~Card() = default;
+
     string getName() const;
     string getDescription() const;
-    virtual ~Card() = default; // virtual destructor
 };

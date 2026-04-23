@@ -1,10 +1,21 @@
 #pragma once
 #include "Card.hpp"
 
+enum class SkillCardType {
+    MOVE,
+    DISCOUNT,
+    SHIELD,
+    TELEPORT,
+    LASSO,
+    DEMOLITION
+};
+
 class SkillCard : public Card
 {
 public:
     SkillCard(string name, string desc);
-    ~SkillCard() override;
+    ~SkillCard() override = default;
+
+    virtual SkillCardType getSkillType() const = 0;
 };
 

@@ -1,13 +1,9 @@
 #pragma once
-#include "SelfSkillCard.hpp"
+#include "SkillCard.hpp"
 
-class TeleportCard : public SelfSkillCard
-{
-private:
-    int targetTileIndex;
+class TeleportCard : public SkillCard {
 public:
-    TeleportCard(string name, string desc, int targetTileIndex);
-    void setTargetLocation(int index);
-    void useSkill(Player* user, GameBoard* board) override;
-    ~TeleportCard() override;
+    TeleportCard();
+    ~TeleportCard() override = default;
+    SkillCardType getSkillType() const override;
 };
