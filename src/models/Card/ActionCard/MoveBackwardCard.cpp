@@ -1,7 +1,7 @@
 #include "MoveBackwardCard.hpp"
 
 MoveBackwardCard::MoveBackwardCard() 
-: ActionCard("Mundur 3 Petak", "Mundur 3 petak.") {}
+: ActionCard("Move Backward", "Move back 3 spaces.") {}
 
 ActionCardType MoveBackwardCard::getActionType() const {
     return ActionCardType::MOVE_BACKWARD;

@@ -1,7 +1,7 @@
 #include "NyalegCard.hpp"
 
 NyalegCard::NyalegCard() 
-    : ActionCard("Nyaleg", "Anda mau nyaleg. Bayar M200 kepada setiap pemain.") {}
+    : ActionCard("Nyaleg", "You want to NYALEG. Pay M200 to each player for their vote.") {}
 
 ActionCardType NyalegCard::getActionType() const {
     return ActionCardType::NYALEG;

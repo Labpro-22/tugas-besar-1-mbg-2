@@ -46,10 +46,11 @@ public:
     GameContext() = default;
 
     GameBoard& getBoard() ;
-    vector<Player>& getPlayers() ;
+    vector<Player>& getPlayers();
     CardDeck<ActionCard>& getChanceDeck();
     CardDeck<ActionCard>& getCommunityChestDeck();
     CardDeck<SkillCard>& getSkillDeck();
+    Dice& getDice();
 
     int getCurrentPlayerIndex() const;
     int getCurrentTurn() const;
@@ -62,6 +63,7 @@ public:
     int getJailFine() const;
     bool isGameOver() const;
     int getWinnerIndex() const; 
+    
     const map<int, int> &getRailroadRentTable() const;
     const map<int, int> &getUtilityMultiplierTable() const;
     void setCurrentPlayerIndex(int index);

@@ -2,6 +2,7 @@
 #include <vector>
 #include <string>
 #include "PropertyTile.hpp"
+#include "StreetTile.hpp"
 
 using namespace std;
 
@@ -21,6 +22,6 @@ public:
     int getTotalTile() const;
     int getIndexOfTile(Tile* tile) const;
     vector<PropertyTile*> getTileByColor(int position) const;
-    map<string, vector<PropertyTile*>> getMapColorProperty();
+    map<string, vector<StreetTile*>> getMapColorProperty();
 };
 

@@ -54,6 +54,14 @@ void Player::setJailTurns(int currentJailAttempt) {
     jailTurns = currentJailAttempt;
 }
 
+void Player::applyShield() {
+    this->shieldActive = true;
+}
+
+void Player::applyDiscount(int percentage) {
+    this->rentDiscount = percentage;
+}
+
 Player Player::operator+(int amount) {
     Player result = *this;
     result.balance += amount;
@@ -150,6 +158,10 @@ bool Player::hasAnySkillCard() const {
     return !skillCards.empty(); 
 }
 
+vector<SkillCard *> Player::getSkillCard(){
+    return skillCards;
+}
+
 int Player::getSkillCardCount() const {
     return skillCards.size();
 }
@@ -184,6 +196,14 @@ vector<PropertyTile*>& Player::getOwnedProperties(){
 
 const vector<PropertyTile*>& Player::getOwnedProperties() const {
     return ownedProperties;
+}
+
+bool Player::hasShield() const {
+    return this->shieldActive;
+}
+
+int Player::getRentDiscount() const {
+    return this->rentDiscount;
 }
 
 int Player::totalPropertyPrice() const {
@@ -292,4 +312,9 @@ map<string, vector<PropertyTile*>> Player::getUnmortgagedGroups() {
         }
     }
     return unmortgagedGroups;
+}
+
+void Player::resetBuffs() {
+    this->shieldActive = false;
+    this->rentDiscount = 0;
 }

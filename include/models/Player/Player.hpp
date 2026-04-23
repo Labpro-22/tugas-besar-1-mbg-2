@@ -27,6 +27,8 @@ private:
     int doubleCount = 0;
     vector<PropertyTile*> ownedProperties;
     vector<SkillCard*> skillCards;
+    bool shieldActive = false;
+    int rentDiscount = 0;
     const int MAX_CARDS = 3;
 public:
 
@@ -38,6 +40,8 @@ public:
     void setPosition(int pos);
     void setStatus(PlayerStatus status);
     void setJailTurns(int currentJailAttempt);
+    void applyShield();
+    void applyDiscount(int percentage);
 
     Player operator+(int amount); // add money
     Player& operator+=(int amount); // add money
@@ -58,6 +62,7 @@ public:
     void removeProperty(PropertyTile* property);
 
     void addCardToHand(SkillCard* card);
+    vector<SkillCard*> getSkillCard();
     SkillCard* useSkillCard(int idx);
     SkillCard* dropSkillCard(int idx);
     bool hasAnySkillCard() const;
@@ -69,10 +74,11 @@ public:
     int getPosition() const;
     PlayerStatus getStatus() const;
     int getJailTurns() const;
+    bool hasShield() const;
+    int getRentDiscount() const;
 
     vector<PropertyTile*>& getOwnedProperties();
-    const vector<PropertyTile*>& getOwnedProperties() const;
-
+  
     int totalWealth() const;
     int totalPropertyPrice() const;
     int totalBuildingValue() const;
@@ -87,5 +93,7 @@ public:
     map<string, vector<PropertyTile*>> getUnmortgagedGroups();
     map<string, vector<PropertyTile*>> getMapColorOwnedProperty();
     map<string, vector<StreetTile*>> getColorOwnedStreetTile();
+
+    void resetBuffs();
 };
 

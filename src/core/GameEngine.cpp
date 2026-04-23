@@ -10,6 +10,45 @@ using namespace std;
 
 void GameEngine::initGame(GameContext& gameContext, TurnController& turnController, ConfigReader& configReader, EconomyController& economyController) {
     configReader.loadAllConfigs(&gameContext, gameContext.getBoard(), economyController, turnController);
+
+    CardDeck<ActionCard>& chanceDeck = gameContext.getChanceDeck();
+    chanceDeck.addCard(new MoveToStationCard());
+    chanceDeck.addCard(new MoveBackwardCard());
+    chanceDeck.addCard(new MoveToJailCard());
+    chanceDeck.initShuffle();
+
+    CardDeck<ActionCard>& comChestDeck = gameContext.getCommunityChestDeck();
+    comChestDeck.addCard(new BirthdayCard());
+    comChestDeck.addCard(new DoctorFeeCard());
+    comChestDeck.addCard(new NyalegCard());
+    comChestDeck.initShuffle();
+
+    CardDeck<SkillCard>& skillDeck = gameContext.getSkillDeck();
+    for (int i = 0; i < 4; ++i) {
+        skillDeck.addCard(new MoveCard());
+    }
+
+    for (int i = 0; i < 3; ++i) {
+        skillDeck.addCard(new DiscountCard()); 
+    }
+
+    for (int i = 0; i < 2; ++i) {
+        skillDeck.addCard(new ShieldCard());
+    }
+
+    for (int i = 0; i < 2; ++i) {
+        skillDeck.addCard(new TeleportCard());
+    }
+
+    for (int i = 0; i < 2; ++i) {
+        skillDeck.addCard(new LassoCard());
+    }
+
+    for (int i = 0; i < 2; ++i) {
+        skillDeck.addCard(new DemolitionCard());
+    }
+
+    skillDeck.initShuffle();
 }
 
 void GameEngine::run() {
@@ -166,7 +205,6 @@ void GameEngine::run() {
                     break;
 
                 case CommandType::SIMPAN:
-                    cout << "Masukkan nama file save: ";
                     inputHandler.getStringInput();
                     saveLoader.saveGame(inputHandler.getLastStringInput(), gameContext);
                     logger.addLog(gameContext.getCurrentTurn(), currentPlayer->getName(), "SIMPAN", inputHandler.getLastStringInput());
