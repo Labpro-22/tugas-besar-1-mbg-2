@@ -46,7 +46,7 @@ public:
     GameContext() = default;
 
     GameBoard& getBoard() ;
-    vector<Player>& getPlayers() ;
+    vector<Player>& getPlayers();
     CardDeck<ActionCard>& getChanceDeck();
     CardDeck<ActionCard>& getCommunityChestDeck();
     CardDeck<SkillCard>& getSkillDeck();

@@ -640,17 +640,18 @@ void DisplayView::renderFestivalResult(GameContext G, StreetTile* tile) {
         int houseCount = tile->getHouseCount();
         rentPrice = tile->getRentPrices()[houseCount];
     }
+
     if (tile->isFestivalActive()) {
         cout << "Festival activated!" << endl << endl;
         cout << "First Rent: M" << rentPrice << endl;
-        cout << "After Festival rent : M" << rentPrice * tile->getFestivalMult() << endl;
-        cout << "Duration : " << tile->getFestivalDuration() << " turns" << endl;
+        cout << "After Festival rent : M" << rentPrice * tile->getFestivalStack() << endl;
+        cout << "Duration : " << tile->getFestivalTurn() << " turns" << endl;
     }else 
     {
         cout << "Festival Upgraded!" << endl << endl;
         cout << "First Rent: M" << rentPrice << endl;
-        cout << "After Festival rent : M" << rentPrice * tile->getFestivalMult() << endl;
-        cout << "Duration Resets: " << tile->getFestivalDuration() << " turns" << endl;
+        cout << "After Festival rent : M" << rentPrice * tile->getFestivalStack() << endl;
+        cout << "Duration Resets: " << tile->getFestivalTurn() << " turns" << endl;
     }
 }
 
@@ -768,14 +769,113 @@ void DisplayView::renderRedeemChoose(GameContext G, vector<PropertyTile*> mortga
     cout << "You paying M" << unmortgageCost << "To the bank" << endl;
     cout << "Your Current Balance: M" << G.getCurrentPlayer().getBalance() << " -> M" << G.getCurrentPlayer().getBalance() - unmortgageCost << endl;
 }
+
 // Build 
 void DisplayView::renderBuildStart(GameContext G, map<string, vector<StreetTile*>> tiles){
     cout << "== Qualified Color Groups ==" << endl;
+    int i = 1;
+    map<string, vector<StreetTile*>> properties = G.getBoard().getMapColorProperty();
 
+    for (const auto& entry : tiles) {
+        const vector<StreetTile*>& streets = entry.second;
+
+        if (properties[entry.first].size() != streets.size()) {
+            continue; // Skip color groups that are not fully owned
+        }
+
+        cout << i << ". [" << entry.first << "]" << endl;
+        for (StreetTile* tile : streets) {
+            if(tile->getHasHotel()) continue;
+            string buildingInfo = tile->getHouseCount() > 0 ? to_string(tile->getHouseCount()) + " Houses" : "No Houses";
+            cout << "   - " << tile->getName() << " (" << tile->getCode() << "): " << buildingInfo << "(House cost: M" << tile->getHouseCost() << ")" << endl;
+        }
+        i++;
+    }
+
+    cout << "Your Balance: M" << G.getCurrentPlayer().getBalance() << endl;
+    cout << "Choose a color group to build on (0 to skip): ";
+}
+
+void DisplayView::renderBuildMid(GameContext G, vector<StreetTile*> buildableTiles){
+    cout << "Color Group: " << "[" << buildableTiles[0]->getColor() << "]" << endl;
+    int maxHouseCount = (*max_element(
+        buildableTiles.begin(),
+        buildableTiles.end(),
+        [](StreetTile* a, StreetTile* b) {
+            return a->getHouseCount() < b->getHouseCount();
+        }
+    ))->getHouseCount();
+
+    int minHouseCount = (*min_element(
+        buildableTiles.begin(),
+        buildableTiles.end(),
+        [](StreetTile* a, StreetTile* b) {
+            return a->getHouseCount() < b->getHouseCount();
+        }
+    ))->getHouseCount();
+
+    renderStreetBuilt(buildableTiles, maxHouseCount, minHouseCount);
+
+    if (minHouseCount == 4 && maxHouseCount == 4) {
+        cout << "All properties on this color group [" << buildableTiles[0]->getColor() << "] have 4 houses. You can choose to upgrade to a hotel." << endl;
+    }
+
+    cout << "Choose a property to build on (0 to skip): ";
+}
+
+void DisplayView::renderStreetBuilt(vector<StreetTile*> tiles, int maxHouseCount, int minHouseCount){
+    for (StreetTile* streetTile : tiles){
+    
+        string buildableInfo;
+        string buildingInfo = streetTile->getHouseCount() > 0 ? to_string(streetTile->getHouseCount()) + " Houses" : "No Houses";
+        
+        if (streetTile->getHasHotel()) {
+            buildableInfo = "Can't Build (Already has Hotel)";
+            buildingInfo = "Hotel";
+        }
+
+        
+        if (streetTile->getStatus() == MORTGAGED) {
+            buildableInfo = "Can't Build (Property is Mortgaged)";
+        }
+        
+        if (minHouseCount != maxHouseCount && streetTile->getHouseCount() == minHouseCount) {
+            buildableInfo = streetTile->getHouseCost() == minHouseCount ? "Can Build" : "Can't Build (Must build evenly)";
+        }
+        
+        if (streetTile->getHouseCount() == 4 && !streetTile->getHasHotel() && minHouseCount == 4) {
+            buildableInfo = "Ready to Upgrade to Hotel";
+        }
+
+        cout << "- " << streetTile->getName() << " (" << streetTile->getCode() << "): " << buildingInfo << " <- " << buildableInfo << endl;
+    }
+}
+void DisplayView::renderBuildCancel(GameContext G){
+    cout << "You chose not to build on any property." << endl;
+}
+
+void DisplayView::renderBuildInvalid(GameContext G){
+    cout << "Invalid choice. Please choose a valid property number." << endl;
+}
+
+void DisplayView::renderbuildHouses(GameContext G, StreetTile* tile, vector<StreetTile*> buildableTiles){
+     if (tile->getHasHotel()) {
+        cout << "You have upgraded " << tile->getName() << " to a Hotel!" << endl;
+    } else {
+        cout << "You have built a house on " << tile->getName() << "!" << endl;
+    }
+    cout << "Your new balance: M" << G.getCurrentPlayer().getBalance() << endl;
+    for (const StreetTile* streetTile : buildableTiles)
+    {
+        string buildingInfo = streetTile->getHouseCount() > 0 ? to_string(streetTile->getHouseCount()) + " Houses" : "No Houses";
+        if (streetTile->getHasHotel()) {
+            buildingInfo = "Hotel";
+        }
+        cout << "- " << streetTile->getName() << " (" << streetTile->getCode() << "): " << buildingInfo << endl;
+    }
 }
 
 // SaveLoad
-
 void DisplayView::renderSaveSuccess(GameContext G, string filename){
     cout << "Saving game to ..." << endl;
     cout << "Game successfully saved to file: " << filename << endl;
@@ -842,4 +942,12 @@ void DisplayView::renderPlayerInfo(GameContext G, Player* player){
         cout << "Skill Cards: " << player->getSkillCardCount() << endl;
     }
     cout << "" << endl;
+}
+
+void DisplayView::renderPlayer(GameContext G){
+    for (Player& p : G.getPlayers()) {
+        if (p.getStatus() != PlayerStatus::BANKRUPT) {
+            cout << "- " << p.getName() << " (Currently at tile: " << p.getPosition() << ")\n";
+        }
+    }
 }
