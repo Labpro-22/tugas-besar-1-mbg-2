@@ -25,6 +25,7 @@ private:
     int doubleCount;
     list<PropertyTile*> ownedProperties;
     vector<SkillCard*> skillCards;
+    const int MAX_CARDS = 3;
 public:
     void move(int steps);
     void setPosition(int pos);
@@ -50,11 +51,10 @@ public:
     void addProperty(PropertyTile* property);
     void removeProperty(PropertyTile* property);
 
-    void addSkillCard(SkillCard* card);
-    void removeSkillCard(SkillCard* card);
-    SkillCard* getSkillCard(const string& cardName) const;
-    bool hasSkillCard(const SkillCard* card) const;
-    bool hasSkillCard(const string& cardName) const;
+    void addCardToHand(SkillCard* card);
+    SkillCard* useSkillCard(int idx);
+    SkillCard* dropSkillCard(int idx);
+    bool hasAnySkillCard() const;
     int getSkillCardCount() const;
     bool canHoldMoreSkillCards() const;
 
