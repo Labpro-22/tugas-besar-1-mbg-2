@@ -7,14 +7,14 @@ static mt19937& getRNG() {
     return gen;
 }
 
-MoveCard::MoveCard() : SkillCard("Move", "Move forward random spaces.") {
+MoveCard::MoveCard() : SkillCard("Move Card", "Move forward random spaces.") {
     uniform_int_distribution<> dist(1, 12);
     this->steps = dist(getRNG());
     
     this->description = "Move forward " + to_string(this->steps) + " tile(s).";
 }
 
-MoveCard::MoveCard(int steps) : SkillCard ("Move", "Move forward random spaces."), steps(steps) {}
+MoveCard::MoveCard(int steps) : SkillCard ("Move Card", "Move forward random spaces."), steps(steps) {}
 
 SkillCardType MoveCard::getSkillType() const { 
     return SkillCardType::MOVE; 

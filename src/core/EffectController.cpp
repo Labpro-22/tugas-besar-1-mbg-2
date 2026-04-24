@@ -19,12 +19,20 @@ void EffectController::execute(ActionCard& card, Player& currentPlayer, GameCont
             break;
         }
         case ActionCardType::MOVE_BACKWARD: {
+            if (currentPlayer.hasShield()) {
+                break;
+            }
+
             int currentPos = currentPlayer.getPosition();
             int newPos = ctx.getBoard().calculateTargetPosition(currentPos, -3);
             currentPlayer.setPosition(newPos);
             break;
         }
         case ActionCardType::MOVE_TO_JAIL: {
+            if (currentPlayer.hasShield()) {
+                break;
+            }
+
             Tile* jailTile = ctx.getBoard().getTileByCode("PEN");
             
             if (jailTile != nullptr) {
@@ -44,10 +52,18 @@ void EffectController::execute(ActionCard& card, Player& currentPlayer, GameCont
             break;
         }
         case ActionCardType::DOCTOR_FEE: {
+            if (currentPlayer.hasShield()) {
+                break;
+            }
+
             currentPlayer -= 700;
             break;
         }
         case ActionCardType::NYALEG: {
+            if (currentPlayer.hasShield()) {
+                break;
+            }
+
             for (Player& p : ctx.getPlayers()) {
                 if (&p != &currentPlayer && p.getStatus() != PlayerStatus::BANKRUPT) {
                     currentPlayer -= 200;
@@ -104,6 +120,10 @@ void EffectController::execute(SkillCard& card, Player& currentPlayer, GameConte
             break;
         }
         case SkillCardType::LASSO: {
+            if (currentPlayer.hasShield()) {
+                break;
+            }
+
             int currentPos = currentPlayer.getPosition();
             cout << "List of opponent players that can be pulled:\n";
             display.renderPlayer(ctx);
@@ -151,6 +171,10 @@ void EffectController::execute(SkillCard& card, Player& currentPlayer, GameConte
             break;
         }
         case SkillCardType::DEMOLITION: {
+            if (currentPlayer.hasShield()) {
+                break;
+            }
+
             Tile* targetTile = nullptr;
             StreetTile* targetStreet = nullptr;
 
