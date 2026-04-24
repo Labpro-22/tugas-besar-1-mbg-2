@@ -30,6 +30,7 @@ public:
     void applyFestival();
     void playerReenterFestival();
     void decreaseFestivalTurn();
+    
     void setHouseCount(int count);
     void setHasHotel(bool value);
     

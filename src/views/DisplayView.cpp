@@ -965,8 +965,13 @@ void DisplayView::renderBankruptFirstSceneRent(GameContext G, Player* bankruptPl
             cout << "   Mortgage " << tile->getName() << " (" << tile->getCode() << ") [" << tile->getColor() << "] -> M" << tile->getMortgageValue() << endl;
             totalAssetValue += tile->getMortgageValue();
         } else {
-            cout << "   Sell " << tile->getName() << " (" << tile->getCode() << ") [" << tile->getColor() << "] -> M" << tile->getPrice() << endl;
-            totalAssetValue += tile->getPrice();
+            if (StreetTile* streetTile = dynamic_cast<StreetTile*>(tile)) {
+                cout << "   Sell " << tile->getName() << " (" << tile->getCode() << ") [" << tile->getColor() << "] -> M" << tile->getPrice() + streetTile->getBuildingValue() / 2 << " (Building Value: M" << streetTile->getBuildingValue() / 2 << ")" << endl;
+                totalAssetValue += tile->getPrice() + streetTile->getBuildingValue() / 2;
+            } else {    
+                cout << "   Sell " << tile->getName() << " (" << tile->getCode() << ") [" << tile->getColor() << "] -> M" << tile->getMortgageValue() << endl;
+                totalAssetValue += tile->getMortgageValue();
+            }
         }
     }
     cout << "   Potential Liquidation Value -> M" << totalAssetValue << endl;
@@ -987,8 +992,13 @@ void DisplayView::renderBankruptFirstSceneTax(GameContext G, Player* bankruptPla
             cout << "   Mortgage " << tile->getName() << " (" << tile->getCode() << ") [" << tile->getColor() << "] -> M" << tile->getMortgageValue() << endl;
             totalAssetValue += tile->getMortgageValue();
         } else {
-            cout << "   Sell " << tile->getName() << " (" << tile->getCode() << ") [" << tile->getColor() << "] -> M" << tile->getPrice() << endl;
-            totalAssetValue += tile->getPrice();
+            if (StreetTile* streetTile = dynamic_cast<StreetTile*>(tile)) {
+                cout << "   Sell " << tile->getName() << " (" << tile->getCode() << ") [" << tile->getColor() << "] -> M" << tile->getPrice() + streetTile->getBuildingValue() / 2 << " (Building Value: M" << streetTile->getBuildingValue() / 2 << ")" << endl;
+                totalAssetValue += tile->getPrice() + streetTile->getBuildingValue() / 2;
+            } else {
+                cout << "   Sell " << tile->getName() << " (" << tile->getCode() << ") [" << tile->getColor() << "] -> M" << tile->getMortgageValue() << endl;
+                totalAssetValue += tile->getMortgageValue();
+            }
         }
     }
     cout << "   Potential Liquidation Value -> M" << totalAssetValue << endl;
@@ -1013,7 +1023,7 @@ void DisplayView::liquidatePanel(GameContext G, Player* bankruptPlayer, Player* 
                 }
                 cout << i << "." << streetTile->getName() << " (" << streetTile->getCode() << ") [" << streetTile->getColor() << "] Sell Price: M" << streetTile->getPrice() + streetTile->getBuildingValue() / 2 << "(" << buildingInfo << ": M" << streetTile->getBuildingValue() << ")" << endl;
             }else{
-                cout << i << "." << tile->getName() << " (" << tile->getCode() << ") [" << tile->getColor() << "] Sell Price: M" << tile->getPrice() << endl;
+                cout << i << "." << tile->getName() << " (" << tile->getCode() << ") [" << tile->getColor() << "] Sell Price: M" << tile->getMortgageValue() << endl;
 
             }
             i++;
@@ -1038,8 +1048,8 @@ void DisplayView::renderLiquidateChoose(GameContext G, Player* bankruptPlayer, P
             cout << "You sold " << chosenTile->getName() << " to the bank for M" << totalValue << "." << endl;
             cout << "Your new balance: M" << bankruptPlayer->getBalance() + totalValue << endl;
         } else {
-            cout << "You sold " << chosenTile->getName() << " to the bank for M"<< chosenTile->getPrice() << "." << endl;
-            cout << "Your new balance: M" << bankruptPlayer->getBalance() + chosenTile->getPrice() << endl;
+            cout << "You sold " << chosenTile->getName() << " to the bank for M"<< chosenTile->getMortgageValue() << "." << endl;
+            cout << "Your new balance: M" << bankruptPlayer->getBalance() + chosenTile->getMortgageValue() << endl;
         }
     }
     else if (chosenTile->getStatus() == MORTGAGED)

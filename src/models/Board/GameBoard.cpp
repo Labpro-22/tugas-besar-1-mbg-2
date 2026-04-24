@@ -126,3 +126,15 @@ vector<PropertyTile*> GameBoard::getPropertyTile() const {
     }
     return properties;
 }
+
+PropertyTile* GameBoard::getPropertyTileByCode(string code) const {
+    for (Tile* tile : tiles) {
+        if (tile->getType() == "PROPERTY") {
+            PropertyTile* propertyTile = dynamic_cast<PropertyTile*>(tile);
+            if (propertyTile != nullptr && propertyTile->getCode() == code) {
+                return propertyTile;
+            }
+        }
+    }
+    return nullptr; 
+}
