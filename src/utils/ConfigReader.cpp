@@ -107,8 +107,7 @@ void ConfigReader::loadMisc(GameContext* gameContext, string fileName){
         stringstream ss(line);
         int maxTurns, startingMoney; 
         ss >> maxTurns >> startingMoney;
-        ga
-        turnController.setMaxTurns(maxTurns);
-        turnController.setStartingMoney(startingMoney);
+        gameContext->setMaxTurns(maxTurns);
+        gameContext->setStartingMoney(startingMoney);
     }
 };
