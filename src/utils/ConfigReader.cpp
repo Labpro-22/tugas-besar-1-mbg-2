@@ -17,16 +17,16 @@ void ConfigReader::loadAllConfigs(GameContext *gameContext, GameBoard &gameBoard
 void ConfigReader::loadProperty(string fileName, GameBoard &gameBoard){
     // masih hardcode untuk tile aksi dan special, karena tidak ada txt
     gameBoard.addTile(new StartTile(0, "GO", "Petak Mulai", "DEFAULT"));
-    gameBoard.addTile(new CardTile(2, "DNU", "Dana Umum", CardType::DANA_UMUM, "DEFAULT"));
+    gameBoard.addTile(new CardTile(2, "DNU", "Dana Umum", CardType::COMMUNITY_CHEST, "DEFAULT"));
     gameBoard.addTile(new TaxTile(4, "PPH", "Pajak Penghasilan", true, "DEFAULT"));
     gameBoard.addTile(new FestivalTile(7, "FES", "Festival", "DEFAULT"));
     gameBoard.addTile(new JailTile(10, "PEN", "Penjara", "DEFAULT"));
-    gameBoard.addTile(new CardTile(17, "DNU", "Dana Umum", CardType::DANA_UMUM, "DEFAULT"));
+    gameBoard.addTile(new CardTile(17, "DNU", "Dana Umum", CardType::COMMUNITY_CHEST, "DEFAULT"));
     gameBoard.addTile(new FreeParkTile(20, "BBP", "Pajak Bumi dan Bangunan", "DEFAULT"));
-    gameBoard.addTile(new CardTile(22, "KSP", "Kesempatan", CardType::KESEMPATAN, "DEFAULT"));
+    gameBoard.addTile(new CardTile(22, "KSP", "Kesempatan", CardType::CHANCE, "DEFAULT"));
     gameBoard.addTile(new GoToJailTile(30, "PPJ", "Petak Pergi ke Penjara", "DEFAULT"));
     gameBoard.addTile(new FestivalTile(33, "FES", "Festival", "DEFAULT"));
-    gameBoard.addTile(new CardTile(36, "KSP", "Kesempatan", CardType::KESEMPATAN, "DEFAULT"));
+    gameBoard.addTile(new CardTile(36, "KSP", "Kesempatan", CardType::CHANCE, "DEFAULT"));
     gameBoard.addTile(new TaxTile(38, "PBM", "Pajak Barang Mewah", false, "DEFAULT"));
 
     ifstream file(fileName);

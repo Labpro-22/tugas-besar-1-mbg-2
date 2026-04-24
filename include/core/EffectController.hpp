@@ -16,6 +16,6 @@ public:
     void decrementDurations();
     
     void execute(ActionCard& card, Player& currentPlayer, GameContext& ctx);
-    void execute(SkillCard& card, Player& currentPlayer, GameContext& ctx, InputHandler& input);
+    void execute(SkillCard& card, Player& currentPlayer, GameContext& ctx, InputHandler& input, DisplayView& display);
 };
 
