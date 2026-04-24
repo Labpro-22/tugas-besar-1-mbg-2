@@ -17,7 +17,9 @@ enum class CommandType {
     SIMPAN,
     MUAT,
     CETAK_LOG,
-    UNKNOWN_COMMAND
+    UNKNOWN_COMMAND,
+    BID,
+    PASS
 };
 
 class InputHandler
@@ -32,6 +34,7 @@ public:
     InputHandler(istream& input = cin);
 
     CommandType getCommand();
+    bool getMoneyRemaining(int &value, bool &hasValue);
     void getIntInput();
     void getIntTwoInput();
     void getStringInput();
