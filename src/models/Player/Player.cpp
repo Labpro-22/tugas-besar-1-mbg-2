@@ -121,9 +121,7 @@ void Player::removeProperty(PropertyTile *property) {
 }
 
 void Player::addCardToHand(SkillCard *card) {
-    if (canHoldMoreSkillCards()) {
-        skillCards.push_back(card);
-    }
+    skillCards.push_back(card);
 }
 
 SkillCard* Player::useSkillCard(int idx) {

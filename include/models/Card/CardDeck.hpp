@@ -15,7 +15,7 @@ private:
     void shuffleMainDeck() {
         unsigned base = chrono::system_clock::now().time_since_epoch().count();
         default_random_engine engine(base);
-        shuffle(mainDeck.begin(), mainDeck.end(). engine);
+        shuffle(mainDeck.begin(), mainDeck.end(), engine);
     }
 
 public:

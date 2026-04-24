@@ -81,6 +81,10 @@ void GameEngine::run() {
             continue;
         }
 
+        if (gameContext.getCurrentPlayerIndex() == 0) {
+            turnController.distributeSkillCards(gameContext, inputHandler);
+        }
+
         cout << "\n============================================\n";
         cout << "Giliran: " << currentPlayer->getName() << " (Turn " << gameContext.getCurrentTurn() << ")" << endl;
         bool turnEnded = false;
@@ -200,9 +204,47 @@ void GameEngine::run() {
                     // BELUM ADA IMPLEMENTASI
                 case CommandType::BANGUN:
                     // BELUM ADA IMPLEMENTASI
-                case CommandType::GUNAKAN_KEMAMPUAN:
-                    // INI NUNGGU MIKA KAYAKNYA
-                    break;
+                case CommandType::GUNAKAN_KEMAMPUAN: {
+                    if (!currentPlayer->hasAnySkillCard()) {
+                        cout << "[ERROR] Anda tidak memiliki satupun Kartu Kemampuan (Skill Card)!" << endl;
+                        break;
+                    }
+
+                    cout << "Daftar Kartu Kemampuan milikmu:" << endl;
+                    int displayIdx = 1;
+                    for (SkillCard* c : currentPlayer->getSkillCard()) {
+                        cout << "[" << displayIdx << "] " << c->getName() << " - " << c->getDescription() << endl;
+                        displayIdx++;
+                    }
+                    cout << "[0] Batal menggunakan kartu." << endl;
+                    cout << "Pilih kartu yang ingin digunakan (0-" << currentPlayer->getSkillCardCount() << "): ";
+
+                    int choice = -1;
+                    while (true) {
+                        inputHandler.getIntInput();
+                        choice = inputHandler.getIntValue1();
+
+                        if (choice >= 0 && choice <= currentPlayer->getSkillCardCount()) {
+                            break;
+                        }
+                        cout << "Pilihan tidak valid! Masukkan angka (0-" << currentPlayer->getSkillCardCount() << "): ";
+                    }
+
+                    if (choice == 0) {
+                        cout << "Batal menggunakan kartu kemampuan." << endl;
+                        break;
+                    }
+
+                    int vectorIndex = choice - 1;
+                    SkillCard* cardToUse = currentPlayer->dropSkillCard(vectorIndex);
+
+                    cout << "\n>> Mengaktifkan kartu: [" << cardToUse->getName() << "]..." << endl;
+                    effectController.execute(*cardToUse, *currentPlayer, gameContext, inputHandler, displayView);
+
+                    gameContext.getSkillDeck().discard(cardToUse);
+                    
+                    break; 
+                }
 
                 case CommandType::SIMPAN:
                     inputHandler.getStringInput();
