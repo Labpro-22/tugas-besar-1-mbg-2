@@ -142,14 +142,13 @@ bool Player::hasAnySkillCard() const {
     return !skillCards.empty(); 
 }
 
-bool Player::hasJailFreeCard() const {
-    for (SkillCard* c : skillCards) {
-        if (c->getSkillType() == SkillCardType::JAILFREE) {
-            return true;
+int Player::searchJailFreeCard() const {
+    for (int i = 0; i < skillCards.size(); i++) {
+        if (skillCards[i]->getName() == "JailFreeCard") { 
+            return i;
         }
     }
-
-    return false;
+    return -1;
 }
 
 vector<SkillCard *> Player::getSkillCard(){

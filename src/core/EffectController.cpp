@@ -216,7 +216,8 @@ void EffectController::execute(SkillCard& card, Player& currentPlayer, GameConte
             break;
         }
         case SkillCardType::JAILFREE: {
-            currentPlayer.setStatus(ACTIVE);
+            currentPlayer.setStatus(PlayerStatus::ACTIVE);
+            currentPlayer.setJailTurns(0);
         }
     }
 }
