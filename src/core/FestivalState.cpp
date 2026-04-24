@@ -29,3 +29,11 @@ int FestivalState::getStacks() const{
 int FestivalState::getTurnsLeft() const{
     return turnsLeft;
 }
+
+void FestivalState::setStacks(int newStacks){
+    stacks = newStacks;
+}
+
+void FestivalState::setTurnsLeft(int newTurnsLeft){
+    turnsLeft = newTurnsLeft;
+}

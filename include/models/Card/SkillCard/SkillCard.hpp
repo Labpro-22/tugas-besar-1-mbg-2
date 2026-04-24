@@ -7,7 +7,8 @@ enum class SkillCardType {
     SHIELD,
     TELEPORT,
     LASSO,
-    DEMOLITION
+    DEMOLITION,
+    JAILFREE
 };
 
 class SkillCard : public Card

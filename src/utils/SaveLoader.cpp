@@ -3,11 +3,16 @@
 #include "DiscountCard.hpp"
 #include "MoveCard.hpp"
 #include "ShieldCard.hpp"
+#include "MoveCard.hpp"
+#include "DiscountCard.hpp"
+#include "TeleportCard.hpp"
+#include "LassoCard.hpp"
+#include "DemolitionCard.hpp"
 #include "GameContext.hpp"
 #include <fstream>
 #include <iostream>
 
-void SaveLoader::saveGame(string fileName, GameContext &gameContext) {
+void SaveLoader::saveGame(string fileName, GameContext &gameContext, GameLogger& logger) {
     ofstream out(fileName);
     if (!out.is_open()) {
         cout << "Gagal menyimpan game ke file: " << fileName << endl;
@@ -41,7 +46,6 @@ void SaveLoader::saveGame(string fileName, GameContext &gameContext) {
             out << "\n";
         }
     }
-
 
     // Player Turn Order
     for (Player &player : players)
@@ -82,22 +86,27 @@ void SaveLoader::saveGame(string fileName, GameContext &gameContext) {
         out << prop->getCode() << " " << typeLabel << " " << ownerName << " " << status << " " << fmult << " " << fdur << " " << nBuilding << "\n";
     }
 
-
-    for (const auto& card : gameContext.getSkillCards())
-    {
-        
+    // Deck State 
+    CardDeck<SkillCard>& skillDeck = gameContext.getSkillDeck();
+    out << skillDeck.getMainDeck().size() << "\n";
+    for (const auto& card : skillDeck.getMainDeck())
+    {   
+        out << card->getName() << "\n";
     }
-    
-    
 
-    
+    out << skillDeck.getDiscardDeck().size() << "\n";
+    for (const auto& card : skillDeck.getDiscardDeck())
+    {
+        out << card->getName() << "\n";
+    }
 
+    logger.saveToStream(out);
 
     out.close();
     cout << "Game tersimpan ke " << fileName << endl;
 }
 
-void SaveLoader::loadGame(string fileName, GameContext &gameContext) {
+void SaveLoader::loadGame(string fileName, GameContext &gameContext, GameLogger& logger) {
     ifstream in(fileName);
     if (!in.is_open()) {
         cout << "Gagal memuat save dari file: " << fileName << endl;
@@ -105,33 +114,175 @@ void SaveLoader::loadGame(string fileName, GameContext &gameContext) {
     }
 
     int turn = 1;
+    int maxTurns = 0;
     int currentIndex = 0;
     int playerCount = 0;
 
-    in >> turn;
-    in >> currentIndex;
+    in >> turn >> maxTurns;
     in >> playerCount;
 
     gameContext.setCurrentTurn(turn);
-    gameContext.setCurrentPlayerIndex(currentIndex);
+    gameContext.setMaxTurns(maxTurns);
 
     vector<Player> players = gameContext.getPlayers();
     for (int i = 0; i < playerCount && i < players.size(); ++i) {
-        string ignoredName;
+        string username;
         int balance = 0;
         int position = 0;
         int statusInt = 0;
         int jailTurns = 0;
 
-        in >> ignoredName >> balance >> position >> statusInt >> jailTurns;
+        in >> username >> balance >> position >> statusInt >> jailTurns;
 
+        players[i].setName(username);
+        players[i].setBalance(balance);
         players[i].setPosition(position);
         players[i].setStatus(static_cast<PlayerStatus>(statusInt));
         players[i].setJailTurns(jailTurns);
 
-        int delta = balance - players[i].getBalance();
-        players[i] += delta;
+        int skillCardCount = 0;
+        in >> skillCardCount;
+
+        for (int j = 0; j < skillCardCount; ++j) {
+            string cardName;
+            in >> cardName;
+
+            SkillCard* card = nullptr;
+            if (cardName == "DiscountCard") {
+                int discountPercentage;
+                in >> discountPercentage;
+                card = new DiscountCard(discountPercentage);
+            } else if (cardName == "MoveCard") {
+                int steps;
+                in >> steps;
+                card = new MoveCard(steps);
+            } else if (cardName == "ShieldCard") {
+                card = new ShieldCard();
+            } else if (cardName == "TeleportCard") {
+                card = new TeleportCard();
+            } else if (cardName == "LassoCard") {
+                card = new LassoCard();
+            } else if (cardName == "DemolitionCard") {
+                card = new DemolitionCard();
+            }
+
+            if (card != nullptr) {
+                players[i].addCardToHand(card);
+            }
+        }
     }
+
+
+    int totalProperties;
+    in >> totalProperties;
+    for (int i = 0; i < totalProperties; ++i) {
+        string code, typeLabel, ownerName, status;
+        string festivalMult, festivalDur, nBuilding;
+
+        in >> code >> typeLabel >> ownerName >> status >> festivalMult >> festivalDur >> nBuilding;
+
+        PropertyTile* prop = gameContext.getBoard().getPropertyTileByCode(code);
+        if (prop != nullptr) {
+            if (ownerName != "BANK") {
+                for (Player& player : players) {
+                    if (player.getName() == ownerName) {
+                        prop->setOwner(&player);
+                        break;
+                    }
+                }
+            }
+
+            if (status == "MORTGAGED") {
+                prop->setStatus(MORTGAGED);
+            } else if (status == "OWNED") {
+                prop->setStatus(OWNED);
+            } else {
+                prop->setStatus(BANK);
+            }
+
+            if (typeLabel == "STREET") {
+                StreetTile* street = dynamic_cast<StreetTile*>(prop);
+                if (street != nullptr) {
+                    FestivalState festivalState;
+                    festivalState.setStacks(stoi(festivalMult));
+                    festivalState.setTurnsLeft(stoi(festivalDur));
+                    street->setFestivalState(festivalState);
+                    if (nBuilding == "H") {
+                        street->setHasHotel(true);
+                    } else {
+                        street->setHouseCount(stoi(nBuilding));
+                    }
+                }
+            }
+        }
+    }
+
+    // Load Deck State
+    int mainDeckCount = 0;
+    in >> mainDeckCount;
+
+    CardDeck<SkillCard>& skillDeck = gameContext.getSkillDeck();
+    for (int i = 0; i < mainDeckCount; ++i) {
+        string cardName;
+        in >> cardName;
+
+        SkillCard* card = nullptr;
+        if (cardName == "DiscountCard") {
+            int discountPercentage;
+            in >> discountPercentage;
+            card = new DiscountCard(discountPercentage);
+        } else if (cardName == "MoveCard") {
+            int steps;
+            in >> steps;
+            card = new MoveCard(steps);
+        } else if (cardName == "ShieldCard") {
+            card = new ShieldCard();
+        } else if (cardName == "TeleportCard") {
+            card = new TeleportCard();
+        } else if (cardName == "LassoCard") {
+            card = new LassoCard();
+        } else if (cardName == "DemolitionCard") {
+            card = new DemolitionCard();
+        }
+
+        if (card != nullptr) {
+            skillDeck.add(card);
+        }
+    }
+
+    int discardDeckCount = 0;
+    in >> discardDeckCount;
+
+    CardDeck<SkillCard>& skillDeckDiscard = gameContext.getSkillDeck();
+    for(int i = 0; i < discardDeckCount; i++){
+        string cardName;
+        in >> cardName;
+
+        SkillCard* card = nullptr;
+        if (cardName == "DiscountCard") {
+            int discountPercentage;
+            in >> discountPercentage;
+            card = new DiscountCard(discountPercentage);
+        } else if (cardName == "MoveCard") {
+            int steps;
+            in >> steps;
+            card = new MoveCard(steps);
+        } else if (cardName == "ShieldCard") {
+            card = new ShieldCard();
+        } else if (cardName == "TeleportCard") {
+            card = new TeleportCard();
+        } else if (cardName == "LassoCard") {
+            card = new LassoCard();
+        } else if (cardName == "DemolitionCard") {
+            card = new DemolitionCard();
+        }
+
+        if (card != nullptr) {
+            skillDeckDiscard.discard(card);
+        }
+    }
+
+    logger.loadFromStream(in);
 
     in.close();
     cout << "Game dimuat dari " << fileName << endl;

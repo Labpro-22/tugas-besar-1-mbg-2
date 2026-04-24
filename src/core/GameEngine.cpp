@@ -48,6 +48,10 @@ void GameEngine::initGame(GameContext& gameContext, TurnController& turnControll
         skillDeck.add(new DemolitionCard());
     }
 
+    for (int i = 0; i < 2; ++i) {
+        skillDeck.add(new JailFreeCard());
+    }
+
     skillDeck.initShuffle();
 }
 
@@ -79,6 +83,10 @@ void GameEngine::run() {
         if (currentPlayer->getStatus() == PlayerStatus::BANKRUPT) {
             gameContext.nextPlayer();
             continue;
+        }
+
+        if (gameContext.getCurrentPlayerIndex() == 0) {
+            turnController.distributeSkillCards(gameContext, inputHandler);
         }
 
         cout << "\n============================================\n";
@@ -126,7 +134,7 @@ void GameEngine::run() {
                             cout << "Uang tidak cukup!" << endl;
                         }
                     } else if (choice == 2) {
-                        if (currentPlayer->hasSkillCard("BEBAS_PENJARA")) {
+                        if (currentPlayer->hasJailFreeCard()) {
                             cout << "Menggunakan kartu bebas dari penjara..." << endl;
                             // currentPlayer->removeSkillCard("BEBAS_PENJARA"); TAR DIURUS MIKA SEMOGA
                             currentPlayer->setStatus(PlayerStatus::ACTIVE);
@@ -200,20 +208,58 @@ void GameEngine::run() {
                     // BELUM ADA IMPLEMENTASI
                 case CommandType::BANGUN:
                     // BELUM ADA IMPLEMENTASI
-                case CommandType::GUNAKAN_KEMAMPUAN:
-                    // INI NUNGGU MIKA KAYAKNYA
-                    break;
+                case CommandType::GUNAKAN_KEMAMPUAN: {
+                    if (!currentPlayer->hasAnySkillCard()) {
+                        cout << "[ERROR] Anda tidak memiliki satupun Kartu Kemampuan (Skill Card)!" << endl;
+                        break;
+                    }
+
+                    cout << "Daftar Kartu Kemampuan milikmu:" << endl;
+                    int displayIdx = 1;
+                    for (SkillCard* c : currentPlayer->getSkillCard()) {
+                        cout << "[" << displayIdx << "] " << c->getName() << " - " << c->getDescription() << endl;
+                        displayIdx++;
+                    }
+                    cout << "[0] Batal menggunakan kartu." << endl;
+                    cout << "Pilih kartu yang ingin digunakan (0-" << currentPlayer->getSkillCardCount() << "): ";
+
+                    int choice = -1;
+                    while (true) {
+                        inputHandler.getIntInput();
+                        choice = inputHandler.getIntValue1();
+
+                        if (choice >= 0 && choice <= currentPlayer->getSkillCardCount()) {
+                            break;
+                        }
+                        cout << "Pilihan tidak valid! Masukkan angka (0-" << currentPlayer->getSkillCardCount() << "): ";
+                    }
+
+                    if (choice == 0) {
+                        cout << "Batal menggunakan kartu kemampuan." << endl;
+                        break;
+                    }
+
+                    int vectorIndex = choice - 1;
+                    SkillCard* cardToUse = currentPlayer->dropSkillCard(vectorIndex);
+
+                    cout << "\n>> Mengaktifkan kartu: [" << cardToUse->getName() << "]..." << endl;
+                    effectController.execute(*cardToUse, *currentPlayer, gameContext, inputHandler, displayView);
+
+                    gameContext.getSkillDeck().discard(cardToUse);
+                    
+                    break; 
+                }
 
                 case CommandType::SIMPAN:
                     inputHandler.getStringInput();
-                    saveLoader.saveGame(inputHandler.getLastStringInput(), gameContext);
+                    saveLoader.saveGame(inputHandler.getLastStringInput(), gameContext, logger);
                     logger.addLog(gameContext.getCurrentTurn(), currentPlayer->getName(), "SIMPAN", inputHandler.getLastStringInput());
                     break;
 
                 case CommandType::MUAT:
                     cout << "Masukkan nama file save: ";
                     inputHandler.getStringInput();
-                    saveLoader.loadGame(inputHandler.getLastStringInput(), gameContext);
+                    saveLoader.loadGame(inputHandler.getLastStringInput(), gameContext, logger);
                     logger.addLog(gameContext.getCurrentTurn(), currentPlayer->getName(), "MUAT", inputHandler.getLastStringInput());
                     break;
 

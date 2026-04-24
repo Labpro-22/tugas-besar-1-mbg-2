@@ -17,5 +17,6 @@ class TurnController
 {
 public:
     bool checkWinCondition();
+    void TurnController::distributeSkillCards(GameContext& ctx, InputHandler& input);
     void executeAction(GameContext* context, EconomyController& eco, EffectController& eff, AuctionController& auc, BankruptcyController& bank, Dice& dice, SaveLoader& sl, InputHandler& input, GameLogger& logger);
 };

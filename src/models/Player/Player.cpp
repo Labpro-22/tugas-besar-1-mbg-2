@@ -24,22 +24,8 @@ void Player::setDoubleCount(int count) {
     doubleCount = count;   
 }
 
-void Player::move(int steps) {
-    const int boardSize = 40;
-    int nextPosition = (currentPosition + steps) % boardSize;
-    if (nextPosition < 0) {
-        nextPosition += boardSize;
-    }
-    currentPosition = nextPosition;
-}
-
 void Player::setPosition(int pos) {
-    const int boardSize = 40;
-    int normalizedPosition = pos % boardSize;
-    if (normalizedPosition < 0) {
-        normalizedPosition += boardSize;
-    }
-    currentPosition = normalizedPosition;
+    currentPosition = pos;
 }
 
 void Player::setStatus(PlayerStatus status) {
@@ -135,9 +121,7 @@ void Player::removeProperty(PropertyTile *property) {
 }
 
 void Player::addCardToHand(SkillCard *card) {
-    if (canHoldMoreSkillCards()) {
-        skillCards.push_back(card);
-    }
+    skillCards.push_back(card);
 }
 
 SkillCard* Player::useSkillCard(int idx) {
@@ -156,6 +140,16 @@ SkillCard* Player::dropSkillCard(int idx) {
 
 bool Player::hasAnySkillCard() const {
     return !skillCards.empty(); 
+}
+
+bool Player::hasJailFreeCard() const {
+    for (SkillCard* c : skillCards) {
+        if (c->getSkillType() == SkillCardType::JAILFREE) {
+            return true;
+        }
+    }
+
+    return false;
 }
 
 vector<SkillCard *> Player::getSkillCard(){
@@ -225,7 +219,7 @@ int Player::totalBuildingValue() const {
 
 int Player::totalWealth() const
 {
-    return balance + totalPropertyPrice() + totalBuildingValue();
+    return balance + totalPropertyPrice() + totalBuildingValue() / 2;
 }
 
 int Player::countOwnerRailroads() const {

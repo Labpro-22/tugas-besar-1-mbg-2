@@ -14,7 +14,7 @@ DiscountCard::DiscountCard() : SkillCard("Discount", "Get a random discount.") {
     this->description = "Get a " + to_string(this->discountPercentage) + "% discount for 1 turn.";
 }
 
-DiscountCard::DiscountCard(int disc) : SkillCard("Discount", "Get a random discount."), discountPercentage(disc) {}
+DiscountCard::DiscountCard(int disc) : SkillCard("Discount Card", "Get a random discount."), discountPercentage(disc) {}
 
 SkillCardType DiscountCard::getSkillType() const { 
     return SkillCardType::DISCOUNT; 

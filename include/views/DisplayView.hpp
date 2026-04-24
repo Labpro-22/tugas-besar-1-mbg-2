@@ -89,13 +89,28 @@ public:
     void renderGameOverMaxTurn(GameContext G);
 
     // Bankruptcy / liquidation
-    void renderBankruptFirstScene(GameContext G, Player* bankruptPlayer, Player* creditorPlayer, PropertyTile* bankruptTile);
+    void renderBankruptFirstSceneRent(GameContext G, Player* bankruptPlayer, Player* creditorPlayer, int amountToPay);
+    void renderBankruptFirstSceneTax(GameContext G, Player* bankruptPlayer, TaxTile* bankruptTile, int amountToPay);
+    void renderBankruptSecondScene(GameContext G, Player* bankruptPlayer, Player* creditorPlayer, PropertyTile* bankruptTile, int amountToPay);
+    void renderBankruptThirdScene(GameContext G, Player* bankruptPlayer, TaxTile* Tile, int amountToPay);
+    void liquidatePanel(GameContext G, Player* bankruptPlayer, Player* creditorPlayer, int amountToPay);
+    void renderLiquidateChoose(GameContext G, Player* bankruptPlayer, PropertyTile* chosenTile);
+    void renderNotEnoughLiquidate(GameContext G, Player* bankruptPlayer, int amountToPay);
+    void renderEnoughLiquidate(GameContext G, Player* bankruptPlayer, Player* creditorPlayer, int amountToPay);
 
     // Card Tile
     void renderCardTile(GameContext G, CardTile* tile, Card );
 
     // Use Card
-    void renderUseCardMenu(GameContext G, Card* card);
+    void renderPlayerCard(Player& player);
+    void renderReceiveSkillCard(Player& player, SkillCard* card);
+    void renderMaxSkillCard(Player& player);
+    void renderCardTile(GameContext G, CardTile* tile, ActionCard* card);
+    void renderActivateCard(GameContext G, Player* player, ActionCard* card);
+    void renderDiscardSkillCard(Player& player, int choice);
+    void renderShieldPay(GameContext G, Player* player, int amountToPay);
+    void renderShieldProtect(GameContext G, Player* player);
+    void renderDiscountPay(GameContext G, Player* player, int amountToPay, int discountedAmount);
     
     // Player Info
     void renderPlayerInfo(GameContext G, Player* player);
