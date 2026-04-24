@@ -12,30 +12,27 @@ void EffectController::execute(ActionCard& card, Player& currentPlayer, GameCont
     switch (card.getActionType()) {
         case ActionCardType::MOVE_TO_STATION: {
             int currentPos = currentPlayer.getPosition();
-            int totalTiles = ctx.getBoard().getTotalTile();
-            int searchPos = (currentPos + 1) % totalTiles;
-
-            while (true) {
-                Tile* tileToCheck = ctx.getBoard().getTile(searchPos);
-                RailroadTile* rrTile = dynamic_cast<RailroadTile*>(tileToCheck);
-                
-                if (rrTile != nullptr) { 
-                    break;
-                }
-                searchPos = (searchPos + 1) % totalTiles;
-            }
-
-            currentPlayer.setPosition(searchPos);
+    
+            int stationPos = ctx.getBoard().findNearestStation(currentPos);
+            
+            currentPlayer.setPosition(stationPos);
             break;
         }
         case ActionCardType::MOVE_BACKWARD: {
+            if (currentPlayer.hasShield()) {
+                break;
+            }
+
             int currentPos = currentPlayer.getPosition();
-            int totalTiles = ctx.getBoard().getTotalTile();
-            int newPos = (currentPos - 3 + totalTiles) % totalTiles; 
+            int newPos = ctx.getBoard().calculateTargetPosition(currentPos, -3);
             currentPlayer.setPosition(newPos);
             break;
         }
         case ActionCardType::MOVE_TO_JAIL: {
+            if (currentPlayer.hasShield()) {
+                break;
+            }
+
             Tile* jailTile = ctx.getBoard().getTileByCode("PEN");
             
             if (jailTile != nullptr) {
@@ -55,10 +52,18 @@ void EffectController::execute(ActionCard& card, Player& currentPlayer, GameCont
             break;
         }
         case ActionCardType::DOCTOR_FEE: {
+            if (currentPlayer.hasShield()) {
+                break;
+            }
+
             currentPlayer -= 700;
             break;
         }
         case ActionCardType::NYALEG: {
+            if (currentPlayer.hasShield()) {
+                break;
+            }
+
             for (Player& p : ctx.getPlayers()) {
                 if (&p != &currentPlayer && p.getStatus() != PlayerStatus::BANKRUPT) {
                     currentPlayer -= 200;
@@ -77,9 +82,8 @@ void EffectController::execute(SkillCard& card, Player& currentPlayer, GameConte
             
             int steps = mCard.getSteps();
             int currentPos = currentPlayer.getPosition();
-            int totalTiles = ctx.getBoard().getTotalTile();
             
-            int newPos = (currentPos + steps) % totalTiles;
+            int newPos = ctx.getBoard().calculateTargetPosition(currentPos, steps);
             currentPlayer.setPosition(newPos);
             break;
         }
@@ -210,6 +214,9 @@ void EffectController::execute(SkillCard& card, Player& currentPlayer, GameConte
 
             targetStreet->demolishBuilding();
             break;
+        }
+        case SkillCardType::JAILFREE: {
+            currentPlayer.setStatus(ACTIVE);
         }
     }
 }

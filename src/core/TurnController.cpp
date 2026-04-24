@@ -3,6 +3,55 @@
 
 using namespace std;
 
+void TurnController::distributeSkillCards(GameContext& ctx, InputHandler& input) {
+    for (Player& p : ctx.getPlayers()) {
+        if (p.getStatus() == PlayerStatus::BANKRUPT) continue; 
+
+        SkillCard* newCard = ctx.getSkillDeck().draw();
+        
+        std::cout << "\n>> " << p.getName() << " draws a card: [" << newCard->getName() << "]\n";
+
+        if (p.canHoldMoreSkillCards()) {
+            p.addCardToHand(newCard); 
+            std::cout << "Card added to " << p.getName() << "'s hand.\n";
+        } 
+        else {
+            std::cout << "[ATTENTION] " << p.getName() << ", your hand is full!\n";
+            std::cout << "You MUST discard one of your existing cards to make room for [" << newCard->getName() << "].\n";
+            
+            int displayIdx = 1;
+            
+            for (SkillCard* c : p.getSkillCard()) {
+                std::cout << "[" << displayIdx << "] " << c->getName() << " - " << c->getDescription() << "\n";
+                displayIdx++;
+            }
+
+            int maxChoice = p.getSkillCardCount();
+            std::cout << "Select a card number to discard (1-" << maxChoice << "): ";
+            
+            int choice = -1;
+            while (true) {
+                input.getIntInput();
+                choice = input.getIntValue1();
+
+                if (choice >= 1 && choice <= maxChoice) {
+                    break;
+                }
+                std::cout << "[ERROR] Invalid choice! Select a card number (1-" << maxChoice << "): ";
+            }
+
+            int vectorIndex = choice - 1;
+            SkillCard* discardedCard = p.dropSkillCard(vectorIndex); 
+            ctx.getSkillDeck().discard(discardedCard);
+
+            p.addCardToHand(newCard);
+            
+            std::cout << "Card [" << discardedCard->getName() << "] discarded to the Discard Pile.\n";
+            std::cout << "New card [" << newCard->getName() << "] added to hand.\n";
+        }
+    }
+}
+
 void TurnController::executeAction(GameContext* context, EconomyController& eco, EffectController& eff, AuctionController& auc, BankruptcyController& bank, Dice& dice, SaveLoader& sl, InputHandler& input, GameLogger& logger) {
     Player* currentPlayer = &context->getCurrentPlayer(); 
     
@@ -11,7 +60,8 @@ void TurnController::executeAction(GameContext* context, EconomyController& eco,
     cout << "Memajukan Bidak " << currentPlayer->getName() << " sebanyak " << diceTotal << " petak..." << endl;
     
     int oldPos = currentPlayer->getPosition();
-    currentPlayer->move(diceTotal);
+    int newPos = context->getBoard().calculateTargetPosition(oldPos, diceTotal);
+    currentPlayer->setPosition(newPos);
     
     if (currentPlayer->getPosition() < oldPos) {
         *currentPlayer += context->getGoSalary();
@@ -51,8 +101,22 @@ void TurnController::executeAction(GameContext* context, EconomyController& eco,
             // eff.handleFestival(result, context);
             break;
 
-        case LandEventType::DRAWCARD:
-            // eff.handleDrawCard(result, context);
+        case LandEventType::DRAWCHANCE:
+            ActionCard* drawnCard = context->getChanceDeck().draw();
+            
+            if (drawnCard != nullptr) {
+                eff.execute(*drawnCard, *currentPlayer, *context);
+                context->getChanceDeck().returnAndShuffle(drawnCard);
+            }
+            break;
+
+        case LandEventType::DRAWCOMMUNITYCHEST:
+            ActionCard* drawnCard = context->getCommunityChestDeck().draw();
+            
+            if (drawnCard != nullptr) {
+                eff.execute(*drawnCard, *currentPlayer, *context);
+                context->getCommunityChestDeck().returnAndShuffle(drawnCard);
+            }
             break;
 
         case LandEventType::GOTOJAIL:

@@ -11,3 +11,4 @@
 #include "TeleportCard.hpp"
 #include "LassoCard.hpp"
 #include "DemolitionCard.hpp"
+#include "JailFreeCard.hpp"
