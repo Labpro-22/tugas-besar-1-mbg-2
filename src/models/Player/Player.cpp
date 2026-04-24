@@ -219,7 +219,7 @@ int Player::totalBuildingValue() const {
 
 int Player::totalWealth() const
 {
-    return balance + totalPropertyPrice() + totalBuildingValue();
+    return balance + totalPropertyPrice() + totalBuildingValue() / 2;
 }
 
 int Player::countOwnerRailroads() const {

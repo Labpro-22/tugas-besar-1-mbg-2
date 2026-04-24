@@ -49,10 +49,18 @@ public:
 
     void discard(T* card) {
         discardDeck.push_back(card);
-    }
+    }   
 
     void returnAndShuffle(T* card) {
         mainDeck.push_back(card);
         shuffleMainDeck();
+    }
+    
+    const vector<T*>& getMainDeck() const {
+        return mainDeck;
+    }
+
+    const vector<T*>& getDiscardDeck() const {
+        return discardDeck;
     }
 };

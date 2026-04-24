@@ -35,6 +35,10 @@ int StreetTile::getFestivalTurn() const {
     return festivalState.getTurnsLeft();
 }
 
+void StreetTile::setFestivalState(FestivalState newState) {
+    festivalState = newState;
+}
+
 bool StreetTile::isFestivalActive() const {
     return festivalState.getTurnsLeft() > 0 && festivalState.getStacks() > 1;
 }
@@ -87,8 +91,8 @@ vector<string> StreetTile::getAktaDetailLines(const GameContext& G) const {
     if (isFestivalActive()) {
         lines.push_back("-");
         lines.push_back("FESTIVAL ACTIVE!");
-        lines.push_back("Festival Multiplier: " + to_string(festivalMult) + "x");
-        lines.push_back("Festival Duration: " + to_string(festivalDuration) + " turns remaining");
+        lines.push_back("Festival Multiplier: " + to_string(festivalState.getStacks()) + "x");
+        lines.push_back("Festival Duration: " + to_string(festivalState.getTurnsLeft()) + " turns remaining");
     }
     return lines;
 }

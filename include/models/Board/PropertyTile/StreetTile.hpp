@@ -29,6 +29,7 @@ public:
     void applyFestival();
     void playerReenterFestival();
     void decreaseFestivalTurn();
+    
     void setHouseCount(int count);
     void setHasHotel(bool value);
     
@@ -46,4 +47,5 @@ public:
     vector<int> getRentPrices() const;
     int calculateRent(GameContext& G) const override;
     void demolishBuilding();
+    void setFestivalState(FestivalState newState);
 };
