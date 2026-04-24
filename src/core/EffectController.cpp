@@ -223,5 +223,8 @@ void EffectController::execute(SkillCard& card, Player& currentPlayer, GameConte
             targetStreet->demolishBuilding();
             break;
         }
+        case SkillCardType::JAILFREE: {
+            currentPlayer.setStatus(ACTIVE);
+        }
     }
 }

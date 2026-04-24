@@ -48,6 +48,10 @@ void GameEngine::initGame(GameContext& gameContext, TurnController& turnControll
         skillDeck.add(new DemolitionCard());
     }
 
+    for (int i = 0; i < 2; ++i) {
+        skillDeck.add(new JailFreeCard());
+    }
+
     skillDeck.initShuffle();
 }
 
@@ -130,7 +134,7 @@ void GameEngine::run() {
                             cout << "Uang tidak cukup!" << endl;
                         }
                     } else if (choice == 2) {
-                        if (currentPlayer->hasSkillCard("BEBAS_PENJARA")) {
+                        if (currentPlayer->hasJailFreeCard()) {
                             cout << "Menggunakan kartu bebas dari penjara..." << endl;
                             // currentPlayer->removeSkillCard("BEBAS_PENJARA"); TAR DIURUS MIKA SEMOGA
                             currentPlayer->setStatus(PlayerStatus::ACTIVE);

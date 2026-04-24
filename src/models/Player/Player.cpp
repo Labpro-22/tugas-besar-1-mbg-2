@@ -142,6 +142,16 @@ bool Player::hasAnySkillCard() const {
     return !skillCards.empty(); 
 }
 
+bool Player::hasJailFreeCard() const {
+    for (SkillCard* c : skillCards) {
+        if (c->getSkillType() == SkillCardType::JAILFREE) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
 vector<SkillCard *> Player::getSkillCard(){
     return skillCards;
 }
