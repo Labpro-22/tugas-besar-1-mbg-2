@@ -194,10 +194,6 @@ vector<PropertyTile*>& Player::getOwnedProperties(){
     return ownedProperties;
 }
 
-const vector<PropertyTile*>& Player::getOwnedProperties() const {
-    return ownedProperties;
-}
-
 bool Player::hasShield() const {
     return this->shieldActive;
 }
