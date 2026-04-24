@@ -11,4 +11,3 @@ public:
     void placeBid(Player* bidder, int bidAmount);
     void resolveAuction();
 };
-

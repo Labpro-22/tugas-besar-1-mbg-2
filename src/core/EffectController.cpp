@@ -70,7 +70,7 @@ void EffectController::execute(ActionCard& card, Player& currentPlayer, GameCont
     }
 }
 
-void EffectController::execute(SkillCard& card, Player& currentPlayer, GameContext& ctx, InputHandler& input) {
+void EffectController::execute(SkillCard& card, Player& currentPlayer, GameContext& ctx, InputHandler& input, DisplayView& display) {
     switch (card.getSkillType()) {
         case SkillCardType::MOVE: {
             MoveCard& mCard = dynamic_cast<MoveCard&>(card);
@@ -118,7 +118,7 @@ void EffectController::execute(SkillCard& card, Player& currentPlayer, GameConte
         case SkillCardType::LASSO: {
             int currentPos = currentPlayer.getPosition();
             cout << "List of opponent players that can be pulled:\n";
-            DisplayView::renderPlayer();
+            display.renderPlayer(ctx);
 
             cout << "Enter the name of the opponent player you want to pull: ";
             
