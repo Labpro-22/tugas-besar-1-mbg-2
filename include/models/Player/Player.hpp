@@ -65,7 +65,7 @@ public:
     SkillCard* useSkillCard(int idx);
     SkillCard* dropSkillCard(int idx);
     bool hasAnySkillCard() const;
-    bool hasJailFreeCard() const;
+    int searchJailFreeCard() const;
     int getSkillCardCount() const;
     bool canHoldMoreSkillCards() const;
 

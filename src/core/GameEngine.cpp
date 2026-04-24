@@ -77,7 +77,15 @@ void GameEngine::run() {
         return; 
     }
 
+    Player* previousPlayer = nullptr;
+    bool hasUsedSkillThisTurn = false;
+
     while (!gameContext.isGameOver()) {
+        
+        if (gameContext.getCurrentPlayerIndex() == 0) {
+            turnController.distributeSkillCards(gameContext, inputHandler);
+        }
+
         Player* currentPlayer = &gameContext.getCurrentPlayer();
         
         if (currentPlayer->getStatus() == PlayerStatus::BANKRUPT) {
@@ -85,13 +93,17 @@ void GameEngine::run() {
             continue;
         }
 
-        if (gameContext.getCurrentPlayerIndex() == 0) {
-            turnController.distributeSkillCards(gameContext, inputHandler);
+        if (currentPlayer != previousPlayer) {
+            hasUsedSkillThisTurn = false;
+            previousPlayer = currentPlayer;
         }
 
         cout << "\n============================================\n";
         cout << "Giliran: " << currentPlayer->getName() << " (Turn " << gameContext.getCurrentTurn() << ")" << endl;
+        
         bool turnEnded = false;
+        bool isDoubleRoll = false;
+        bool hasRolledDice = false;
 
         if (currentPlayer->getStatus() == PlayerStatus::JAILED) {
             int currentAttempt = currentPlayer->getJailTurns() + 1;
@@ -134,11 +146,18 @@ void GameEngine::run() {
                             cout << "Uang tidak cukup!" << endl;
                         }
                     } else if (choice == 2) {
-                        if (currentPlayer->hasJailFreeCard()) {
+                        int jailFreeIdx = currentPlayer->searchJailFreeCard();
+                        
+                        if (jailFreeIdx != -1) {
                             cout << "Menggunakan kartu bebas dari penjara..." << endl;
-                            // currentPlayer->removeSkillCard("BEBAS_PENJARA"); TAR DIURUS MIKA SEMOGA
-                            currentPlayer->setStatus(PlayerStatus::ACTIVE);
-                            currentPlayer->setJailTurns(0);
+                            
+                            SkillCard* usedCard = currentPlayer->useSkillCard(jailFreeIdx);
+                            
+                            if (usedCard != nullptr) {
+                                gameContext.getSkillDeck().discard(usedCard);
+                            }
+
+                            effectController.execute(*usedCard, *currentPlayer, gameContext, inputHandler, displayView);
                             validJailAction = true;
                         } else {
                             cout << "GAGAL: Kamu tidak memiliki kartu 'Bebas dari Penjara'! Pilih opsi lain." << endl;
@@ -148,16 +167,17 @@ void GameEngine::run() {
                         dice.roll();
                         cout << "Hasil: " << dice.getDice1() << " + " << dice.getDice2() << " = " << dice.getTotal() << endl;
                         if (dice.isDouble()) {
-                            cout << "DOUBLE! Anda bebas dan langsung bergerak." << endl; // ini gw asumsi kalau double langsung keluar dengan jumlah double itu ya
+                            cout << "DOUBLE! Anda bebas dan langsung bergerak." << endl; 
                             currentPlayer->setStatus(PlayerStatus::ACTIVE);
                             currentPlayer->setJailTurns(0);
-                            turnController.executeAction(&gameContext, economyController, effectController, auctionController, bankruptcyController, dice, saveLoader, inputHandler, logger);
+                            turnController.handleDiceRollMovement(&gameContext, economyController, effectController, auctionController, bankruptcyController, dice, saveLoader, inputHandler, logger);
+                            hasRolledDice = true;
+                            isDoubleRoll = true;
                         } else {
                             cout << "Gagal mendapatkan double. Anda tetap di penjara." << endl;
-                            gameContext.nextPlayer();
+                            turnEnded = true;
                         }
                         validJailAction = true;
-                        turnEnded = true; 
                     } else {
                         cout << "Pilihan tidak valid!" << endl;
                         inputHandler.clearInputBuffer();
@@ -172,18 +192,28 @@ void GameEngine::run() {
 
             switch (cmd) {
                 case CommandType::LEMPAR_DADU:
+                    if (hasRolledDice) {
+                        cout << "[DITOLAK] Anda sudah melempar dadu di giliran ini! Selesaikan aksi lain atau akhiri giliran." << endl;
+                        break;
+                    }
                     dice.roll();
-                    turnController.executeAction(&gameContext, economyController, effectController, auctionController, bankruptcyController, dice, saveLoader, inputHandler, logger);
-                    turnEnded = true;
+                    if (dice.isDouble()) isDoubleRoll = true;
+                    turnController.handleDiceRollMovement(&gameContext, economyController, effectController, auctionController, bankruptcyController, dice, saveLoader, inputHandler, logger);
+                    hasRolledDice = true;
                     break;
 
                 case CommandType::ATUR_DADU: {
+                    if (hasRolledDice) {
+                        cout << "[DITOLAK] Anda sudah melempar dadu di giliran ini!" << endl;
+                        break;
+                    }
                     inputHandler.getIntTwoInput();
                     int x = inputHandler.getIntValue1();
                     int y = inputHandler.getIntValue2();
                     dice.setRoll(x, y);
-                    turnController.executeAction(&gameContext, economyController, effectController, auctionController, bankruptcyController, dice, saveLoader, inputHandler, logger);
-                    turnEnded = true;
+                    if (dice.isDouble()) isDoubleRoll = true;
+                    turnController.handleDiceRollMovement(&gameContext, economyController, effectController, auctionController, bankruptcyController, dice, saveLoader, inputHandler, logger);
+                    hasRolledDice = true;
                     break;
                 }
 
@@ -203,12 +233,21 @@ void GameEngine::run() {
                     break;
 
                 case CommandType::GADAI:
-                    // BELUM ADA IMPLEMENTASI
                 case CommandType::TEBUS:
-                    // BELUM ADA IMPLEMENTASI
                 case CommandType::BANGUN:
-                    // BELUM ADA IMPLEMENTASI
+                    break;
+
                 case CommandType::GUNAKAN_KEMAMPUAN: {
+                    if (hasRolledDice) {
+                        cout << "[DITOLAK] Kartu kemampuan HANYA DAPAT DIGUNAKAN SEBELUM melempar dadu!" << endl;
+                        break;
+                    }
+
+                    if (hasUsedSkillThisTurn) {
+                        cout << "[DITOLAK] Anda hanya bisa menggunakan MAKSIMAL 1 Kartu Kemampuan per giliran!" << endl;
+                        break;
+                    }
+
                     if (!currentPlayer->hasAnySkillCard()) {
                         cout << "[ERROR] Anda tidak memiliki satupun Kartu Kemampuan (Skill Card)!" << endl;
                         break;
@@ -243,11 +282,33 @@ void GameEngine::run() {
                     SkillCard* cardToUse = currentPlayer->dropSkillCard(vectorIndex);
 
                     cout << "\n>> Mengaktifkan kartu: [" << cardToUse->getName() << "]..." << endl;
-                    effectController.execute(*cardToUse, *currentPlayer, gameContext, inputHandler, displayView);
-
-                    gameContext.getSkillDeck().discard(cardToUse);
                     
+                    int preSkillPos = currentPlayer->getPosition();
+
+                    effectController.execute(*cardToUse, *currentPlayer, gameContext, inputHandler, displayView);
+                    gameContext.getSkillDeck().discard(cardToUse);
+                    hasUsedSkillThisTurn = true;
+
+                    if (currentPlayer->getPosition() != preSkillPos) {
+                        cout << "\n[EFEK KARTU] Anda telah berpindah petak!" << endl;
+                        turnController.resolveTileLanding(&gameContext, currentPlayer, economyController, effectController, auctionController, bankruptcyController, dice, saveLoader, inputHandler, logger);
+                        
+                        if (currentPlayer->getStatus() == PlayerStatus::JAILED || currentPlayer->getStatus() == PlayerStatus::BANKRUPT) {
+                            // Panggil BankruptController di sini
+                            turnEnded = true;
+                        }
+                    }
                     break; 
+                }
+
+                case CommandType::AKHIRI_GILIRAN: { 
+                    if (!hasRolledDice) {
+                        cout << "[DITOLAK] Anda belum melempar dadu! Wajib lempar dadu sebelum mengakhiri giliran." << endl;
+                        break;
+                    }
+                    cout << "Mengakhiri giliran..." << endl;
+                    turnEnded = true;
+                    break;
                 }
 
                 case CommandType::SIMPAN:
@@ -263,8 +324,7 @@ void GameEngine::run() {
                     logger.addLog(gameContext.getCurrentTurn(), currentPlayer->getName(), "MUAT", inputHandler.getLastStringInput());
                     break;
 
-                case CommandType::CETAK_LOG:
-                {
+                case CommandType::CETAK_LOG: {
                     int count = 0;
                     bool hasValue = false;
                     bool isInt = inputHandler.getIntRemaining(count, hasValue);
@@ -274,7 +334,7 @@ void GameEngine::run() {
                     } else if (isInt) {
                         logger.printLogs(count);
                     } else {
-                        cout << "Argumen CETAK_LOG harus angka." << endl; // gw rasa ini nanti bisa dibuat exception kalau mau
+                        cout << "Argumen CETAK_LOG harus angka." << endl; 
                     }
                     break;
                 }
@@ -286,10 +346,20 @@ void GameEngine::run() {
             }
         }
 
+        effectController.decrementDurations();
+
         if (gameContext.getMaxTurns() > 0 && gameContext.getCurrentTurn() >= gameContext.getMaxTurns()) {
             gameContext.setGameOver(true);
-        } else {
-            gameContext.setCurrentTurn(gameContext.getCurrentTurn() + 1);
+        } 
+        else {
+            if (isDoubleRoll && currentPlayer->getStatus() == PlayerStatus::ACTIVE && currentPlayer->getJailTurns() == 0) {
+                cout << "\n*** " << currentPlayer->getName() << " mendapat dadu DOUBLE! Mendapat ekstra giliran! ***\n" << endl;
+            } else {
+                gameContext.nextPlayer();
+                if (gameContext.getCurrentPlayerIndex() == 0) {
+                    gameContext.setCurrentTurn(gameContext.getCurrentTurn() + 1);
+                }
+            }
         }
     }
 }

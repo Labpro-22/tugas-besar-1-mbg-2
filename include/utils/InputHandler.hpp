@@ -19,7 +19,8 @@ enum class CommandType {
     CETAK_LOG,
     UNKNOWN_COMMAND,
     BID,
-    PASS
+    PASS,
+    AKHIRI_GILIRAN
 };
 
 class InputHandler

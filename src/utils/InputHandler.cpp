@@ -17,8 +17,8 @@ const map<string, CommandType> InputHandler::commandMap = {
     {"MUAT", CommandType::MUAT},
     {"CETAK_LOG", CommandType::CETAK_LOG},
     {"BID", CommandType::BID},
-    {"PASS", CommandType::PASS}
-
+    {"PASS", CommandType::PASS},
+    {"AKHIRI_GILIRAN", CommandType::AKHIRI_GILIRAN}
 };
 
 InputHandler::InputHandler(istream& input) : inputSource(input), lastStringInput(""), valInt1(0), valInt2(0) {}
