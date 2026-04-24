@@ -46,4 +46,5 @@ public:
     bool getHasHotel() const;
     vector<int> getRentPrices() const;
     int calculateRent(GameContext& G) const override;
+    void demolishBuilding();
 };

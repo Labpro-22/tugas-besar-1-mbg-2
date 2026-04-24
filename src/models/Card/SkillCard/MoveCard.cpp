@@ -14,6 +14,8 @@ MoveCard::MoveCard() : SkillCard("Move", "Move forward random spaces.") {
     this->description = "Move forward " + to_string(this->steps) + " tile(s).";
 }
 
+MoveCard::MoveCard(int steps) : SkillCard ("Move", "Move forward random spaces."), steps(steps) {}
+
 SkillCardType MoveCard::getSkillType() const { 
     return SkillCardType::MOVE; 
 }
