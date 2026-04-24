@@ -5,13 +5,13 @@
 
 ConfigReader::ConfigReader(string filePath) : configFilePath{filePath}{}
 
-void ConfigReader::loadAllConfigs(GameContext *gameContext, GameBoard &gameBoard, EconomyController &economyController, TurnController &turnController){
+void ConfigReader::loadAllConfigs(GameContext *gameContext, GameBoard &gameBoard){
     loadProperty("config/property.txt", gameBoard);
-    loadRailroad(gameContext, "config/railroad.txt", economyController);
-    loadUtility(gameContext, "config/utility.txt", economyController);
-    loadSpecial(gameContext, "config/special.txt", economyController);
-    loadTax(gameContext, "config/tax.txt", economyController);
-    loadMisc("config/misc.txt", turnController);
+    loadRailroad(gameContext, "config/railroad.txt");
+    loadUtility(gameContext, "config/utility.txt");
+    loadSpecial(gameContext, "config/special.txt");
+    loadTax(gameContext, "config/tax.txt");
+    loadMisc(gameContext, "config/misc.txt");
 }
 
 void ConfigReader::loadProperty(string fileName, GameBoard &gameBoard){
@@ -52,61 +52,62 @@ void ConfigReader::loadProperty(string fileName, GameBoard &gameBoard){
 
 }
 
-void ConfigReader::loadRailroad(GameContext *gameContext, string fileName, EconomyController &economyController){
+void ConfigReader::loadRailroad(GameContext *gameContext, string fileName){
     ifstream file(fileName);
     string line;
     while (getline(file, line)) {
         stringstream ss(line);
         int totalOwned, rent;
         ss >> totalOwned >> rent;
-        economyController.addRailroadRent(gameContext, totalOwned, rent);
+        gameContext->setRailroadRent(totalOwned, rent);
     }
 };
 
-void ConfigReader::loadUtility(GameContext *gameContext, string fileName, EconomyController &economyController){
+void ConfigReader::loadUtility(GameContext *gameContext, string fileName){
     ifstream file(fileName);
     string line;
     while (getline(file, line)) {
         stringstream ss(line);
         int totalOwned, multiplier;
         ss >> totalOwned >> multiplier;
-        economyController.addUtilityMultiplier(gameContext, totalOwned, multiplier);
+
+        gameContext->setUtilityMultiplier(totalOwned, multiplier);
     }
 };
 
-void ConfigReader::loadSpecial(GameContext *gameContext, string fileName, EconomyController &economyController){
+void ConfigReader::loadSpecial(GameContext *gameContext, string fileName){
     ifstream file(fileName);
     string line;
     while (getline(file, line)) {
         stringstream ss(line);
         int goSalary, jailFine;
         ss >> goSalary >> jailFine;
-        economyController.setGoSalary(gameContext, goSalary);
-        economyController.setJailFine(gameContext, jailFine);
+        gameContext->setGoSalary(goSalary);
+        gameContext->setJailFine(jailFine);
     }
 };
 
-void ConfigReader::loadTax(GameContext *gameContext, string fileName, EconomyController &economyController){
+void ConfigReader::loadTax(GameContext *gameContext, string fileName){
     ifstream file(fileName);
     string line;
     while (getline(file, line)) {
         stringstream ss(line);
         int pphFlat, pphPercentage, pbm;
         ss >> pphFlat >> pphPercentage >> pbm;
-        economyController.setPphFlat(gameContext, pphFlat);
-        economyController.setPphPercentage(gameContext, pphPercentage);
-        economyController.setPbm(gameContext, pbm);
+        gameContext->setPphFlat(pphFlat);
+        gameContext->setPphPercentage(pphPercentage);
+        gameContext->setPbm(pbm);
     }
 };
 
-void ConfigReader::loadMisc(string fileName, TurnController &turnController){
+void ConfigReader::loadMisc(GameContext* gameContext, string fileName){
     ifstream file(fileName);
     string line;
     while (getline(file, line)) {
         stringstream ss(line);
         int maxTurns, startingMoney; 
         ss >> maxTurns >> startingMoney;
-        turnController.setMaxTurns(maxTurns);
-        turnController.setStartingMoney(startingMoney);
+        gameContext->setMaxTurns(maxTurns);
+        gameContext->setStartingMoney(startingMoney);
     }
 };

@@ -26,12 +26,12 @@ private:
     string configFilePath;
 public:
     ConfigReader(string filePath);
-    void loadAllConfigs(GameContext *gameContext, GameBoard &gameBoard, EconomyController &economyController, TurnController &turnController);
+    void loadAllConfigs(GameContext *gameContext, GameBoard &gameBoard);
     void loadProperty(string fileName, GameBoard &gameBoard);
-    void loadRailroad(GameContext *gameContext, string fileName, EconomyController &economyController);
-    void loadUtility(GameContext *gameContext, string fileName, EconomyController &economyController);
-    void loadSpecial(GameContext *gameContext, string fileName, EconomyController &economyController);
-    void loadTax(GameContext *gameContext, string fileName, EconomyController &economyController);
-    void loadMisc(string fileName, TurnController &turnController);
+    void loadRailroad(GameContext *gameContext, string fileName);
+    void loadUtility(GameContext *gameContext, string fileName);
+    void loadSpecial(GameContext *gameContext, string fileName);
+    void loadTax(GameContext *gameContext, string fileName);
+    void loadMisc(GameContext *gameContext, string fileName);
 };
     

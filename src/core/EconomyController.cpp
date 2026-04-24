@@ -123,6 +123,23 @@ void EconomyController::upgradeToHotel(GameContext *gameContext, Player &player,
     player -= cost;
     tile->setHasHotel(true);
 }
+int EconomyController::sellBuilding(Player& player, StreetTile* tile){
+    if (!tile || tile->getOwner() != &player) return 0;
+
+    int gain = 0;
+
+    if (tile->getHasHotel()){
+        gain = tile->getHotelCost()/2;
+        tile->setHasHotel(false);
+    }
+    else if (tile->getHouseCount() > 0){
+        gain = tile->getHouseCost()/2;
+        tile->setHouseCount(tile->getHouseCount() - 1);
+    }
+
+    player += gain;
+    return gain;
+}
 
 int EconomyController::sellAllBuildingsInColorGroup(GameContext *gameContext, Player &player, const std::string &colorGroup) {
     int total = 0;
@@ -223,7 +240,7 @@ bool EconomyController::isMonopoly(GameContext *gameContext, StreetTile *tile) {
     return true;
 }
 
-int EconomyController::countRailroadsOwned(const Player &player)  {
+int EconomyController::countRailroadsOwned(Player &player)  {
     int count = 0;
     for (PropertyTile *property : player.getOwnedProperties()) {
         if (property != nullptr && property->getPropertyType() == RAILROAD) {
@@ -233,7 +250,7 @@ int EconomyController::countRailroadsOwned(const Player &player)  {
     return count;
 }
 
-int EconomyController::countUtilitiesOwned(const Player &player)  {
+int EconomyController::countUtilitiesOwned(Player &player)  {
     int count = 0;
     for (PropertyTile *property : player.getOwnedProperties()) {
         if (property != nullptr && property->getPropertyType() == UTILITY) {

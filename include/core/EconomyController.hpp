@@ -26,7 +26,8 @@ public:
     void purchaseProperty(Player &player, PropertyTile *tile);
     void acquirePropertyFree(Player &player, PropertyTile *tile);
     void mortgageProperty(Player &player, PropertyTile *tile);
-    void redeemProperty(Player &player, PropertyTile *tile);
+    void redeemProperty(Player &player, PropertyTile *tile);    
+    int sellBuilding(Player& player, StreetTile* tile);
 
     void buildHouse(GameContext *gameContext, Player &player, StreetTile *tile);
     void upgradeToHotel(GameContext *gameContext, Player &player, StreetTile *tile);
@@ -39,8 +40,8 @@ public:
 
     // Helpers
     bool isMonopoly(GameContext *gameContext, StreetTile *tile) ;
-    int countRailroadsOwned(const Player &player) ;
-    int countUtilitiesOwned(const Player &player) ;
+    int countRailroadsOwned( Player &player) ;
+    int countUtilitiesOwned( Player &player) ;
     vector<StreetTile *> getColorGroupTiles(GameContext *gameContext, const std::string &colorGroup) ;
     bool canBuildOnTile(GameContext *gameContext, StreetTile *tile) ;
     bool canUpgradeToHotel(GameContext *gameContext, const std::string &colorGroup) ;
