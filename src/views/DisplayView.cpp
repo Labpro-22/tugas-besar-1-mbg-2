@@ -8,6 +8,110 @@
 
 using namespace std;
 
+namespace {
+struct LiquidationEntry {
+    PropertyTile* property = nullptr;
+    int sellValue = 0;
+    int mortgageValue = 0;
+    bool canMortgage = false;
+    bool hasBuildings = false;
+};
+
+string formatMoney(int amount) {
+    return "M" + to_string(amount);
+}
+
+string formatPropertyTag(const PropertyTile* property) {
+    if (property == nullptr) {
+        return "(unknown)";
+    }
+    return property->getName() + " (" + property->getCode() + ")";
+}
+
+LiquidationEntry buildLiquidationEntry(PropertyTile* property) {
+    LiquidationEntry entry;
+    entry.property = property;
+
+    if (property == nullptr) {
+        return entry;
+    }
+
+    entry.sellValue = property->getPrice();
+    entry.mortgageValue = property->getMortgageValue();
+
+    if (auto* street = dynamic_cast<StreetTile*>(property)) {
+        entry.sellValue += street->getBuildingValue() / 2;
+        entry.hasBuildings = street->getBuildingValue() > 0;
+        entry.canMortgage = !entry.hasBuildings;
+    } else {
+        entry.canMortgage = true;
+    }
+
+    return entry;
+}
+
+vector<LiquidationEntry> collectLiquidationEntries(Player& player) {
+    vector<LiquidationEntry> entries;
+    for (PropertyTile* property : player.getOwnedProperties()) {
+        if (property == nullptr || property->getStatus() == MORTGAGED) {
+            continue;
+        }
+        entries.push_back(buildLiquidationEntry(property));
+    }
+    return entries;
+}
+
+void printLiquidationEstimate(const vector<LiquidationEntry>& entries) {
+    vector<LiquidationEntry> sortedEntries = entries;
+    sort(sortedEntries.begin(), sortedEntries.end(), [](const LiquidationEntry& a, const LiquidationEntry& b) {
+        return a.sellValue > b.sellValue;
+    });
+
+    int totalPotential = 0;
+    for (const LiquidationEntry& entry : sortedEntries) {
+        totalPotential += entry.sellValue;
+        cout << "  Jual " << formatPropertyTag(entry.property)
+             << " -> " << formatMoney(entry.sellValue) << endl;
+    }
+
+    cout << "  Total potensi        -> " << formatMoney(totalPotential) << endl;
+}
+
+void printLiquidationPanel(const vector<LiquidationEntry>& entries) {
+    cout << "" << endl;
+    cout << "=== Panel Likuidasi ===" << endl;
+
+    cout << "[Jual ke Bank]" << endl;
+    int sellIndex = 1;
+    for (const LiquidationEntry& entry : entries) {
+        if (entry.property == nullptr) {
+            continue;
+        }
+
+        cout << sellIndex++ << ". " << formatPropertyTag(entry.property)
+             << "  [" << entry.property->getColor() << "]"
+             << "  Harga Jual: " << formatMoney(entry.sellValue);
+        if (entry.hasBuildings) {
+            cout << " (termasuk bangunan: " << formatMoney(entry.property->getBuildingValue() / 2) << ")";
+        }
+        cout << endl;
+    }
+
+    cout << "" << endl;
+    cout << "[Gadaikan]" << endl;
+    int mortgageIndex = 1;
+    for (const LiquidationEntry& entry : entries) {
+        if (entry.property == nullptr || !entry.canMortgage) {
+            continue;
+        }
+
+        cout << mortgageIndex++ << ". " << formatPropertyTag(entry.property)
+             << "  [" << entry.property->getColor() << "]"
+             << "  Nilai Gadai: " << formatMoney(entry.mortgageValue) << endl;
+    }
+}
+}
+
 // ============ EXISTING HELPERS (CARD RENDERING) ============
 string DisplayView::fitToWidth(const string& text, int width) const {
     if ((int)text.size() > width) {
@@ -950,4 +1054,42 @@ void DisplayView::renderPlayer(GameContext G){
             cout << "- " << p.getName() << " (Currently at tile: " << p.getPosition() << ")\n";
         }
     }
+}
+
+void DisplayView::renderBankruptFirstScene(GameContext G, Player* bankruptPlayer, Player* creditorPlayer, PropertyTile* bankruptTile){
+    if (bankruptPlayer == nullptr || creditorPlayer == nullptr || bankruptTile == nullptr) {
+        return;
+    }
+
+    int rentAmount = bankruptTile->calculateRent(G);
+    int currentBalance = bankruptPlayer->getBalance();
+    int shortfall = rentAmount - currentBalance;
+    if (shortfall < 0) {
+        shortfall = 0;
+    }
+
+    vector<LiquidationEntry> liquidationEntries = collectLiquidationEntries(*bankruptPlayer);
+    int estimatedPotential = currentBalance;
+    for (const LiquidationEntry& entry : liquidationEntries) {
+        estimatedPotential += entry.sellValue;
+    }
+
+    cout << "Kamu tidak dapat membayar sewa " << formatMoney(rentAmount)
+         << " kepada " << creditorPlayer->getName() << "!" << endl << endl;
+    cout << "Uang kamu       : " << formatMoney(currentBalance) << endl;
+    cout << "Total kewajiban : " << formatMoney(rentAmount) << endl;
+    cout << "Kekurangan      : " << formatMoney(shortfall) << endl << endl;
+
+    cout << "Estimasi dana maksimum dari likuidasi:" << endl;
+    printLiquidationEstimate(liquidationEntries);
+
+    if (estimatedPotential >= rentAmount) {
+        cout << endl << "Dana likuidasi dapat menutup kewajiban." << endl;
+        cout << "Kamu wajib melikuidasi aset untuk membayar." << endl;
+    } else {
+        cout << endl << "Dana likuidasi belum cukup untuk menutup kewajiban." << endl;
+        cout << "Setelah likuidasi, kamu masih kekurangan " << formatMoney(rentAmount - estimatedPotential) << "." << endl;
+    }
+
+    printLiquidationPanel(liquidationEntries);
 }

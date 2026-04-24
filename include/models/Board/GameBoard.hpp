@@ -16,6 +16,7 @@ public:
     ~GameBoard();
     void addTile(Tile* tile);
 
+    vector<PropertyTile*> getPropertyTile() const;
     Tile* getTile(int position) const;
     Tile* getTileByCode(string code) const;
     Tile* getTileByName(string name) const;

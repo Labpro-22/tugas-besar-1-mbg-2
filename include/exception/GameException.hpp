@@ -74,11 +74,6 @@ public :
     NotMortgagedException();
 };
 
-class HasBuildingForMortgage : public GameException{
-public : 
-    HasBuildingForMortgage();
-};
-
 // BUILD 
 class UnevenBuildingException : public GameException{
 private : 
@@ -110,6 +105,13 @@ public :
     InvalidArgumentException(const string& arg);
 };
 
+// Player
+class DuplicateNameException : public GameException{
+private : 
+    string name; 
+    DuplicateNameException(const string& name);
+};
+
 // Dice
 class RollDiceException : public GameException{
 public : 
@@ -123,3 +125,17 @@ private :
 public : 
     FileNotFoundException(const string& filename);
 };
+
+class SaveGameException : public GameException{
+private :
+    string filename;
+public : 
+    SaveGameException(const string& filename);
+}
+
+class LoadGameException : public GameException{
+private :
+    string filename;
+public : 
+    LoadGameException(const string& filename);
+}
