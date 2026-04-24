@@ -37,7 +37,7 @@ public:
     void transferProperties(Player& debitor, Player& creditor);
     
     void applyAction(GameContext& ctx,Player& player, LiquidationOption& opt, EconomyController& eco);
-    vector<LiquidationOption> generateOptions(Player& player);
+    vector<LiquidationOption> generateOptions(Player& player, const vector<LiquidationOption>& cart, int& initBalance);
     void liquidateAssets(GameContext& ctx, Player& debitor, Player* creditor, int amount, DisplayView& view, EconomyController& eco, InputHandler& input, PropertyTile* bankruptTile, TaxTile* taxTile); 
     void declareBankruptcy(GameContext& ctx, Player& player, Player& creditor, int amount, DisplayView& view, PropertyTile* tile);
     void declareBankruptcy(GameContext& ctx, Player& player, int amount, DisplayView& view, EconomyController& eco, TaxTile* tile); // Ini kalau bangkrut nya ke bank
