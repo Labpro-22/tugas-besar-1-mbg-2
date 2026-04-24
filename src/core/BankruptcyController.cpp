@@ -198,7 +198,7 @@ void BankruptcyController::liquidateAssets(GameContext& ctx,Player& debitor,Play
             return;
         }
 
-        view.renderBankruptFirstSceneRent(ctx, &debitor, creditor, bankruptTile);
+        view.renderBankruptFirstSceneRent(ctx, &debitor, creditor, amount);
         view.liquidatePanel(ctx, &debitor, creditor, amount, options);
 
         input.getIntInput();
@@ -230,7 +230,7 @@ void BankruptcyController::liquidateAssets(GameContext& ctx,Player& debitor,Play
 }
 
 void BankruptcyController::declareBankruptcy(GameContext& ctx, Player& player, Player& creditor, int amount, DisplayView& view, PropertyTile* tile) {
-    view.renderBankruptSecondScene(ctx, &player, &creditor, tile);
+    view.renderBankruptSecondScene(ctx, &player, &creditor, tile, amount);
 
     creditor += player.getBalance();
     player -= player.getBalance();
