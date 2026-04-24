@@ -282,20 +282,33 @@ void GameEngine::run() {
                     SkillCard* cardToUse = currentPlayer->dropSkillCard(vectorIndex);
 
                     cout << "\n>> Mengaktifkan kartu: [" << cardToUse->getName() << "]..." << endl;
-                    
-                    int preSkillPos = currentPlayer->getPosition();
+
+                    vector<int> preSkillPositions;
+                    for (Player& p : gameContext.getPlayers()) {
+                        preSkillPositions.push_back(p.getPosition());
+                    }
 
                     effectController.execute(*cardToUse, *currentPlayer, gameContext, inputHandler, displayView);
                     gameContext.getSkillDeck().discard(cardToUse);
                     hasUsedSkillThisTurn = true;
 
-                    if (currentPlayer->getPosition() != preSkillPos) {
-                        cout << "\n[EFEK KARTU] Anda telah berpindah petak!" << endl;
-                        turnController.resolveTileLanding(&gameContext, currentPlayer, economyController, effectController, auctionController, bankruptcyController, dice, saveLoader, inputHandler, logger);
-                        
-                        if (currentPlayer->getStatus() == PlayerStatus::JAILED || currentPlayer->getStatus() == PlayerStatus::BANKRUPT) {
-                            // Panggil BankruptController di sini
-                            turnEnded = true;
+                    for (int i = 0; i < gameContext.getPlayers().size(); i++) {
+                        Player* targetP = &gameContext.getPlayers()[i];
+                        if (targetP->getStatus() == PlayerStatus::BANKRUPT) continue;
+
+                        if (targetP->getPosition() != preSkillPositions[i]) {
+                            if (targetP == currentPlayer) {
+                                cout << "\n[EFEK KARTU] Anda telah berpindah petak!" << endl;
+                            } else {
+                                cout << "\n[EFEK KARTU] Pemain " << targetP->getName() << " telah berpindah petak!" << endl;
+                            }
+
+                            turnController.resolveTileLanding(&gameContext, targetP, economyController, effectController, auctionController, bankruptcyController, dice, saveLoader, inputHandler, logger);
+
+                            if (targetP == currentPlayer && (currentPlayer->getStatus() == PlayerStatus::JAILED || currentPlayer->getStatus() == PlayerStatus::BANKRUPT)) {
+                                // Panggil Bankrupt Controller di sini buat kelola aset + KARTU
+                                turnEnded = true;
+                            }
                         }
                     }
                     break; 
