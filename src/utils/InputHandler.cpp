@@ -15,7 +15,10 @@ const map<string, CommandType> InputHandler::commandMap = {
     {"GUNAKAN_KEMAMPUAN", CommandType::GUNAKAN_KEMAMPUAN},
     {"SIMPAN", CommandType::SIMPAN},
     {"MUAT", CommandType::MUAT},
-    {"CETAK_LOG", CommandType::CETAK_LOG}
+    {"CETAK_LOG", CommandType::CETAK_LOG},
+    {"BID", CommandType::BID},
+    {"PASS", CommandType::PASS}
+
 };
 
 InputHandler::InputHandler(istream& input) : inputSource(input), lastStringInput(""), valInt1(0), valInt2(0) {}
@@ -54,6 +57,28 @@ void InputHandler::getIntTwoInput() {
 
 void InputHandler::getStringInput() {
     inputSource >> lastStringInput;
+}
+
+bool InputHandler::getMoneyRemaining(int& value, bool& hasValue) {
+    string rest;
+    getline(inputSource, rest); 
+
+    string numStr = "";
+    for (char c : rest) {
+        if (isdigit(c)) {
+            numStr += c; 
+        }
+    }
+
+    if (!numStr.empty()) {
+        hasValue = true;
+        value = stoi(numStr); 
+        return true;
+    }
+    
+    hasValue = false;
+    value = 0;
+    return false;
 }
 
 bool InputHandler::getIntRemaining(int& value, bool& hasValue) {

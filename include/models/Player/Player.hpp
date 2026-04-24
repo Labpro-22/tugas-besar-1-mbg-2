@@ -33,7 +33,6 @@ private:
 public:
 
     Player() = default;
-    void move(int steps);
     void setName(string name);
     void setBalance(int amount);
     void setDoubleCount(int count);
@@ -66,6 +65,7 @@ public:
     SkillCard* useSkillCard(int idx);
     SkillCard* dropSkillCard(int idx);
     bool hasAnySkillCard() const;
+    bool hasJailFreeCard() const;
     int getSkillCardCount() const;
     bool canHoldMoreSkillCards() const;
 

@@ -240,7 +240,7 @@ bool EconomyController::isMonopoly(GameContext *gameContext, StreetTile *tile) {
     return true;
 }
 
-int EconomyController::countRailroadsOwned(const Player &player)  {
+int EconomyController::countRailroadsOwned(Player &player)  {
     int count = 0;
     for (PropertyTile *property : player.getOwnedProperties()) {
         if (property != nullptr && property->getPropertyType() == RAILROAD) {
@@ -250,7 +250,7 @@ int EconomyController::countRailroadsOwned(const Player &player)  {
     return count;
 }
 
-int EconomyController::countUtilitiesOwned(const Player &player)  {
+int EconomyController::countUtilitiesOwned(Player &player)  {
     int count = 0;
     for (PropertyTile *property : player.getOwnedProperties()) {
         if (property != nullptr && property->getPropertyType() == UTILITY) {
