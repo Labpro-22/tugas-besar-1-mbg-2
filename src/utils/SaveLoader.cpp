@@ -9,11 +9,10 @@
 #include "LassoCard.hpp"
 #include "DemolitionCard.hpp"
 #include "GameContext.hpp"
-#include "GameLogger.hpp"
 #include <fstream>
 #include <iostream>
 
-void SaveLoader::saveGame(string fileName, GameContext &gameContext) {
+void SaveLoader::saveGame(string fileName, GameContext &gameContext, GameLogger& logger) {
     ofstream out(fileName);
     if (!out.is_open()) {
         cout << "Gagal menyimpan game ke file: " << fileName << endl;
@@ -47,7 +46,6 @@ void SaveLoader::saveGame(string fileName, GameContext &gameContext) {
             out << "\n";
         }
     }
-
 
     // Player Turn Order
     for (Player &player : players)
@@ -89,7 +87,7 @@ void SaveLoader::saveGame(string fileName, GameContext &gameContext) {
     }
 
     // Deck State 
-    CardDeck<SkillCard>& skillDeck = gameContext.getSkillDeck();]
+    CardDeck<SkillCard>& skillDeck = gameContext.getSkillDeck();
     out << skillDeck.getMainDeck().size() << "\n";
     for (const auto& card : skillDeck.getMainDeck())
     {   
@@ -102,18 +100,13 @@ void SaveLoader::saveGame(string fileName, GameContext &gameContext) {
         out << card->getName() << "\n";
     }
 
-    GameLogger logger; // Assuming you have a GameLogger instance to save logs
-    out << logger.getLogs().size() << "\n";
-    for (const LogEntry& log : logger.getLogs())
-    {
-        out << log.turn << " " << log.username << " " << log.action << " " << log.details << "\n";
-    }
+    logger.saveToStream(out);
 
     out.close();
     cout << "Game tersimpan ke " << fileName << endl;
 }
 
-void SaveLoader::loadGame(string fileName, GameContext &gameContext) {
+void SaveLoader::loadGame(string fileName, GameContext &gameContext, GameLogger& logger) {
     ifstream in(fileName);
     if (!in.is_open()) {
         cout << "Gagal memuat save dari file: " << fileName << endl;
@@ -210,8 +203,10 @@ void SaveLoader::loadGame(string fileName, GameContext &gameContext) {
             if (typeLabel == "STREET") {
                 StreetTile* street = dynamic_cast<StreetTile*>(prop);
                 if (street != nullptr) {
-                    street->setFestivalStack(stoi(festivalMult));
-                    street->setFestivalTurn(stoi(festivalDur));
+                    FestivalState festivalState;
+                    festivalState.setStacks(stoi(festivalMult));
+                    festivalState.setTurnsLeft(stoi(festivalDur));
+                    street->setFestivalState(festivalState);
                     if (nBuilding == "H") {
                         street->setHasHotel(true);
                     } else {
@@ -222,7 +217,72 @@ void SaveLoader::loadGame(string fileName, GameContext &gameContext) {
         }
     }
 
-     // Load Deck State
+    // Load Deck State
+    int mainDeckCount = 0;
+    in >> mainDeckCount;
+
+    CardDeck<SkillCard>& skillDeck = gameContext.getSkillDeck();
+    for (int i = 0; i < mainDeckCount; ++i) {
+        string cardName;
+        in >> cardName;
+
+        SkillCard* card = nullptr;
+        if (cardName == "DiscountCard") {
+            int discountPercentage;
+            in >> discountPercentage;
+            card = new DiscountCard(discountPercentage);
+        } else if (cardName == "MoveCard") {
+            int steps;
+            in >> steps;
+            card = new MoveCard(steps);
+        } else if (cardName == "ShieldCard") {
+            card = new ShieldCard();
+        } else if (cardName == "TeleportCard") {
+            card = new TeleportCard();
+        } else if (cardName == "LassoCard") {
+            card = new LassoCard();
+        } else if (cardName == "DemolitionCard") {
+            card = new DemolitionCard();
+        }
+
+        if (card != nullptr) {
+            skillDeck.add(card);
+        }
+    }
+
+    int discardDeckCount = 0;
+    in >> discardDeckCount;
+
+    CardDeck<SkillCard>& skillDeckDiscard = gameContext.getSkillDeck();
+    for(int i = 0; i < discardDeckCount; i++){
+        string cardName;
+        in >> cardName;
+
+        SkillCard* card = nullptr;
+        if (cardName == "DiscountCard") {
+            int discountPercentage;
+            in >> discountPercentage;
+            card = new DiscountCard(discountPercentage);
+        } else if (cardName == "MoveCard") {
+            int steps;
+            in >> steps;
+            card = new MoveCard(steps);
+        } else if (cardName == "ShieldCard") {
+            card = new ShieldCard();
+        } else if (cardName == "TeleportCard") {
+            card = new TeleportCard();
+        } else if (cardName == "LassoCard") {
+            card = new LassoCard();
+        } else if (cardName == "DemolitionCard") {
+            card = new DemolitionCard();
+        }
+
+        if (card != nullptr) {
+            skillDeckDiscard.discard(card);
+        }
+    }
+
+    logger.loadFromStream(in);
 
     in.close();
     cout << "Game dimuat dari " << fileName << endl;

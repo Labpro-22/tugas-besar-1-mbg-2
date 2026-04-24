@@ -206,14 +206,14 @@ void GameEngine::run() {
 
                 case CommandType::SIMPAN:
                     inputHandler.getStringInput();
-                    saveLoader.saveGame(inputHandler.getLastStringInput(), gameContext);
+                    saveLoader.saveGame(inputHandler.getLastStringInput(), gameContext, logger);
                     logger.addLog(gameContext.getCurrentTurn(), currentPlayer->getName(), "SIMPAN", inputHandler.getLastStringInput());
                     break;
 
                 case CommandType::MUAT:
                     cout << "Masukkan nama file save: ";
                     inputHandler.getStringInput();
-                    saveLoader.loadGame(inputHandler.getLastStringInput(), gameContext);
+                    saveLoader.loadGame(inputHandler.getLastStringInput(), gameContext, logger);
                     logger.addLog(gameContext.getCurrentTurn(), currentPlayer->getName(), "MUAT", inputHandler.getLastStringInput());
                     break;
 

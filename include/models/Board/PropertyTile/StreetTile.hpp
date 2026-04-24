@@ -47,4 +47,5 @@ public:
     vector<int> getRentPrices() const;
     int calculateRent(GameContext& G) const override;
     void demolishBuilding();
+    void setFestivalState(FestivalState newState);
 };

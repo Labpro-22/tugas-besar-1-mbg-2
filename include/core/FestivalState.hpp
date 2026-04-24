@@ -18,4 +18,6 @@ public:
     bool isExpired() const;
     int getStacks() const;
     int getTurnsLeft() const;
+    void setStacks(int newStacks);
+    void setTurnsLeft(int newTurnsLeft);
 };

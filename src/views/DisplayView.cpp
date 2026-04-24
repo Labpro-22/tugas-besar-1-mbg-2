@@ -496,7 +496,7 @@ void DisplayView::renderDiceRoll(GameContext G){
     Dice dice = G.getDice();
     cout << "You rolled a " << dice.getDice1() << " + " << dice.getDice2() << " = " << dice.getTotal() << endl;
     cout << "Moving " << G.getCurrentPlayer().getName() << " " << dice.getTotal() << " spaces." << endl;
-    cout << "You landend on tile: " << G.getBoard().getTile(G.getCurrentPlayer().getPosition())->getName() << "." << endl;
+    cout << "You landed on tile: " << G.getBoard().getTile(G.getCurrentPlayer().getPosition())->getName() << "." << endl;
 }
 
 void DisplayView::renderDiceControl(GameContext G){
@@ -504,7 +504,7 @@ void DisplayView::renderDiceControl(GameContext G){
     Dice dice = G.getDice();
     cout << "You rolled a " << dice.getDice1() << " + " << dice.getDice2() << " = " << dice.getTotal() << endl;
     cout << "Moving " << G.getCurrentPlayer().getName() << " " << dice.getTotal() << " spaces." << endl;
-    cout << "You landed on tile: " << G.getBoard().getTile(G.getCurrentPlayer().getPosition())->getName() << "." << endl;
+    renderTile(G);
 }
 
 void DisplayView::renderRent(GameContext G, PropertyTile* tile){
@@ -606,8 +606,7 @@ void DisplayView::renderAuctionResult(string winnerName, int winningBid){
 
 // Festival 
 void DisplayView::renderFestivalTile(GameContext G, FestivalTile *tile) {
-    cout << "You landed on " << tile->getName() << " (" << tile->getCode() << ")!" << endl;
-
+    renderTile(G);
     if (G.getCurrentPlayer().getOwnedProperties().empty()) {
         cout << "You don't have any properties to apply the festival on." << endl;
         return;
@@ -619,7 +618,7 @@ void DisplayView::renderFestivalTile(GameContext G, FestivalTile *tile) {
         cout << "- " << Tile->getCode() << " (" << Tile->getName() << ")" << endl;
     }
 
-    cout << "Insert code proerty: ";
+    cout << "Insert code property: ";
 }
 
 void DisplayView::InputUnvalidFestivalProperty(GameContext G){
@@ -666,7 +665,7 @@ void DisplayView::renderRedeemStart(GameContext G, vector<PropertyTile*> mortgag
     for (const PropertyTile* tile : mortgagedTiles)
     {
         if (tile->getStatus() == MORTGAGED){
-            cout << i << ". " << tile->getName() << " (" << tile->getCode() << ")" << "[ << " << tile->getColor() << " >> ]" << "[M]"  << "Morgage Value: M" << tile->getPrice() << endl;
+            cout << i << ". " << tile->getName() << " (" << tile->getCode() << ")" << "[ << " << tile->getColor() << " >> ]" << "[M]"  << "Mortgage Value: M" << tile->getPrice() << endl;
             i++;
         }
     }
@@ -840,7 +839,7 @@ void DisplayView::renderStreetBuilt(vector<StreetTile*> tiles, int maxHouseCount
         }
         
         if (minHouseCount != maxHouseCount && streetTile->getHouseCount() == minHouseCount) {
-            buildableInfo = streetTile->getHouseCost() == minHouseCount ? "Can Build" : "Can't Build (Must build evenly)";
+            buildableInfo = streetTile->getHouseCount() == minHouseCount ? "Can Build" : "Can't Build (Must build evenly)";
         }
         
         if (streetTile->getHouseCount() == 4 && !streetTile->getHasHotel() && minHouseCount == 4) {
@@ -953,11 +952,11 @@ void DisplayView::renderPlayer(GameContext G){
 }
 
 // Bankrupt
-void DisplayView::renderBankruptFirstSceneRent(GameContext G, Player* bankruptPlayer, Player* creditorPlayer, PropertyTile* bankruptTile){
-    cout << "You can't pay the required rent M" << bankruptTile->calculateRent(G) << " to " << bankruptTile->getOwner()->getName() << "." << endl << endl;
+void DisplayView::renderBankruptFirstSceneRent(GameContext G, Player* bankruptPlayer, Player* creditorPlayer, int amountToPay){
+    cout << "You can't pay the required rent M" << amountToPay << " to " << creditorPlayer->getName() << "." << endl << endl;
     cout << "Your current balance: M" << bankruptPlayer->getBalance() << endl;
-    cout << "Amount owed: M" << bankruptTile->calculateRent(G) << endl;
-    cout << "Your shortfall: M" << bankruptTile->calculateRent(G) - bankruptPlayer->getBalance() << endl;
+    cout << "Amount owed: M" << amountToPay << endl;
+    cout << "Your shortfall: M" << amountToPay - bankruptPlayer->getBalance() << endl;
 
     int totalAssetValue = 0;
     for (PropertyTile* tile : bankruptPlayer->getOwnedProperties()) {
@@ -1071,17 +1070,17 @@ void DisplayView::renderEnoughLiquidate(GameContext G, Player* bankruptPlayer, P
     cout << creditorPlayer->getName() << " Current Balance: M" << creditorPlayer->getBalance() + amountToPay << endl;
 }
 
-void DisplayView::renderBankruptSecondScene(GameContext G, Player* bankruptPlayer, Player* creditorPlayer, PropertyTile* bankruptTile){
+void DisplayView::renderBankruptSecondScene(GameContext G, Player* bankruptPlayer, Player* creditorPlayer, PropertyTile* bankruptTile, int amountToPay){
     int totalAssets = bankruptPlayer->totalBuildingValue() / 2 + bankruptPlayer->totalPropertyPrice();
-    cout << "You still can't pay the required rent M" << bankruptTile->calculateRent(G) << " to " << bankruptTile->getOwner()->getName() << "." << endl << endl;
+    cout << "You still can't pay the required rent M" << amountToPay << " to " << creditorPlayer->getName() << "." << endl << endl;
     cout << "Your current balance: M" << bankruptPlayer->getBalance() << endl;
-    cout << "Amount owed: M" << bankruptTile->calculateRent(G) << endl;
-    cout << "Your shortfall: M" << bankruptTile->calculateRent(G) - bankruptPlayer->getBalance() << endl << endl;
+    cout << "Amount owed: M" << amountToPay << endl;
+    cout << "Your shortfall: M" << amountToPay - bankruptPlayer->getBalance() << endl << endl;
 
     cout << "Estimation maximum asset value you can liquidate: "<< endl;
     cout << "  Sell all properties + buildings -> M" << totalAssets << endl;
     cout << "Total assets + balance: M" << bankruptPlayer->totalWealth() << endl;
-    cout << "Unfortunately, can't pay off your debt M" << bankruptTile->calculateRent(G) << "." << endl << endl;
+    cout << "Unfortunately, can't pay off your debt M" << amountToPay << "." << endl << endl;
 
     cout << bankruptPlayer->getName() << " is declared BANKRUPT!" << endl;
     cout << "Creditor " << creditorPlayer->getName();
@@ -1105,7 +1104,7 @@ void DisplayView::renderBankruptSecondScene(GameContext G, Player* bankruptPlaye
         }
     }
     
-    cout << creditorPlayer->getName() << "Acquires all assets of " << bankruptPlayer->getName() << "." << endl;
+    cout << creditorPlayer->getName() << " Acquires all assets of " << bankruptPlayer->getName() << "." << endl;
     cout << bankruptPlayer->getName() << " is removed from the game." << endl;
     cout << "Game continues with " << G.getPlayers().size() - 1 << " players." << endl;
 }
@@ -1128,3 +1127,66 @@ void DisplayView::renderBankruptThirdScene(GameContext G, Player* bankruptPlayer
 
     cout << "Auction starts for all properties one by one." << endl;
 }
+
+void DisplayView::renderPlayerCard(Player& player){
+    int displayIdx = 1;
+    
+    cout << "List of Skill Cards for " << player.getName() << ":\n";
+    for (SkillCard* c : player.getSkillCard()) {
+        cout << displayIdx << ". " << c->getName() << " - " << c->getDescription() << "\n";
+        displayIdx++;
+    }
+}
+
+void DisplayView::renderReceiveSkillCard(Player& player, SkillCard* card){
+    cout << "You received a new skill card!" << endl;
+    cout << "You receive: " << card->getName() << "." << endl; 
+}
+
+void DisplayView::renderMaxSkillCard(Player& player){
+    cout << "ALERT: You have reached the maximum number of skill cards (Maximum 3)." << endl;
+    cout << "You should discard one of your existing skill cards to receive the new one." << endl << endl;
+
+    renderPlayerCard(player);
+
+    cout << "Choose a skill card to discard (1 - " << player.getSkillCard().size() << "): ";
+}
+
+void DisplayView::renderDiscardSkillCard(Player& player, int choice){
+    if (choice < 1 || choice > (int)player.getSkillCard().size()) {
+        cout << "Invalid choice. No skill card was discarded." << endl;
+        cout << "Choose another skill card to discard (1 - " << player.getSkillCard().size() << "): ";
+        return;
+    }
+
+    SkillCard* discardedCard = player.getSkillCard()[choice - 1];
+    cout << "You discarded: " << discardedCard->getName() << "." << endl;
+    cout << "Now you have 3 skill cards in your hand." << endl;
+}
+
+void DisplayView::renderCardTile(GameContext G, CardTile* tile, ActionCard* card){
+    renderTile(G);
+    cout << "You draw a card..." << endl;
+    cout << "Card: " << card->getDescription() << endl;
+}
+
+void DisplayView::renderActivateCard(GameContext G, Player* player, ActionCard* card){
+    cout << card->getName() << " activated!" << card->getDescription() << endl;
+}
+
+void DisplayView::renderShieldPay(GameContext G, Player* player, int amountToPay){
+    cout << "[SHIELD ACTIVATED]: Shield Effect Protect You!" << endl;
+    cout << "Payment for M" << amountToPay << " Cancelled. Your current balance: M" << player->getBalance() << endl;
+}
+
+void DisplayView::renderShieldProtect(GameContext G, Player* player){
+    cout << "[SHIELD ACTIVATED]: Shield Effect Protect You!" << endl;
+    cout << "You are keep in your position and won't be sent to jail. " << endl;
+}
+
+void DisplayView::renderDiscountPay(GameContext G, Player* player, int amountToPay, int discountedAmount){
+    cout << "[DISCOUNT ACTIVATED]: Discount Effect Applied!" << endl;
+    cout << "Original Payment: M" << amountToPay << " -> Discounted Payment: M" << discountedAmount << endl;
+    cout << "Your current balance: M" << player->getBalance() << endl;
+}
+
