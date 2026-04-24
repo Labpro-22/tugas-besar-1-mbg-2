@@ -172,4 +172,7 @@ vector<int> StreetTile::getRentPrices() const {
     return rentPrices;
 }
 
-
+void StreetTile::demolishBuilding() {
+    houseCount = 0;
+    hasHotel = false;
+}

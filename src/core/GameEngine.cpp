@@ -12,40 +12,40 @@ void GameEngine::initGame(GameContext& gameContext, TurnController& turnControll
     configReader.loadAllConfigs(&gameContext, gameContext.getBoard(), economyController, turnController);
 
     CardDeck<ActionCard>& chanceDeck = gameContext.getChanceDeck();
-    chanceDeck.addCard(new MoveToStationCard());
-    chanceDeck.addCard(new MoveBackwardCard());
-    chanceDeck.addCard(new MoveToJailCard());
+    chanceDeck.add(new MoveToStationCard());
+    chanceDeck.add(new MoveBackwardCard());
+    chanceDeck.add(new MoveToJailCard());
     chanceDeck.initShuffle();
 
     CardDeck<ActionCard>& comChestDeck = gameContext.getCommunityChestDeck();
-    comChestDeck.addCard(new BirthdayCard());
-    comChestDeck.addCard(new DoctorFeeCard());
-    comChestDeck.addCard(new NyalegCard());
+    comChestDeck.add(new BirthdayCard());
+    comChestDeck.add(new DoctorFeeCard());
+    comChestDeck.add(new NyalegCard());
     comChestDeck.initShuffle();
 
     CardDeck<SkillCard>& skillDeck = gameContext.getSkillDeck();
     for (int i = 0; i < 4; ++i) {
-        skillDeck.addCard(new MoveCard());
+        skillDeck.add(new MoveCard());
     }
 
     for (int i = 0; i < 3; ++i) {
-        skillDeck.addCard(new DiscountCard()); 
+        skillDeck.add(new DiscountCard()); 
     }
 
     for (int i = 0; i < 2; ++i) {
-        skillDeck.addCard(new ShieldCard());
+        skillDeck.add(new ShieldCard());
     }
 
     for (int i = 0; i < 2; ++i) {
-        skillDeck.addCard(new TeleportCard());
+        skillDeck.add(new TeleportCard());
     }
 
     for (int i = 0; i < 2; ++i) {
-        skillDeck.addCard(new LassoCard());
+        skillDeck.add(new LassoCard());
     }
 
     for (int i = 0; i < 2; ++i) {
-        skillDeck.addCard(new DemolitionCard());
+        skillDeck.add(new DemolitionCard());
     }
 
     skillDeck.initShuffle();
