@@ -70,7 +70,7 @@ void EffectController::execute(ActionCard& card, Player& currentPlayer, GameCont
     }
 }
 
-void EffectController::execute(SkillCard& card, Player& currentPlayer, GameContext& ctx, InputHandler& input) {
+void EffectController::execute(SkillCard& card, Player& currentPlayer, GameContext& ctx, InputHandler& input, DisplayView& display) {
     switch (card.getSkillType()) {
         case SkillCardType::MOVE: {
             MoveCard& mCard = dynamic_cast<MoveCard&>(card);
@@ -118,7 +118,7 @@ void EffectController::execute(SkillCard& card, Player& currentPlayer, GameConte
         case SkillCardType::LASSO: {
             int currentPos = currentPlayer.getPosition();
             cout << "List of opponent players that can be pulled:\n";
-            DisplayView::renderPlayer();
+            display.renderPlayer(ctx);
 
             cout << "Enter the name of the opponent player you want to pull: ";
             
@@ -164,7 +164,7 @@ void EffectController::execute(SkillCard& card, Player& currentPlayer, GameConte
         }
         case SkillCardType::DEMOLITION: {
             Tile* targetTile = nullptr;
-            PropertyTile* targetProperty = nullptr;
+            StreetTile* targetStreet = nullptr;
 
             while (true) {
                 input.getStringInput();
@@ -174,42 +174,41 @@ void EffectController::execute(SkillCard& card, Player& currentPlayer, GameConte
 
                 if (targetTile == nullptr) {
                     cout << "[ERROR] Tile code '" << targetCode << "' not found!\n";
-                    cout << "Enter the opponent's property tile code: ";
+                    cout << "Enter the opponent's street tile code: ";
                     continue;
                 }
 
-                targetProperty = dynamic_cast<PropertyTile*>(targetTile);
-                if (targetProperty == nullptr) {
-                    cout << "[ERROR] Tile " << targetTile->getName() << " is not a destructible property!\n";
-                    cout << "Enter the opponent's property tile code: ";
+                targetStreet = dynamic_cast<StreetTile*>(targetTile);
+                if (targetStreet == nullptr) {
+                    cout << "[ERROR] Tile " << targetTile->getName() << " is not a destructible tile!\n";
+                    cout << "Enter the opponent's street tile code: ";
                     continue; 
                 }
 
-                Player* owner = targetProperty->getOwner();
+                Player* owner = targetStreet->getOwner();
                 
                 if (owner == nullptr) {
                     cout << "[ERROR] This property is an empty land / not owned by anyone!\n";
-                    cout << "Enter the opponent's property tile code: ";
+                    cout << "Enter the opponent's street tile code: ";
                     continue;
                 }
 
                 if (owner == &currentPlayer) {
                     cout << "[ERROR] You cannot destroy your own property!\n";
-                    cout << "Enter an OPPONENT'S property tile code: ";
+                    cout << "Enter an OPPONENT'S street tile code: ";
                     continue;
                 }
 
                 if (owner->getStatus() == PlayerStatus::BANKRUPT) {
                     cout << "[ERROR] The owner of this property is already bankrupt!\n";
-                    cout << "Enter the property tile code of an active opponent: ";
+                    cout << "Enter the street tile code of an active opponent: ";
                     continue;
                 }
 
                 break; 
             }
 
-            // Eksekusi penghancuran bangunan
-            
+            targetStreet->demolishBuilding();
             break;
         }
     }

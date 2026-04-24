@@ -6,6 +6,7 @@ private:
     int discountPercentage; 
 public:
     DiscountCard();
+    DiscountCard(int disc);
     ~DiscountCard() override = default;
     
     SkillCardType getSkillType() const override;

@@ -5,6 +5,11 @@
 
 using namespace std;
 
+enum CardType {
+    CHANCE,
+    COMMUNITY_CHEST
+};
+
 class CardTile : public ActionTile
 {
 private:
