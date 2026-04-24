@@ -26,7 +26,8 @@ public:
     void purchaseProperty(Player &player, PropertyTile *tile);
     void acquirePropertyFree(Player &player, PropertyTile *tile);
     void mortgageProperty(Player &player, PropertyTile *tile);
-    void redeemProperty(Player &player, PropertyTile *tile);
+    void redeemProperty(Player &player, PropertyTile *tile);    
+    int sellBuilding(Player& player, StreetTile* tile);
 
     void buildHouse(GameContext *gameContext, Player &player, StreetTile *tile);
     void upgradeToHotel(GameContext *gameContext, Player &player, StreetTile *tile);
