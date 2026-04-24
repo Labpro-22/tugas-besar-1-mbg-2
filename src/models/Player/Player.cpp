@@ -24,22 +24,8 @@ void Player::setDoubleCount(int count) {
     doubleCount = count;   
 }
 
-void Player::move(int steps) {
-    const int boardSize = 40;
-    int nextPosition = (currentPosition + steps) % boardSize;
-    if (nextPosition < 0) {
-        nextPosition += boardSize;
-    }
-    currentPosition = nextPosition;
-}
-
 void Player::setPosition(int pos) {
-    const int boardSize = 40;
-    int normalizedPosition = pos % boardSize;
-    if (normalizedPosition < 0) {
-        normalizedPosition += boardSize;
-    }
-    currentPosition = normalizedPosition;
+    currentPosition = pos;
 }
 
 void Player::setStatus(PlayerStatus status) {

@@ -33,7 +33,6 @@ private:
 public:
 
     Player() = default;
-    void move(int steps);
     void setName(string name);
     void setBalance(int amount);
     void setDoubleCount(int count);

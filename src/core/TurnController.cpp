@@ -11,7 +11,8 @@ void TurnController::executeAction(GameContext* context, EconomyController& eco,
     cout << "Memajukan Bidak " << currentPlayer->getName() << " sebanyak " << diceTotal << " petak..." << endl;
     
     int oldPos = currentPlayer->getPosition();
-    currentPlayer->move(diceTotal);
+    int newPos = context->getBoard().calculateTargetPosition(oldPos, diceTotal);
+    currentPlayer->setPosition(newPos);
     
     if (currentPlayer->getPosition() < oldPos) {
         *currentPlayer += context->getGoSalary();

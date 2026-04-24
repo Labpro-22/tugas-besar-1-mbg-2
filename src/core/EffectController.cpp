@@ -12,26 +12,15 @@ void EffectController::execute(ActionCard& card, Player& currentPlayer, GameCont
     switch (card.getActionType()) {
         case ActionCardType::MOVE_TO_STATION: {
             int currentPos = currentPlayer.getPosition();
-            int totalTiles = ctx.getBoard().getTotalTile();
-            int searchPos = (currentPos + 1) % totalTiles;
-
-            while (true) {
-                Tile* tileToCheck = ctx.getBoard().getTile(searchPos);
-                RailroadTile* rrTile = dynamic_cast<RailroadTile*>(tileToCheck);
-                
-                if (rrTile != nullptr) { 
-                    break;
-                }
-                searchPos = (searchPos + 1) % totalTiles;
-            }
-
-            currentPlayer.setPosition(searchPos);
+    
+            int stationPos = ctx.getBoard().findNearestStation(currentPos);
+            
+            currentPlayer.setPosition(stationPos);
             break;
         }
         case ActionCardType::MOVE_BACKWARD: {
             int currentPos = currentPlayer.getPosition();
-            int totalTiles = ctx.getBoard().getTotalTile();
-            int newPos = (currentPos - 3 + totalTiles) % totalTiles; 
+            int newPos = ctx.getBoard().calculateTargetPosition(currentPos, -3);
             currentPlayer.setPosition(newPos);
             break;
         }
@@ -77,9 +66,8 @@ void EffectController::execute(SkillCard& card, Player& currentPlayer, GameConte
             
             int steps = mCard.getSteps();
             int currentPos = currentPlayer.getPosition();
-            int totalTiles = ctx.getBoard().getTotalTile();
             
-            int newPos = (currentPos + steps) % totalTiles;
+            int newPos = ctx.getBoard().calculateTargetPosition(currentPos, steps);
             currentPlayer.setPosition(newPos);
             break;
         }

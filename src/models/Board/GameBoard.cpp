@@ -126,3 +126,28 @@ vector<PropertyTile*> GameBoard::getPropertyTile() const {
     }
     return properties;
 }
+
+int GameBoard::calculateTargetPosition(int currPos, int steps) const {
+    int boardSize = totalTiles;
+    int targetPos = (currPos + steps) % totalTiles;
+
+    if (targetPos < 0) {
+        targetPos += totalTiles;
+    }
+
+    return targetPos;
+}
+
+int GameBoard::findNearestStation(int startPos) const {
+    int searchPos = this->calculateTargetPosition(startPos, 1);
+
+    while (true) {
+        Tile* tileToCheck = this->getTile(searchPos);
+        RailroadTile* rrTile = dynamic_cast<RailroadTile*>(tileToCheck);
+        
+        if (rrTile != nullptr) { 
+            return searchPos;
+        }
+        searchPos = this->calculateTargetPosition(searchPos, 1);
+    }
+}

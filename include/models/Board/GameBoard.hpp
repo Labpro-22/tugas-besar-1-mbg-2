@@ -3,6 +3,7 @@
 #include <string>
 #include "PropertyTile.hpp"
 #include "StreetTile.hpp"
+#include "RailroadTile.hpp"
 
 using namespace std;
 
@@ -24,5 +25,7 @@ public:
     int getIndexOfTile(Tile* tile) const;
     vector<PropertyTile*> getTileByColor(int position) const;
     map<string, vector<StreetTile*>> getMapColorProperty();
+    int calculateTargetPosition(int currePos, int steps) const;
+    int findNearestStation(int startPos) const;
 };
 
