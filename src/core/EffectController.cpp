@@ -120,10 +120,6 @@ void EffectController::execute(SkillCard& card, Player& currentPlayer, GameConte
             break;
         }
         case SkillCardType::LASSO: {
-            if (currentPlayer.hasShield()) {
-                break;
-            }
-
             int currentPos = currentPlayer.getPosition();
             cout << "List of opponent players that can be pulled:\n";
             display.renderPlayer(ctx);
@@ -171,10 +167,6 @@ void EffectController::execute(SkillCard& card, Player& currentPlayer, GameConte
             break;
         }
         case SkillCardType::DEMOLITION: {
-            if (currentPlayer.hasShield()) {
-                break;
-            }
-
             Tile* targetTile = nullptr;
             StreetTile* targetStreet = nullptr;
 
