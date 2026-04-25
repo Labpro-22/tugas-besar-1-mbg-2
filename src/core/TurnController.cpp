@@ -113,7 +113,7 @@ void TurnController::resolveTileLanding(GameContext* context, Player* player, Ec
             break;
 
         case LandEventType::BANKRUPTCYCHECK:
-            bank.declareBankruptcy(*player);
+            // bank.declareBankruptcy(*player);
             break;
 
         case LandEventType::DONOTHING:

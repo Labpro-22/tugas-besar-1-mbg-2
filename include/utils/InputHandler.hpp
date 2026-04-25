@@ -15,7 +15,6 @@ enum class CommandType {
     BANGUN,
     GUNAKAN_KEMAMPUAN,
     SIMPAN,
-    MUAT,
     CETAK_LOG,
     UNKNOWN_COMMAND,
     BID,

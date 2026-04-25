@@ -4,6 +4,18 @@
 #include "PropertyTile.hpp"
 #include "SkillCard.hpp"
 #include "StreetTile.hpp"
+
+Player::Player(string name) : 
+    username(name), 
+    balance(0), 
+    currentPosition(0), 
+    status(ACTIVE), 
+    jailTurns(0), 
+    doubleCount(0), 
+    shieldActive(false), 
+    rentDiscount(0) 
+{}
+
 void Player::setName(string name) {
     username = name;
 }
