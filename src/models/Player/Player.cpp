@@ -1,5 +1,6 @@
 #include <algorithm>
 
+#include "GameException.hpp"
 #include "Player.hpp"
 #include "PropertyTile.hpp"
 #include "SkillCard.hpp"
@@ -66,6 +67,9 @@ Player Player::operator-(int amount) {
 }
 
 Player& Player::operator-=(int amount) {
+    if (amount > balance) {
+        throw InsufficientFundsException(amount, balance);
+    }
     balance -= amount;
     return *this;
 }
