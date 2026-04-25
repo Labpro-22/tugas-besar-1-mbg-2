@@ -14,7 +14,6 @@ const map<string, CommandType> InputHandler::commandMap = {
     {"BANGUN", CommandType::BANGUN},
     {"GUNAKAN_KEMAMPUAN", CommandType::GUNAKAN_KEMAMPUAN},
     {"SIMPAN", CommandType::SIMPAN},
-    {"MUAT", CommandType::MUAT},
     {"CETAK_LOG", CommandType::CETAK_LOG},
     {"BID", CommandType::BID},
     {"PASS", CommandType::PASS},

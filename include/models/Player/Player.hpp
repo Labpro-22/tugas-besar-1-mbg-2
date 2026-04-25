@@ -33,6 +33,7 @@ private:
 public:
 
     Player() = default;
+    Player(string name);
     void setName(string name);
     void setBalance(int amount);
     void setDoubleCount(int count);
