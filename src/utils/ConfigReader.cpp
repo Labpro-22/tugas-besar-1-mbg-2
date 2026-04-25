@@ -25,6 +25,7 @@ void ConfigReader::loadAllConfigs(GameContext *gameContext, GameBoard &gameBoard
 }
 void ConfigReader::loadAksi(string fileName, GameBoard &gameBoard) {
     ifstream file(fileName);
+    if (!file.is_open()) return;
     string line;
 
     while (getline(file, line)) {
@@ -66,13 +67,17 @@ void ConfigReader::loadAksi(string fileName, GameBoard &gameBoard) {
 
 void ConfigReader::loadProperty(string fileName, GameBoard &gameBoard){
     ifstream file(fileName);
+    if (!file.is_open()) return;
     string line;
     while (getline(file, line)) {
         stringstream ss(line);
         int idx, price, morgageValue, houseCost, hotelCost;
         vector<int> rent(6);
         string code, name, type, color;
-        ss >> idx >> code >> name >> type >> color >> price >> morgageValue;
+
+        if (!(ss >> idx >> code >> name >> type >> color >> price >> morgageValue)) {
+            continue; 
+        }
         
         if(type == "STREET"){
             ss >> houseCost >> hotelCost;
@@ -90,23 +95,28 @@ void ConfigReader::loadProperty(string fileName, GameBoard &gameBoard){
 
 void ConfigReader::loadRailroad(GameContext *gameContext, string fileName){
     ifstream file(fileName);
+    if (!file.is_open()) return;
     string line;
     while (getline(file, line)) {
         stringstream ss(line);
         int totalOwned, rent;
-        ss >> totalOwned >> rent;
+        if (!(ss >> totalOwned >> rent)) {
+            continue;
+        }
         gameContext->setRailroadRent(totalOwned, rent);
     }
 };
 
 void ConfigReader::loadUtility(GameContext *gameContext, string fileName){
     ifstream file(fileName);
+    if (!file.is_open()) return;
     string line;
     while (getline(file, line)) {
         stringstream ss(line);
         int totalOwned, multiplier;
-        ss >> totalOwned >> multiplier;
-
+        if (!(ss >> totalOwned >> multiplier)) {
+            continue;
+        }
         gameContext->setUtilityMultiplier(totalOwned, multiplier);
     }
 };
@@ -117,7 +127,9 @@ void ConfigReader::loadSpecial(GameContext *gameContext, string fileName){
     while (getline(file, line)) {
         stringstream ss(line);
         int goSalary, jailFine;
-        ss >> goSalary >> jailFine;
+        if(!(ss >> goSalary >> jailFine)){
+            continue;
+        }
         gameContext->setGoSalary(goSalary);
         gameContext->setJailFine(jailFine);
     }
@@ -125,11 +137,14 @@ void ConfigReader::loadSpecial(GameContext *gameContext, string fileName){
 
 void ConfigReader::loadTax(GameContext *gameContext, string fileName){
     ifstream file(fileName);
+    if (!file.is_open()) return;
     string line;
     while (getline(file, line)) {
         stringstream ss(line);
         int pphFlat, pphPercentage, pbm;
-        ss >> pphFlat >> pphPercentage >> pbm;
+        if (!(ss >> pphFlat >> pphPercentage >> pbm)) {
+            continue;
+        }
         gameContext->setPphFlat(pphFlat);
         gameContext->setPphPercentage(pphPercentage);
         gameContext->setPbm(pbm);
@@ -138,11 +153,14 @@ void ConfigReader::loadTax(GameContext *gameContext, string fileName){
 
 void ConfigReader::loadMisc(GameContext* gameContext, string fileName){
     ifstream file(fileName);
+    if (!file.is_open()) return;
     string line;
     while (getline(file, line)) {
         stringstream ss(line);
         int maxTurns, startingMoney; 
-        ss >> maxTurns >> startingMoney;
+        if (!(ss >> maxTurns >> startingMoney)) {
+            continue;
+        }
         gameContext->setMaxTurns(maxTurns);
         gameContext->setStartingMoney(startingMoney);
     }

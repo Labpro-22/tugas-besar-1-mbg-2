@@ -14,7 +14,7 @@ private:
     int totalTiles;
 public:
     GameBoard();
-    ~GameBoard();
+    ~GameBoard() = default;
     void addTile(Tile* tile);
 
     vector<PropertyTile*> getPropertyTile() const;

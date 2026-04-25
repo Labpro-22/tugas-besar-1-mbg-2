@@ -2,14 +2,6 @@
 
 GameBoard::GameBoard() : totalTiles(0) {}
 
-GameBoard::~GameBoard()
-{
-    for (Tile* tile : tiles)
-    {
-        delete tile;
-    }
-}
-
 void GameBoard::addTile(Tile* tile)
 {
     if (tile == nullptr)
