@@ -21,13 +21,25 @@ enum class LandEventType
     DONOTHING
 };
 
-struct LandResult
+class LandResult
 {
-    LandEventType type = LandEventType::NONE;
-    Tile* sourceTile = nullptr;
-    Tile* targetTile = nullptr;
-    Player* sourcePlayer = nullptr;
-    Player* targetPlayer = nullptr;
-    int amount = 0;
-    bool requiresChoice = false;
+    private:
+        LandEventType type = LandEventType::NONE;
+        Tile* sourceTile = nullptr;
+        Tile* targetTile = nullptr;
+        Player* sourcePlayer = nullptr;
+        Player* targetPlayer = nullptr;
+        int amount = 0;
+        bool requiresChoice = false;
+    public:
+        LandResult() = default;
+        LandResult(LandEventType type, Tile* sourceTile, Tile* targetTile, Player* sourcePlayer, Player* targetPlayer, int amount, bool requiresChoice);
+        
+        LandEventType getType() const;
+        Tile* getSourceTile() const;
+        Tile* getTargetTile() const;
+        Player* getSourcePlayer() const;
+        Player* getTargetPlayer() const;
+        int getAmount() const;
+        bool isRequiresChoice() const;
 };

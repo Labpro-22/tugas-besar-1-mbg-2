@@ -35,6 +35,7 @@ public:
     int calculateMaxLiquidation(Player &player) ;
     void transferAllAssets(Player &bankrupt, Player &creditor);
     void returnAllAssetsToBank(Player &bankrupt);
+    void returnSkillCardsToDeck(Player &bankrupt, GameContext *gameContext);
 
     bool comparePlayerRank(Player &a,  Player &b) ;
 
@@ -45,6 +46,5 @@ public:
     vector<StreetTile *> getColorGroupTiles(GameContext *gameContext, const std::string &colorGroup) ;
     bool canBuildOnTile(GameContext *gameContext, StreetTile *tile) ;
     bool canUpgradeToHotel(GameContext *gameContext, const std::string &colorGroup) ;
-
 
 };

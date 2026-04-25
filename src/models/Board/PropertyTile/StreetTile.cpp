@@ -71,9 +71,16 @@ string StreetTile::getTypeLabel() const {
 
 vector<string> StreetTile::getAktaDetailLines(const GameContext& G) const {
     vector<string> lines;
-    int level = 1;
+    int level = 0;
     for (int rentPrice : rentPrices) {
-        lines.push_back("Rent Fee (" + to_string(level++) + " Houses): M" + to_string(rentPrice));
+        if (level == 0) {
+            lines.push_back("Rent Fee (No Building): M" + to_string(rentPrice));
+        } else if (level == 5) {
+            lines.push_back("Rent Fee (Hotel): M" + to_string(rentPrice));
+        } else {
+            lines.push_back("Rent Fee (" + to_string(level) + " House(s)): M" + to_string(rentPrice));
+        }
+        level++;
     }
     lines.push_back("-");
     lines.push_back("House Cost       : M" + to_string(houseCost));

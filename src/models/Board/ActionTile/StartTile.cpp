@@ -6,5 +6,5 @@ StartTile::StartTile(int idx, string code, string name, string color)
 };
 
 LandResult StartTile::land(GameContext &G){
-    return LandResult{LandEventType::DONOTHING, this, nullptr, &G.getCurrentPlayer(), nullptr, 0, false};
+    return LandResult(LandEventType::DONOTHING, this, nullptr, &G.getCurrentPlayer(), nullptr, 0, false);
 };
