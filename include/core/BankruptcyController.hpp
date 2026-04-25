@@ -41,4 +41,6 @@ public:
     void liquidateAssets(GameContext& ctx, Player& debitor, Player* creditor, int amount, DisplayView& view, EconomyController& eco, InputHandler& input, PropertyTile* bankruptTile, TaxTile* taxTile); 
     void declareBankruptcy(GameContext& ctx, Player& player, Player& creditor, int amount, DisplayView& view, PropertyTile* tile);
     void declareBankruptcy(GameContext& ctx, Player& player, int amount, DisplayView& view, EconomyController& eco, TaxTile* tile); // Ini kalau bangkrut nya ke bank
+    void declareBankruptcy(GameContext& ctx, Player& player, int amount, DisplayView& view, EconomyController& eco);
+    void handleInsufficientFunds(GameContext& ctx, Player& debitor, Player* creditor, int amount, EconomyController& eco, DisplayView& view);
 };

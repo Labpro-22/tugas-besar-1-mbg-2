@@ -1,4 +1,5 @@
 #include "RailroadTile.hpp"
+#include "GameContext.hpp"
 
 RailroadTile::RailroadTile(int idx, string code, string name, 
     int price, int morgageValue, string color) : 

@@ -8,6 +8,9 @@
 #include "DisplayView.hpp"
 #include <iostream>
 
+void EffectController::decrementDurations() {
+    // minimal kosong dulu
+}
 void EffectController::execute(ActionCard& card, Player& currentPlayer, GameContext& ctx) {
     switch (card.getActionType()) {
         case ActionCardType::MOVE_TO_STATION: {

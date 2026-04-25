@@ -1,6 +1,7 @@
 #pragma once
 #include <vector>
 #include <algorithm>
+#include <set>
 #include <random>
 #include <chrono>
 using namespace std;
@@ -19,14 +20,7 @@ private:
     }
 
 public:
-    ~CardDeck() {
-        for (T* card : mainDeck) {
-            delete card;
-        }
-        for (T* card : discardDeck) {
-            delete card;
-        }
-    }
+    ~CardDeck() = default;
 
     void add(T* card) {
         mainDeck.push_back(card);
@@ -38,8 +32,10 @@ public:
 
     T* draw() {
         if (mainDeck.empty()) {
-            mainDeck = discardDeck;
-            discardDeck.clear();
+            if (discardDeck.empty()) {
+                return nullptr; 
+            }
+            mainDeck = std::move(discardDeck);
             shuffleMainDeck();
         }
         T* drawnCard = mainDeck.back();

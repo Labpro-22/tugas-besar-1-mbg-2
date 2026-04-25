@@ -20,6 +20,18 @@ private :
     int cur; 
 public : 
     InsufficientFundsException(const int& required, const int& cur);
+    int getRequired() const;
+    int getCurrentBalance() const;
+};
+
+class AuctionTriggerException : public GameException{ 
+public:
+    AuctionTriggerException();
+};
+
+class BankruptcyException : public InsufficientFundsException{
+public:
+    BankruptcyException(const string& message, const int& required, const int& cur);
 };
 
 // CARD 
@@ -131,11 +143,11 @@ private :
     string filename;
 public : 
     SaveGameException(const string& filename);
-}
+};
 
 class LoadGameException : public GameException{
 private :
     string filename;
 public : 
     LoadGameException(const string& filename);
-}
+};

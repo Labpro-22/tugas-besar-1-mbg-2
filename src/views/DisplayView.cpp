@@ -7,7 +7,15 @@
 #include <algorithm>
 
 using namespace std;
-
+// Start
+void DisplayView::renderStart() {
+    cout << "==================================" << endl;
+    cout << "||            NIMONSY           ||" << endl;
+    cout << "==================================" << endl;
+    cout << "1. Start Game" << endl;
+    cout << "2. Load Game" << endl;
+    cout << "Choose an option: ";
+}
 // ============ EXISTING HELPERS (CARD RENDERING) ============
 string DisplayView::fitToWidth(const string& text, int width) const {
     if ((int)text.size() > width) {
@@ -104,7 +112,7 @@ string DisplayView::formatCenterContent(const string& content, int centerWidth) 
 vector<string> DisplayView::buildCenterLines(GameContext G, int centerWidth, int sideRows) const {
     vector<string> rawLines;
     rawLines.push_back("==================================");
-    rawLines.push_back("||          NIMONSPOLI          ||");
+    rawLines.push_back("||            NIMONSY           ||");
     rawLines.push_back("");
     rawLines.push_back("TURN " + to_string(G.getCurrentTurn()) + " / " + to_string(G.getMaxTurns()));
     rawLines.push_back("----------------------------------");
@@ -318,6 +326,8 @@ void DisplayView::printBottomRow(GameContext G, int sideLength) {
     string border = makeBorderLine(sideLength);
     int bottomLeft = 3 * (sideLength - 1);
     int bottomRight = 2 * (sideLength - 1);
+    
+    cout << border << endl;
 
     for (int i = bottomLeft; i >= bottomRight; --i) {
         Tile* t = G.getBoard().getTile(i);
@@ -484,24 +494,33 @@ void DisplayView::renderProperty(GameContext G){
 
 
 void DisplayView::renderTile(GameContext G){
-    cout << "You landed on " << G.getBoard().getTile(G.getCurrentPlayer().getPosition())->getName() << "(" << G.getBoard().getTile(G.getCurrentPlayer().getPosition())->getCode() << ")" << endl;
+    cout << "You landed on " << G.getBoard().getTile(G.getCurrentPlayer().getPosition())->getName() << " (" << G.getBoard().getTile(G.getCurrentPlayer().getPosition())->getCode() << ")" << endl;
 }
 
 void DisplayView::showMenu(GameContext G){
     
 }
 
-void DisplayView::renderDiceRoll(GameContext G){
-    cout << "Rolling dice..." << endl;
-    Dice dice = G.getDice();
-    cout << "You rolled a " << dice.getDice1() << " + " << dice.getDice2() << " = " << dice.getTotal() << endl;
-    cout << "Moving " << G.getCurrentPlayer().getName() << " " << dice.getTotal() << " spaces." << endl;
-    cout << "You landed on tile: " << G.getBoard().getTile(G.getCurrentPlayer().getPosition())->getName() << "." << endl;
+void DisplayView::renderInfo(const string& message) {
+    cout << message << endl;
 }
 
-void DisplayView::renderDiceControl(GameContext G){
+void DisplayView::renderWarning(const string& message) {
+    cout << "[REJECTED] " << message << endl;
+}
+
+void DisplayView::renderPrompt(const string& message) {
+    cout << message;
+}
+
+void DisplayView::renderDiceRoll(GameContext G, Dice dice){
+    cout << "Rolling dice..." << endl;
+    cout << "You rolled a " << dice.getDice1() << " + " << dice.getDice2() << " = " << dice.getTotal() << endl;
+    cout << "Moving " << G.getCurrentPlayer().getName() << " " << dice.getTotal() << " spaces." << endl;
+}
+
+void DisplayView::renderDiceControl(GameContext G, Dice dice){
     cout << "You manually set the dice values." << endl;
-    Dice dice = G.getDice();
     cout << "You rolled a " << dice.getDice1() << " + " << dice.getDice2() << " = " << dice.getTotal() << endl;
     cout << "Moving " << G.getCurrentPlayer().getName() << " " << dice.getTotal() << " spaces." << endl;
     renderTile(G);
@@ -528,7 +547,6 @@ void DisplayView::renderMortgage(GameContext G, PropertyTile* tile){
 
 void DisplayView::renderCantPay(GameContext G, int amountOwed){
     cout << "You can't pay the required amount of rent." << "(M" << amountOwed << ")" << endl;
-    cout << "Your current balance: M" << G.getCurrentPlayer().getBalance() << endl;
 }
 
 void DisplayView::renderTax(GameContext G, TaxTile* tile){
@@ -541,7 +559,6 @@ void DisplayView::renderTax(GameContext G, TaxTile* tile){
     } else {
         cout << "You landed on a tax tile " << tile->getName() << " (" << tile->getCode() << ")." << endl;
         cout << "You must pay a fixed amount of M" << G.getPbm() << "." << endl;
-        cout << "Your Balance : M" << G.getCurrentPlayer().getBalance() << "-> M" << G.getCurrentPlayer().getBalance() - G.getPbm() << endl;
     }
 }   
 
@@ -555,27 +572,35 @@ void DisplayView::renderPayTax(GameContext G, int choose){
         int taxAmount = (G.getPphPercentage() * G.getCurrentPlayer().totalWealth()) / 100;
         if (taxAmount > G.getCurrentPlayer().getBalance()) {
             cout << "However, you don't have enough balance to pay this tax M" << taxAmount << endl;
-            cout << "Your Balance : M" << G.getCurrentPlayer().getBalance() << endl;
         } else {
             cout << "You chose to pay " << G.getPphPercentage() << "% of your total wealth." << endl;
             cout << "You paid M" << taxAmount << " in taxes." << endl;
-            cout << "Your Balance : M" << G.getCurrentPlayer().getBalance() << "-> M" << G.getCurrentPlayer().getBalance() - taxAmount << endl;
         }
     } else {
         // Default to option 1 if input is invalid
         cout << "You chose to pay a fixed amount of M" << G.getPphFlat() << "." << endl;
         if (G.getPphFlat() > G.getCurrentPlayer().getBalance()) {
             cout << "However, you don't have enough balance to pay this tax M" << G.getPphFlat() << endl;
-            cout << "Your Balance : M" << G.getCurrentPlayer().getBalance() << endl;
         } else {
             cout << "You paid M" << G.getPphFlat() << " in taxes." << endl;
-            cout << "Your Balance : M" << G.getCurrentPlayer().getBalance() << "-> M" << G.getCurrentPlayer().getBalance() - G.getPphFlat() << endl;
         }
     }
 }
 
+void DisplayView::renderCantPayTax(GameContext G, int taxAmount){
+    cout << "You can't pay the required amount of tax." << "(M" << taxAmount << ")" << endl;
+    cout << "Your current balance: M" << G.getCurrentPlayer().getBalance() << endl;
+}
 
+void DisplayView::renderCurrentBalancePayed(GameContext G, int amountPaid){
+    cout << "Your current balance: M" << G.getCurrentPlayer().getBalance() + amountPaid << " -> " << G.getCurrentPlayer().getBalance() << endl;
+}
+
+void DisplayView::renderCurrentBalance(GameContext G){
+    cout << "Your current balance: M" << G.getCurrentPlayer().getBalance() << endl;
+}
 // RENDER LELANG
+
 
 // USAGE :
 // 1. Panggil renderAuctionLine(playerName) untuk menampilkan prompt lelang
@@ -1111,7 +1136,11 @@ void DisplayView::renderBankruptSecondScene(GameContext G, Player* bankruptPlaye
 
 void DisplayView::renderBankruptThirdScene(GameContext G, Player* bankruptPlayer, TaxTile* Tile, int amountToPay){
     int totalAssets = bankruptPlayer->totalBuildingValue() / 2 + bankruptPlayer->totalPropertyPrice();
-    cout << "You failed to pay " << Tile->getName() << "M" << amountToPay << endl << endl;
+    if (Tile != nullptr) {
+        cout << "You failed to pay " << Tile->getName() << " M" << amountToPay << endl << endl;
+    } else {
+        cout << "You failed to pay the required debt of M" << amountToPay << endl << endl;
+    }
 
     cout << "Estimation maximum asset value you can liquidate: "<< endl;
     cout << "  Sell all properties + buildings -> M" << totalAssets << endl;
@@ -1139,13 +1168,13 @@ void DisplayView::renderPlayerCard(Player& player){
 }
 
 void DisplayView::renderReceiveSkillCard(Player& player, SkillCard* card){
-    cout << "You received a new skill card!" << endl;
-    cout << "You receive: " << card->getName() << "." << endl; 
+    cout << player.getName() << " received a new skill card!" << endl;
+    cout << player.getName() << " receive: " << card->getName() << "." << endl; 
 }
 
 void DisplayView::renderMaxSkillCard(Player& player){
-    cout << "ALERT: You have reached the maximum number of skill cards (Maximum 3)." << endl;
-    cout << "You should discard one of your existing skill cards to receive the new one." << endl << endl;
+    cout << "ALERT: " << player.getName() << " has reached the maximum number of skill cards (Maximum 3)." << endl;
+    cout << player.getName() << " should discard one of your existing skill cards to receive the new one." << endl << endl;
 
     renderPlayerCard(player);
 

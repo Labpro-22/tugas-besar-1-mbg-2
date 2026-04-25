@@ -31,6 +31,7 @@ void GameContext::setStartingMoney(int money) { startingMoney = money; }
 void GameContext::setGoSalary(int amount) { goSalary = amount; }
 void GameContext::setPphFlat(int amount) { pphFlat = amount; }
 void GameContext::setPphPercentage(int amount) { pphPercentage = amount; }
+void GameContext::setPbm(int amount) { pbm = amount; }
 void GameContext::setJailFine(int amount) { jailFine = amount; }
 void GameContext::setRailroadRent(int totalOwned, int rent) { railroadRent[totalOwned] = rent; }
 void GameContext::setUtilityMultiplier(int totalOwned, int multiplier) { UtilityMultiplier[totalOwned] = multiplier; }

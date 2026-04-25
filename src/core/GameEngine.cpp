@@ -3,6 +3,7 @@
 #include "BankruptcyController.hpp"
 #include "EffectController.hpp"
 #include "DisplayView.hpp"
+#include "GameException.hpp"
 #include "InputHandler.hpp"
 #include "GameLogger.hpp"
 
@@ -75,30 +76,25 @@ void GameEngine::run() {
     bool gameReady = false;
 
     while (!gameReady) {
-        cout << "\n============================================\n";
-        cout << "        SELAMAT DATANG DI PERMAINAN        \n";
-        cout << "============================================\n";
-        cout << "1. Permainan Baru (NEW GAME)\n";
-        cout << "2. Muat Permainan (LOAD GAME)\n";
-        cout << "Pilih (1/2): ";
+        displayView.renderStart();
 
         inputHandler.getIntInput();
         int menuChoice = inputHandler.getIntValue1();
 
         if (menuChoice == 1) {
-            cout << "\n--- PERMAINAN BARU ---\n";
+            displayView.renderInfo("\n--- NEW GAME ---\n");
             int numPlayers = 0;
             while (numPlayers < 2 || numPlayers > 4) { 
-                cout << "Masukkan jumlah pemain (2-4): ";
+                displayView.renderInfo("Input number of players (2-4): ");
                 inputHandler.getIntInput();
                 numPlayers = inputHandler.getIntValue1();
                 if (numPlayers < 2 || numPlayers > 4) {
-                    cout << "[ERROR] Jumlah pemain harus 2, 3, atau 4!\n";
+                    displayView.renderInfo("Number of players must be 2, 3, or 4!");
                 }
             }
 
             for (int i = 0; i < numPlayers; ++i) {
-                cout << "Masukkan nama Pemain " << (i + 1) << ": ";
+                displayView.renderInfo("Input name of Player " + to_string(i + 1) + ": ");
                 inputHandler.getStringInput();
                 string pName = inputHandler.getLastStringInput();
                 
@@ -112,32 +108,32 @@ void GameEngine::run() {
 
             gameContext.setCurrentPlayerIndex(startingIndex);
             
-            cout << "\n[PENGACAKAN GILIRAN] Sedang menentukan siapa yang jalan pertama...";
-            cout << "\n>> Permainan akan dimulai oleh: " << gameContext.getPlayers()[startingIndex].getName() << "!\n";
+            displayView.renderInfo("\n[RANDOMIZING STARTING PLAYER]...");
+            displayView.renderInfo("\n>> Game will start with: " + gameContext.getPlayers()[startingIndex].getName() + "!\n");
             gameReady = true;
 
         } else if (menuChoice == 2) {
-            cout << "\n--- MUAT PERMAINAN ---\n";
-            cout << "Masukkan nama file save: ";
+            displayView.renderInfo("\n--- LOAD GAME ---\n");
+            displayView.renderInfo("Input save file name: ");
             inputHandler.getStringInput();
             string saveFile = inputHandler.getLastStringInput();
             
             saveLoader.loadGame(saveFile, gameContext, logger); 
             
             if (!gameContext.getPlayers().empty()) {
-                cout << "\n[BERHASIL] Permainan dimuat!\n";
+                displayView.renderInfo("\n[SUCCESS] Load successful!\n");
                 gameReady = true;
             } else {
-                cout << "\n[ERROR] File gagal dimuat atau data kosong. Silakan coba lagi.\n";
+                displayView.renderInfo("\n[ERROR] Failed to load save file or data is empty. Please try again.\n");
             }
         } else {
-            cout << "\n[ERROR] Pilihan tidak valid!\n";
+            displayView.renderInfo("\n[ERROR] Invalid choice!\n");
             inputHandler.clearInputBuffer();
         }
     }
 
     if (gameContext.getPlayers().empty()) {
-        cout << "Daftar pemain kosong. Tambahkan pemain sebelum game loop dijalankan." << endl;
+        displayView.renderInfo("Player list is empty. Add players before running the game loop.");
         return; 
     }
 
@@ -147,7 +143,7 @@ void GameEngine::run() {
     while (!gameContext.isGameOver()) {
         
         if (gameContext.getCurrentPlayerIndex() == 0) {
-            turnController.distributeSkillCards(gameContext, inputHandler);
+            turnController.distributeSkillCards(gameContext, inputHandler, displayView);
         }
 
         Player* currentPlayer = &gameContext.getCurrentPlayer();
@@ -162,8 +158,8 @@ void GameEngine::run() {
             previousPlayer = currentPlayer;
         }
 
-        cout << "\n============================================\n";
-        cout << "Giliran: " << currentPlayer->getName() << " (Turn " << gameContext.getCurrentTurn() << ")" << endl;
+        displayView.renderInfo("============================================");
+        displayView.renderInfo("Turn: " + currentPlayer->getName() + " (Round " + to_string(gameContext.getCurrentTurn()) + ")");
         
         bool turnEnded = false;
         bool isDoubleRoll = false;
@@ -173,47 +169,50 @@ void GameEngine::run() {
             int currentAttempt = currentPlayer->getJailTurns() + 1;
             currentPlayer->setJailTurns(currentAttempt);
 
-            cout << "[DI DALAM PENJARA] Upaya ke-" << currentAttempt << endl;
+            displayView.renderInfo("[IN JAIL] Attempt #" + to_string(currentAttempt));
 
             if (currentAttempt >= 4) {
-                cout <<"Anda sudah 3 giliran di penjara. Wajib membayar denda sebesar M"<< gameContext.getJailFine() << "!" << endl;
-                if(currentPlayer->canAfford(gameContext.getJailFine())){
+                displayView.renderInfo("You have spent 3 turns in jail. You must pay a fine of M" + to_string(gameContext.getJailFine()) + "!");
+                try {
                     *currentPlayer -= gameContext.getJailFine();
                     currentPlayer->setStatus(PlayerStatus::ACTIVE);
                     currentPlayer->setJailTurns(0);
-                    cout << "Denda telah dibayar. Anda bebas!" << endl;
-                } else {
-                    // Panggil Bankrupt Controller di sini
+                    displayView.renderInfo("Fine paid. You are free now!");
+                } catch (const InsufficientFundsException& ex) {
+                    bankruptcyController.handleInsufficientFunds(gameContext, *currentPlayer, nullptr, ex.getRequired(), economyController, displayView);
                     turnEnded = true; 
                 }
             } else {
                 bool validJailAction = false;
 
                 while (!validJailAction) {
-                    cout << "Pilihan keluar penjara:" << endl;
-                    cout << "1. Bayar denda (M" << gameContext.getJailFine() << ")" << endl;
-                    cout << "2. Gunakan kartu 'Bebas dari Penjara'" << endl;
-                    cout << "3. Kocok dadu (Harus Double)" << endl;
-                    cout << "Pilihan (1/2/3): ";
+                    displayView.renderInfo("Jail escape options:");
+                    displayView.renderInfo("1. Pay fine (M" + to_string(gameContext.getJailFine()) + ")");
+                    displayView.renderInfo("2. Use 'Get Out of Jail' card");
+                    displayView.renderInfo("3. Roll dice (must be doubles)");
+                    displayView.renderPrompt("Choice (1/2/3): ");
 
                     inputHandler.getIntInput();
                     int choice = inputHandler.getIntValue1(); 
 
                     if (choice == 1) {
-                        if (currentPlayer->canAfford(gameContext.getJailFine())) {
+                        try {
                             *currentPlayer -= gameContext.getJailFine();
                             currentPlayer->setStatus(PlayerStatus::ACTIVE);
                             currentPlayer->setJailTurns(0);
-                            cout << "Denda dibayar. Anda sekarang bebas!" << endl;
+                            displayView.renderInfo("Fine paid. You are now free!");
                             validJailAction = true;
-                        } else {
-                            cout << "Uang tidak cukup!" << endl;
+                        } catch (const InsufficientFundsException& ex) {
+                            displayView.renderWarning("Insufficient funds!");
+                            bankruptcyController.handleInsufficientFunds(gameContext, *currentPlayer, nullptr, ex.getRequired(), economyController, displayView);
+                            turnEnded = true;
+                            validJailAction = true;
                         }
                     } else if (choice == 2) {
                         int jailFreeIdx = currentPlayer->searchJailFreeCard();
                         
                         if (jailFreeIdx != -1) {
-                            cout << "Menggunakan kartu bebas dari penjara..." << endl;
+                            displayView.renderInfo("Using 'Get Out of Jail' card...");
                             
                             SkillCard* usedCard = currentPlayer->useSkillCard(jailFreeIdx);
                             
@@ -224,26 +223,34 @@ void GameEngine::run() {
                             effectController.execute(*usedCard, *currentPlayer, gameContext, inputHandler, displayView);
                             validJailAction = true;
                         } else {
-                            cout << "GAGAL: Kamu tidak memiliki kartu 'Bebas dari Penjara'! Pilih opsi lain." << endl;
+                            displayView.renderWarning("FAILED: You do not have a 'Get Out of Jail' card! Choose another option.");
                         }
                     } else if (choice == 3) {
-                        cout << "Mencoba mengocok dadu untuk double..." << endl;
+                        displayView.renderInfo("Attempting to roll doubles...");
                         dice.roll();
-                        cout << "Hasil: " << dice.getDice1() << " + " << dice.getDice2() << " = " << dice.getTotal() << endl;
+                        displayView.renderInfo("Result: " + to_string(dice.getDice1()) + " + " + to_string(dice.getDice2()) + " = " + to_string(dice.getTotal()));
                         if (dice.isDouble()) {
-                            cout << "DOUBLE! Anda bebas dan langsung bergerak." << endl; 
+                            displayView.renderInfo("DOUBLE! You are free and move immediately."); 
                             currentPlayer->setStatus(PlayerStatus::ACTIVE);
                             currentPlayer->setJailTurns(0);
-                            turnController.handleDiceRollMovement(&gameContext, economyController, effectController, auctionController, bankruptcyController, dice, saveLoader, inputHandler, logger);
+                            try {
+                                turnController.handleDiceRollMovement(&gameContext, economyController, effectController, auctionController, bankruptcyController, dice, saveLoader, inputHandler, logger, displayView);
+                            } catch (const AuctionTriggerException&) {
+                                auctionController.startAuctionSkipBuy(gameContext, displayView, inputHandler);
+                                turnEnded = true;
+                            } catch (const InsufficientFundsException& ex) {
+                                bankruptcyController.handleInsufficientFunds(gameContext, *currentPlayer, nullptr, ex.getRequired(), economyController, displayView);
+                                turnEnded = true;
+                            }
                             hasRolledDice = true;
                             isDoubleRoll = true;
                         } else {
-                            cout << "Gagal mendapatkan double. Anda tetap di penjara." << endl;
+                            displayView.renderInfo("Failed to roll doubles. You remain in jail.");
                             turnEnded = true;
                         }
                         validJailAction = true;
                     } else {
-                        cout << "Pilihan tidak valid!" << endl;
+                        displayView.renderWarning("Invalid choice!");
                         inputHandler.clearInputBuffer();
                     }
                 }
@@ -251,24 +258,31 @@ void GameEngine::run() {
         }
 
         while (!turnEnded && currentPlayer->getStatus() == PlayerStatus::ACTIVE) {
-            cout << "\n[" << currentPlayer->getName() << "] Masukkan Perintah: ";
+            displayView.renderPrompt("\n[" + currentPlayer->getName() + "] Enter Command: ");
             CommandType cmd = inputHandler.getCommand();
 
             switch (cmd) {
                 case CommandType::LEMPAR_DADU:
                     if (hasRolledDice) {
-                        cout << "[DITOLAK] Anda sudah melempar dadu di giliran ini! Selesaikan aksi lain atau akhiri giliran." << endl;
+                        displayView.renderWarning("You have already rolled the dice this turn! Complete another action or end your turn.");
                         break;
                     }
                     dice.roll();
                     if (dice.isDouble()) isDoubleRoll = true;
-                    turnController.handleDiceRollMovement(&gameContext, economyController, effectController, auctionController, bankruptcyController, dice, saveLoader, inputHandler, logger);
+                    try {
+                        displayView.renderDiceRoll(gameContext, dice);
+                        turnController.handleDiceRollMovement(&gameContext, economyController, effectController, auctionController, bankruptcyController, dice, saveLoader, inputHandler, logger, displayView);
+                    } catch (const AuctionTriggerException&) {
+                        auctionController.startAuctionSkipBuy(gameContext, displayView, inputHandler);
+                    } catch (const InsufficientFundsException& ex) {
+                        bankruptcyController.handleInsufficientFunds(gameContext, *currentPlayer, nullptr, ex.getRequired(), economyController, displayView);
+                    }
                     hasRolledDice = true;
                     break;
 
                 case CommandType::ATUR_DADU: {
                     if (hasRolledDice) {
-                        cout << "[DITOLAK] Anda sudah melempar dadu di giliran ini!" << endl;
+                        displayView.renderWarning("You have already rolled the dice this turn!");
                         break;
                     }
                     inputHandler.getIntTwoInput();
@@ -276,7 +290,14 @@ void GameEngine::run() {
                     int y = inputHandler.getIntValue2();
                     dice.setRoll(x, y);
                     if (dice.isDouble()) isDoubleRoll = true;
-                    turnController.handleDiceRollMovement(&gameContext, economyController, effectController, auctionController, bankruptcyController, dice, saveLoader, inputHandler, logger);
+                    try {
+                        displayView.renderDiceRoll(gameContext, dice);
+                        turnController.handleDiceRollMovement(&gameContext, economyController, effectController, auctionController, bankruptcyController, dice, saveLoader, inputHandler, logger, displayView);
+                    } catch (const AuctionTriggerException&) {
+                        auctionController.startAuctionSkipBuy(gameContext, displayView, inputHandler);
+                    } catch (const InsufficientFundsException& ex) {
+                        bankruptcyController.handleInsufficientFunds(gameContext, *currentPlayer, nullptr, ex.getRequired(), economyController, displayView);
+                    }
                     hasRolledDice = true;
                     break;
                 }
@@ -286,7 +307,6 @@ void GameEngine::run() {
                     break;
 
                 case CommandType::CETAK_AKTA: {
-                    cout << "Masukkan kode petak: ";
                     inputHandler.getStringInput();
                     displayView.renderAkta(gameContext, inputHandler.getLastStringInput());
                     break;
@@ -303,28 +323,28 @@ void GameEngine::run() {
 
                 case CommandType::GUNAKAN_KEMAMPUAN: {
                     if (hasRolledDice) {
-                        cout << "[DITOLAK] Kartu kemampuan HANYA DAPAT DIGUNAKAN SEBELUM melempar dadu!" << endl;
+                        displayView.renderWarning("Skill cards can ONLY be used BEFORE rolling the dice!");
                         break;
                     }
 
                     if (hasUsedSkillThisTurn) {
-                        cout << "[DITOLAK] Anda hanya bisa menggunakan MAKSIMAL 1 Kartu Kemampuan per giliran!" << endl;
+                        displayView.renderWarning("You can use a MAXIMUM of 1 Skill Card per turn!");
                         break;
                     }
 
                     if (!currentPlayer->hasAnySkillCard()) {
-                        cout << "[ERROR] Anda tidak memiliki satupun Kartu Kemampuan (Skill Card)!" << endl;
+                        displayView.renderInfo("[ERROR] You do not have any Skill Cards!");
                         break;
                     }
 
-                    cout << "Daftar Kartu Kemampuan milikmu:" << endl;
+                    displayView.renderInfo("Your Skill Cards:");
                     int displayIdx = 1;
-                    for (SkillCard* c : currentPlayer->getSkillCard()) {
-                        cout << "[" << displayIdx << "] " << c->getName() << " - " << c->getDescription() << endl;
+                    for (SkillCard* card : currentPlayer->getSkillCard()) {
+                        displayView.renderInfo("[" + to_string(displayIdx) + "] " + card->getName() + " - " + card->getDescription());
                         displayIdx++;
                     }
-                    cout << "[0] Batal menggunakan kartu." << endl;
-                    cout << "Pilih kartu yang ingin digunakan (0-" << currentPlayer->getSkillCardCount() << "): ";
+                    displayView.renderInfo("[0] Cancel card usage.");
+                    displayView.renderPrompt("Choose a card to use (0-" + to_string(currentPlayer->getSkillCardCount()) + "): ");
 
                     int choice = -1;
                     while (true) {
@@ -334,18 +354,18 @@ void GameEngine::run() {
                         if (choice >= 0 && choice <= currentPlayer->getSkillCardCount()) {
                             break;
                         }
-                        cout << "Pilihan tidak valid! Masukkan angka (0-" << currentPlayer->getSkillCardCount() << "): ";
+                        displayView.renderPrompt("Invalid choice! Enter a number (0-" + to_string(currentPlayer->getSkillCardCount()) + "): ");
                     }
 
                     if (choice == 0) {
-                        cout << "Batal menggunakan kartu kemampuan." << endl;
+                        displayView.renderInfo("Skill card usage canceled.");
                         break;
                     }
 
                     int vectorIndex = choice - 1;
                     SkillCard* cardToUse = currentPlayer->dropSkillCard(vectorIndex);
 
-                    cout << "\n>> Mengaktifkan kartu: [" << cardToUse->getName() << "]..." << endl;
+                    displayView.renderInfo("\n>> Activating card: [" + cardToUse->getName() + "]...");
 
                     vector<int> preSkillPositions;
                     for (Player& p : gameContext.getPlayers()) {
@@ -362,15 +382,21 @@ void GameEngine::run() {
 
                         if (targetP->getPosition() != preSkillPositions[i]) {
                             if (targetP == currentPlayer) {
-                                cout << "\n[EFEK KARTU] Anda telah berpindah petak!" << endl;
+                                displayView.renderInfo("\n[CARD EFFECT] You have moved to a new tile!");
                             } else {
-                                cout << "\n[EFEK KARTU] Pemain " << targetP->getName() << " telah berpindah petak!" << endl;
+                                displayView.renderInfo("\n[CARD EFFECT] Player " + targetP->getName() + " has moved to a new tile!");
                             }
 
-                            turnController.resolveTileLanding(&gameContext, targetP, economyController, effectController, auctionController, bankruptcyController, dice, saveLoader, inputHandler, logger);
+                            try {
+                                turnController.resolveTileLanding(&gameContext, targetP, economyController, effectController, auctionController, bankruptcyController, dice, saveLoader, inputHandler, logger, displayView);
+                            } catch (const AuctionTriggerException&) {
+                                auctionController.startAuctionSkipBuy(gameContext, displayView, inputHandler);
+                            } catch (const InsufficientFundsException& ex) {
+                                bankruptcyController.handleInsufficientFunds(gameContext, *targetP, nullptr, ex.getRequired(), economyController, displayView);
+                            }
 
                             if (targetP == currentPlayer && (currentPlayer->getStatus() == PlayerStatus::JAILED || currentPlayer->getStatus() == PlayerStatus::BANKRUPT)) {
-                                // Panggil Bankrupt Controller di sini buat kelola aset + KARTU
+                                // Bankrupt controller handles assets and cards here.
                                 turnEnded = true;
                             }
                         }
@@ -380,10 +406,10 @@ void GameEngine::run() {
 
                 case CommandType::AKHIRI_GILIRAN: { 
                     if (!hasRolledDice) {
-                        cout << "[DITOLAK] Anda belum melempar dadu! Wajib lempar dadu sebelum mengakhiri giliran." << endl;
+                        displayView.renderWarning("You have not rolled the dice yet! You must roll before ending your turn.");
                         break;
                     }
-                    cout << "Mengakhiri giliran..." << endl;
+                    displayView.renderInfo("Ending turn...");
                     turnEnded = true;
                     break;
                 }
@@ -393,6 +419,7 @@ void GameEngine::run() {
                     saveLoader.saveGame(inputHandler.getLastStringInput(), gameContext, logger);
                     logger.addLog(gameContext.getCurrentTurn(), currentPlayer->getName(), "SIMPAN", inputHandler.getLastStringInput());
                     break;
+
 
                 case CommandType::CETAK_LOG: {
                     int count = 0;
@@ -404,14 +431,14 @@ void GameEngine::run() {
                     } else if (isInt) {
                         logger.printLogs(count);
                     } else {
-                        cout << "Argumen CETAK_LOG harus angka." << endl; 
+                        displayView.renderWarning("CETAK_LOG argument must be a number."); 
                     }
                     break;
                 }
 
                 case CommandType::UNKNOWN_COMMAND:
                 default:
-                    cout << "Perintah tidak valid." << endl;
+                    displayView.renderWarning("Invalid command.");
                     break;
             }
         }
@@ -423,7 +450,7 @@ void GameEngine::run() {
         } 
         else {
             if (isDoubleRoll && currentPlayer->getStatus() == PlayerStatus::ACTIVE && currentPlayer->getJailTurns() == 0) {
-                cout << "\n*** " << currentPlayer->getName() << " mendapat dadu DOUBLE! Mendapat ekstra giliran! ***\n" << endl;
+                displayView.renderInfo("\n*** " + currentPlayer->getName() + " rolled DOUBLES! Gets an extra turn! ***\n");
             } else {
                 gameContext.nextPlayer();
                 if (gameContext.getCurrentPlayerIndex() == 0) {

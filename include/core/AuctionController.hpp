@@ -13,6 +13,6 @@ public:
     void startAuctionSkipBuy(GameContext &gameContext, DisplayView &dv, InputHandler& inputHandler);
     void startAuctionBankrupt(GameContext &gameContext, DisplayView &dv, InputHandler& inputHandler);
 
-    void placeBid(Player &bidder, vector<pair<Player *, int>> bid, DisplayView &dv, InputHandler &inputHandler, int maxBid);
+    void placeBid(Player &bidder, vector<pair<Player *, int>> &bid, DisplayView &dv, InputHandler &inputHandler, int maxBid);
     void resolveAuction(vector<pair<Player *, int>> &bid, DisplayView &dv);
 };

@@ -4,6 +4,8 @@
 #include "Player.hpp"
 #include "ActionCard.hpp"
 #include "SkillCard.hpp"
+#include "InputHandler.hpp"
+#include "DisplayView.hpp"
 #include <map>
 #include "CardDeck.hpp"
 

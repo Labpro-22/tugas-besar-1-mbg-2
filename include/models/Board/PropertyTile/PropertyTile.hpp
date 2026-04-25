@@ -42,13 +42,11 @@ public:
     PropertyStatus getStatus() const;
     PropertyType getPropertyType() const;
     virtual int getBuildingValue() const;
-    virtual string getTypeLabel() const;
-    virtual string getDisplayExtra() const;
-    virtual string getPropertyDisplayInfo() const;
-    virtual vector<string> getAktaDetailLines(const GameContext& G) const;
-    virtual vector<string> getRentDetailLines(GameContext& G) const;
-    virtual int calculateRent(GameContext& G) const;
-
+    virtual string getTypeLabel() const = 0;
+    virtual string getPropertyDisplayInfo() const = 0;
+    virtual vector<string> getAktaDetailLines(const GameContext& G) const = 0;
+    virtual vector<string> getRentDetailLines(GameContext& G) const = 0;
+    virtual int calculateRent(GameContext& G) const = 0;
     int getPrice() const;
     int getMortgageValue() const;
 };

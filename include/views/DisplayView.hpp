@@ -9,17 +9,20 @@
 #include "TaxTile.hpp"
 #include "FestivalTile.hpp"
 #include "CardTile.hpp"
-
 #include "GameLogger.hpp"
+
 class DisplayView
 {
 public:
+    // Rendering game start and menu
+    void renderStart();
+
     // Rendering board 
     void renderBoard(GameContext G);
     
     // Dice Display
-    void renderDiceRoll(GameContext G);
-    void renderDiceControl(GameContext G);\
+    void renderDiceRoll(GameContext G, Dice dice);
+    void renderDiceControl(GameContext G, Dice dice);
 
     // Rendering Akta
     void renderAkta(GameContext G, string code);
@@ -41,9 +44,14 @@ public:
     void renderMortgage(GameContext G, PropertyTile* tile);
     void renderCantPay(GameContext G, int amountOwed);
 
+    // Balance display
+    void renderCurrentBalance(GameContext G);
+    void renderCurrentBalancePayed(GameContext G, int amountPaid);
+
     // rendering tax tile
     void renderTax(GameContext G, TaxTile *tile);
     void renderPayTax(GameContext G, int choose);
+    void renderCantPayTax(GameContext G, int taxAmount);
 
     // Mortgage
     void renderMortgageStart(GameContext G, vector<PropertyTile*> unmortgagedTiles);
@@ -69,8 +77,16 @@ public:
     void HighestBidder(string playerName, int bidAmount);
     void renderAuctionResult(string winnerName, int winningBid);
     
+    // Rendering landed on tile
+    void renderTile(GameContext G);
+    
     // Rendering game menu
     void showMenu(GameContext G);
+
+    // Generic game flow rendering
+    void renderInfo(const string& message);
+    void renderWarning(const string& message);
+    void renderPrompt(const string& message);
 
     // Festival
     void renderFestivalTile(GameContext G, FestivalTile *tile);
@@ -123,9 +139,6 @@ private:
     
     string fitToWidth(const string& text, int width) const;
     void printCardLine(const string& content) const;
-    
-    // Rendering landed on tile
-    void renderTile(GameContext G);
 
     int getBoardSideLength(GameContext G) const;
     int getBoardCenterWidth(int sideLength) const;
