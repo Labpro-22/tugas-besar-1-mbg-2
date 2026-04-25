@@ -492,7 +492,7 @@ void DisplayView::renderProperty(GameContext G){
 
 
 void DisplayView::renderTile(GameContext G){
-    cout << "You landed on " << G.getBoard().getTile(G.getCurrentPlayer().getPosition())->getName() << "(" << G.getBoard().getTile(G.getCurrentPlayer().getPosition())->getCode() << ")" << endl;
+    cout << "You landed on " << G.getBoard().getTile(G.getCurrentPlayer().getPosition())->getName() << " (" << G.getBoard().getTile(G.getCurrentPlayer().getPosition())->getCode() << ")" << endl;
 }
 
 void DisplayView::showMenu(GameContext G){

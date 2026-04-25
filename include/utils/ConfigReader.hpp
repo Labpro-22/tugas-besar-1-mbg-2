@@ -27,6 +27,7 @@ private:
 public:
     ConfigReader(string filePath);
     void loadAllConfigs(GameContext *gameContext, GameBoard &gameBoard);
+    void loadAksi(string fileName, GameBoard &gameBoard);
     void loadProperty(string fileName, GameBoard &gameBoard);
     void loadRailroad(GameContext *gameContext, string fileName);
     void loadUtility(GameContext *gameContext, string fileName);

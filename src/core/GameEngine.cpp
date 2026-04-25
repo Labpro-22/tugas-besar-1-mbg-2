@@ -270,6 +270,7 @@ void GameEngine::run() {
                     dice.roll();
                     if (dice.isDouble()) isDoubleRoll = true;
                     try {
+                        displayView.renderDiceRoll(gameContext, dice);
                         turnController.handleDiceRollMovement(&gameContext, economyController, effectController, auctionController, bankruptcyController, dice, saveLoader, inputHandler, logger, displayView);
                     } catch (const AuctionTriggerException&) {
                         auctionController.startAuctionSkipBuy(gameContext, displayView, inputHandler);
@@ -290,6 +291,7 @@ void GameEngine::run() {
                     dice.setRoll(x, y);
                     if (dice.isDouble()) isDoubleRoll = true;
                     try {
+                        displayView.renderDiceRoll(gameContext, dice);
                         turnController.handleDiceRollMovement(&gameContext, economyController, effectController, auctionController, bankruptcyController, dice, saveLoader, inputHandler, logger, displayView);
                     } catch (const AuctionTriggerException&) {
                         auctionController.startAuctionSkipBuy(gameContext, displayView, inputHandler);

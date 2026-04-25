@@ -157,7 +157,6 @@ void TurnController::handleDiceRollMovement(GameContext* context, EconomyControl
     Player* currentPlayer = &context->getCurrentPlayer(); 
     
     int diceTotal = dice.getTotal(); 
-    display.renderDiceRoll(*context, dice);
     
     int oldPos = currentPlayer->getPosition();
     int newPos = context->getBoard().calculateTargetPosition(oldPos, diceTotal);

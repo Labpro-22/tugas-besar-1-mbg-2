@@ -6,29 +6,65 @@
 ConfigReader::ConfigReader(string filePath) : configFilePath{filePath}{}
 
 void ConfigReader::loadAllConfigs(GameContext *gameContext, GameBoard &gameBoard){
+    loadAksi("config/aksi.txt", gameBoard);
     loadProperty("config/property.txt", gameBoard);
     loadRailroad(gameContext, "config/railroad.txt");
     loadUtility(gameContext, "config/utility.txt");
     loadSpecial(gameContext, "config/special.txt");
     loadTax(gameContext, "config/tax.txt");
     loadMisc(gameContext, "config/misc.txt");
+    auto props = gameBoard.getPropertyTile();
+    
+    props.erase(std::remove(props.begin(), props.end(), nullptr), props.end());
+
+    std::sort(props.begin(), props.end(), [](PropertyTile* a, PropertyTile* b) {
+        // Double check: Pastikan pointer valid
+        if (a == nullptr || b == nullptr) return false; 
+        return a->getIdx() < b->getIdx();
+    });
+}
+void ConfigReader::loadAksi(string fileName, GameBoard &gameBoard) {
+    ifstream file(fileName);
+    string line;
+
+    while (getline(file, line)) {
+        if (line.empty()) continue;
+
+        stringstream ss(line);
+        int idx;
+        string code, name, type, color;
+
+        if (!(ss >> idx >> code >> name >> type >> color)) continue;
+
+        if (type == "KARTU") {
+            if (code == "KSP") {
+                gameBoard.addTile(new CardTile(idx, code, name, CardType::CHANCE, color));
+            } else if (code == "DNU") {
+                gameBoard.addTile(new CardTile(idx, code, name, CardType::COMMUNITY_CHEST, color));
+            }
+        } 
+        else if (type == "FESTIVAL") {
+            gameBoard.addTile(new FestivalTile(idx, code, name, color));
+        } 
+        else if (type == "PAJAK") {
+            bool isPPH = (code == "PPH");
+            gameBoard.addTile(new TaxTile(idx, code, name, isPPH, color));
+        } 
+        else if (type == "SPESIAL") {
+            if (code == "GO") {
+                gameBoard.addTile(new StartTile(idx, code, name, color));
+            } else if (code == "PEN") {
+                gameBoard.addTile(new JailTile(idx, code, name, color));
+            } else if (code == "BBP") {
+                gameBoard.addTile(new FreeParkTile(idx, code, name, color));
+            } else if (code == "PPJ") {
+                gameBoard.addTile(new GoToJailTile(idx, code, name, color));
+            }
+        }
+    }
 }
 
 void ConfigReader::loadProperty(string fileName, GameBoard &gameBoard){
-    // masih hardcode untuk tile aksi dan special, karena tidak ada txt
-    gameBoard.addTile(new StartTile(0, "GO", "Petak Mulai", "DEFAULT"));
-    gameBoard.addTile(new CardTile(2, "DNU", "Dana Umum", CardType::COMMUNITY_CHEST, "DEFAULT"));
-    gameBoard.addTile(new TaxTile(4, "PPH", "Pajak Penghasilan", true, "DEFAULT"));
-    gameBoard.addTile(new FestivalTile(7, "FES", "Festival", "DEFAULT"));
-    gameBoard.addTile(new JailTile(10, "PEN", "Penjara", "DEFAULT"));
-    gameBoard.addTile(new CardTile(17, "DNU", "Dana Umum", CardType::COMMUNITY_CHEST, "DEFAULT"));
-    gameBoard.addTile(new FreeParkTile(20, "BBP", "Pajak Bumi dan Bangunan", "DEFAULT"));
-    gameBoard.addTile(new CardTile(22, "KSP", "Kesempatan", CardType::CHANCE, "DEFAULT"));
-    gameBoard.addTile(new GoToJailTile(30, "PPJ", "Petak Pergi ke Penjara", "DEFAULT"));
-    gameBoard.addTile(new FestivalTile(33, "FES", "Festival", "DEFAULT"));
-    gameBoard.addTile(new CardTile(36, "KSP", "Kesempatan", CardType::CHANCE, "DEFAULT"));
-    gameBoard.addTile(new TaxTile(38, "PBM", "Pajak Barang Mewah", false, "DEFAULT"));
-
     ifstream file(fileName);
     string line;
     while (getline(file, line)) {
