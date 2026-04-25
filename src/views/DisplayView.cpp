@@ -112,7 +112,7 @@ string DisplayView::formatCenterContent(const string& content, int centerWidth) 
 vector<string> DisplayView::buildCenterLines(GameContext G, int centerWidth, int sideRows) const {
     vector<string> rawLines;
     rawLines.push_back("==================================");
-    rawLines.push_back("||          NIMONSPOLI          ||");
+    rawLines.push_back("||            NIMONSY           ||");
     rawLines.push_back("");
     rawLines.push_back("TURN " + to_string(G.getCurrentTurn()) + " / " + to_string(G.getMaxTurns()));
     rawLines.push_back("----------------------------------");
@@ -326,6 +326,8 @@ void DisplayView::printBottomRow(GameContext G, int sideLength) {
     string border = makeBorderLine(sideLength);
     int bottomLeft = 3 * (sideLength - 1);
     int bottomRight = 2 * (sideLength - 1);
+    
+    cout << border << endl;
 
     for (int i = bottomLeft; i >= bottomRight; --i) {
         Tile* t = G.getBoard().getTile(i);

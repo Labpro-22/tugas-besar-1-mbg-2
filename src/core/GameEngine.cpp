@@ -307,7 +307,6 @@ void GameEngine::run() {
                     break;
 
                 case CommandType::CETAK_AKTA: {
-                    displayView.renderPrompt("Enter tile code: ");
                     inputHandler.getStringInput();
                     displayView.renderAkta(gameContext, inputHandler.getLastStringInput());
                     break;
