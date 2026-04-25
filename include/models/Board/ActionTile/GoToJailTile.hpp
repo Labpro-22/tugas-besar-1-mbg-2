@@ -1,10 +1,13 @@
 #pragma once
 #include "ActionTile.hpp"
+#include "GameContext.hpp"
+
+using namespace std;
 
 class GoToJailTile : public ActionTile
 {
 public:
-    GoToJailTile(int idx, string code, string name);
-    void land(Player &p) override;
+    GoToJailTile(int idx, string code, string name, string color = "DEFAULT");
+    LandResult land(GameContext &G) override;
 };
 

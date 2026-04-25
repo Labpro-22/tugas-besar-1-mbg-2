@@ -1,79 +1,85 @@
 #pragma once
-
-#include <list>
+#include <vector>
 #include <map>
+#include <iostream>
 
-#include "GameBoard.hpp"
 #include "Player.hpp"
 #include "CardDeck.hpp"
-#include "Card.hpp"
+#include "ActionCard.hpp"
+#include "SkillCard.hpp"
 #include "PropertyTile.hpp"
 #include "FestivalState.hpp"
-
+#include "Dice.hpp"
+#include "GameBoard.hpp"
+using namespace std;
 
 class GameContext
 {
 private:
-    GameBoard* board;
-    std::list<Player>* players;
-    CardDeck<Card>* specialCards;
+    GameBoard board;
+    vector<Player> players;
+    CardDeck<ActionCard> chanceDeck;
+    CardDeck<ActionCard> communityChestDeck;
+    CardDeck<SkillCard> skillDeck;
+    Dice dice;
 
-    
     // TURN
-    int currentPlayerIndex;
-    int currentTurn;
-    int maxTurns;
-    int startingMoney;
-
+    int currentPlayerIndex = 0;
+    int currentTurn = 1;
+    int maxTurns = 0;
+    int startingMoney = 0;
 
     // ECONOMY
-    int goSalary;
-    int pph;
-    int pbm;
-    int jailFine;
+    int goSalary = 0;
+    int pphFlat = 0;
+    int pphPercentage = 0;
+    int pbm = 0;
+    int jailFine = 0;
     map<int, int> railroadRent; // key: jumlah railroad yang dimiliki, value: rent
     map<int, int> UtilityMultiplier; // key: jumlah utility yang dimiliki, value: multiplier
 
-    bool gameOver;
-    int winnerIndex;
+    bool gameOver = false;
+    int winnerIndex = -1;
 
-    // Effect
-    std::map<PropertyTile*, FestivalState> festivalStates;
 
 public:
-    GameContext();
+    GameContext() = default;
 
-    void setBoard(GameBoard* board);
-    void setPlayers(std::list<Player>* players);
-    void setSpecialCards(CardDeck<Card>* specialCards);
-
-    GameBoard* getBoard() const;
-    std::list<Player>* getPlayers() const;
-    CardDeck<Card>* getSpecialCards() const;
+    GameBoard& getBoard() ;
+    vector<Player>& getPlayers();
+    CardDeck<ActionCard>& getChanceDeck();
+    CardDeck<ActionCard>& getCommunityChestDeck();
+    CardDeck<SkillCard>& getSkillDeck();
+    Dice& getDice();
 
     int getCurrentPlayerIndex() const;
     int getCurrentTurn() const;
     int getMaxTurns() const;
     int getStartingMoney() const;
-
+    int getGoSalary() const;
+    int getPphFlat() const;
+    int getPphPercentage() const;
+    int getPbm() const;
+    int getJailFine() const;
     bool isGameOver() const;
-    int getWinnerIndex() const;
-
-    const std::map<PropertyTile*, FestivalState>& getFestivalStates() const;
-    bool hasFestivalState(PropertyTile* tile) const;
-    FestivalState getFestivalState(PropertyTile* tile) const;
-
+    int getWinnerIndex() const; 
+    
+    const map<int, int> &getRailroadRentTable() const;
+    const map<int, int> &getUtilityMultiplierTable() const;
     void setCurrentPlayerIndex(int index);
     void setCurrentTurn(int turn);
     void setMaxTurns(int turns);
     void setStartingMoney(int money);
+    void setGoSalary(int amount);
+    void setPphFlat(int amount);
+    void setPphPercentage(int amount);
+    void setPbm(int amount);
+    void setJailFine(int amount);
+    void setRailroadRent(int totalOwned, int rent);
+    void setUtilityMultiplier(int totalOwned, int multiplier);
     void setGameOver(bool value);
     void setWinnerIndex(int index);
-
-    void setFestivalState(PropertyTile* tile, const FestivalState& state);
-    void clearFestivalState(PropertyTile* tile);
     void clearAllFestivalStates();
-
-    Player* getCurrentPlayer() const;
+    Player& getCurrentPlayer();
     void nextPlayer();
 };

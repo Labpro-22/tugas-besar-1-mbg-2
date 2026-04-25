@@ -1,5 +1,8 @@
 #pragma once
 #include "Tile.hpp"
+#include "GameContext.hpp"
+
+using namespace std;
 
 enum ActionType
 {
@@ -18,9 +21,7 @@ protected:
     ActionType actionType; 
     
 public:
-ActionTile(int idx, string code, string name, ActionType actionType); 
-// Tile type ga perlu ada jadi attribute tapi waktu implementasi tinggal constructor aja, 
-// misal ActionTile(int idx, string code, string name, ActionType actionType) : Tile(idx, code, name, TileType::AKSI), actionType(actionType) {}
-    virtual void land(Player &p) = 0; // override pure virtual function
+    ActionTile(int idx, string code, string name, ActionType actionType, string color = "DEFAULT"); 
+    virtual LandResult land(GameContext &G) = 0; // override pure virtual function
 };
 

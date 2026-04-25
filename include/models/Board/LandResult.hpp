@@ -1,20 +1,23 @@
 #pragma once
 #include <string>
-#include "Tile.hpp"
-#include "Player.hpp"
+
 using namespace std;
+
+// Forward declarations to avoid circular includes
+class Tile;
+class Player;
 
 enum class LandEventType
 {
     NONE,
+    DOFESTIVAL,
+    GIVEPROPERTY,
     OFFERBUYPROPERTY,
     PAYRENT,
     PAYTAX,
-    GAINMONEY,
     GOTOJAIL,
-    DRAWCARD,
-    STARTAUCTION,
-    BANKRUPTCYCHECK,
+    DRAWCHANCE,
+    DRAWCOMMUNITYCHEST,
     DONOTHING
 };
 
@@ -27,5 +30,4 @@ struct LandResult
     Player* targetPlayer = nullptr;
     int amount = 0;
     bool requiresChoice = false;
-    std::string message = "";
 };

@@ -3,7 +3,7 @@
 #include "GameBoard.hpp"
 #include "EconomyController.hpp"
 #include "TurnController.hpp"
-
+#include "GameContext.hpp"
 // Action Tiles
 #include "CardTile.hpp"
 #include "FestivalTile.hpp"
@@ -15,7 +15,7 @@
 
 // Property Tiles
 #include "StreetTile.hpp"
-#include "Railroad.hpp"
+#include "RailroadTile.hpp"
 #include "UtilityTile.hpp"
 
 using namespace std;
@@ -25,12 +25,14 @@ class ConfigReader
 private:
     string configFilePath;
 public:
-    void loadAllConfigs(GameBoard &gameBoard, EconomyController &economyController, TurnController &turnController);
+    ConfigReader(string filePath);
+    void loadAllConfigs(GameContext *gameContext, GameBoard &gameBoard);
+    void loadAksi(string fileName, GameBoard &gameBoard);
     void loadProperty(string fileName, GameBoard &gameBoard);
-    void loadRailroad(string fileName, EconomyController &economyController);
-    void loadUtility(string fileName, EconomyController &economyController);
-    void loadSpecial(string fileName, EconomyController &economyController);
-    void loadTax(string fileName, EconomyController &economyController);
-    void loadMisc(string fileName, TurnController &turnController);
+    void loadRailroad(GameContext *gameContext, string fileName);
+    void loadUtility(GameContext *gameContext, string fileName);
+    void loadSpecial(GameContext *gameContext, string fileName);
+    void loadTax(GameContext *gameContext, string fileName);
+    void loadMisc(GameContext *gameContext, string fileName);
 };
     

@@ -1,4 +1,5 @@
 #include "SFMLView.hpp"
+#include "../include/core/GameEngine.hpp"
 
 int main() {
     SFMLView gui; 
@@ -7,6 +8,9 @@ int main() {
         gui.processInput();
         gui.renderBoard();
     }
+
+    GameEngine game;
+    game.run();
 
     return 0;
 }

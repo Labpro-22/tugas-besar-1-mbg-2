@@ -1,107 +1,167 @@
-#include "utils/ConfigReader.hpp"
+#include "ConfigReader.hpp"
 #include <fstream>
 #include <sstream>
 #include <map>
 
-void ConfigReader::loadAllConfigs(GameBoard &gameBoard, EconomyController &economyController, TurnController &turnController){
+ConfigReader::ConfigReader(string filePath) : configFilePath{filePath}{}
+
+void ConfigReader::loadAllConfigs(GameContext *gameContext, GameBoard &gameBoard){
+    loadAksi("config/aksi.txt", gameBoard);
     loadProperty("config/property.txt", gameBoard);
-    loadRailroad("config/railroad.txt", economyController);
-    loadUtility("config/utility.txt", economyController);
-    loadSpecial("config/special.txt", economyController);
-    loadTax("config/tax.txt", economyController);
-    loadMisc("config/misc.txt", turnController);
+    loadRailroad(gameContext, "config/railroad.txt");
+    loadUtility(gameContext, "config/utility.txt");
+    loadSpecial(gameContext, "config/special.txt");
+    loadTax(gameContext, "config/tax.txt");
+    loadMisc(gameContext, "config/misc.txt");
+    auto props = gameBoard.getPropertyTile();
+    
+    props.erase(std::remove(props.begin(), props.end(), nullptr), props.end());
+
+    std::sort(props.begin(), props.end(), [](PropertyTile* a, PropertyTile* b) {
+        // Double check: Pastikan pointer valid
+        if (a == nullptr || b == nullptr) return false; 
+        return a->getIdx() < b->getIdx();
+    });
+}
+void ConfigReader::loadAksi(string fileName, GameBoard &gameBoard) {
+    ifstream file(fileName);
+    if (!file.is_open()) return;
+    string line;
+
+    while (getline(file, line)) {
+        if (line.empty()) continue;
+
+        stringstream ss(line);
+        int idx;
+        string code, name, type, color;
+
+        if (!(ss >> idx >> code >> name >> type >> color)) continue;
+
+        if (type == "KARTU") {
+            if (code == "KSP") {
+                gameBoard.addTile(new CardTile(idx, code, name, CardType::CHANCE, color));
+            } else if (code == "DNU") {
+                gameBoard.addTile(new CardTile(idx, code, name, CardType::COMMUNITY_CHEST, color));
+            }
+        } 
+        else if (type == "FESTIVAL") {
+            gameBoard.addTile(new FestivalTile(idx, code, name, color));
+        } 
+        else if (type == "PAJAK") {
+            bool isPPH = (code == "PPH");
+            gameBoard.addTile(new TaxTile(idx, code, name, isPPH, color));
+        } 
+        else if (type == "SPESIAL") {
+            if (code == "GO") {
+                gameBoard.addTile(new StartTile(idx, code, name, color));
+            } else if (code == "PEN") {
+                gameBoard.addTile(new JailTile(idx, code, name, color));
+            } else if (code == "BBP") {
+                gameBoard.addTile(new FreeParkTile(idx, code, name, color));
+            } else if (code == "PPJ") {
+                gameBoard.addTile(new GoToJailTile(idx, code, name, color));
+            }
+        }
+    }
 }
 
 void ConfigReader::loadProperty(string fileName, GameBoard &gameBoard){
-    // masih hardcode untuk tile aksi dan special, karena tidak ada txt
-    gameBoard.addTile(new StartTile(0, "GO", "Petak Mulai"));
-    gameBoard.addTile(new CardTile(2, "DNU", "Dana Umum", CardType::DANA_UMUM));
-    gameBoard.addTile(new TaxTile(4, "PPH", "Pajak Penghasilan", true));
-    gameBoard.addTile(new FestivalTile(7, "FES", "Festival"));
-    gameBoard.addTile(new JailTile(10, "PEN", "Penjara"));
-    gameBoard.addTile(new CardTile(17, "DNU", "Dana Umum", CardType::DANA_UMUM));
-    gameBoard.addTile(new FreeParkTile(20, "BBP", "Pajak Bumi dan Bangunan"));
-    gameBoard.addTile(new CardTile(22, "KSP", "Kesempatan", CardType::KESEMPATAN));
-    gameBoard.addTile(new GoToJailTile(30, "PPJ", "Petak Pergi ke Penjara"));
-    gameBoard.addTile(new FestivalTile(33, "FES", "Festival"));
-    gameBoard.addTile(new CardTile(36, "KSP", "Kesempatan", CardType::KESEMPATAN));
-    gameBoard.addTile(new TaxTile(38, "PBM", "Pajak Barang Mewah", false));
-
     ifstream file(fileName);
+    if (!file.is_open()) return;
     string line;
     while (getline(file, line)) {
         stringstream ss(line);
         int idx, price, morgageValue, houseCost, hotelCost;
         vector<int> rent(6);
         string code, name, type, color;
-        ss >> idx >> code >> name >> type >> color >> price >> morgageValue;
+
+        if (!(ss >> idx >> code >> name >> type >> color >> price >> morgageValue)) {
+            continue; 
+        }
         
         if(type == "STREET"){
             ss >> houseCost >> hotelCost;
             for(int i = 0; i < 6; i++) ss >> rent[i];
 
-            gameBoard.addTile(new StreetTile(idx, code, name, price, morgageValue, rent, color, houseCost, hotelCost));
+            gameBoard.addTile(new StreetTile(idx, code, name, price, morgageValue, rent,houseCost, hotelCost,  color));
         }else if(type == "RAILROAD"){
-            gameBoard.addTile(new Railroad(idx, code, name, price, morgageValue));
+            gameBoard.addTile(new RailroadTile(idx, code, name, price, morgageValue, color));
         }else if(type == "UTILITY"){
-            gameBoard.addTile(new UtilityTile(idx, code, name, price, morgageValue));
+            gameBoard.addTile(new UtilityTile(idx, code, name, price, morgageValue, color));
         }
     }
 
 }
-void ConfigReader::loadRailroad(string fileName, EconomyController &economyController){
+
+void ConfigReader::loadRailroad(GameContext *gameContext, string fileName){
     ifstream file(fileName);
+    if (!file.is_open()) return;
     string line;
     while (getline(file, line)) {
         stringstream ss(line);
         int totalOwned, rent;
-        ss >> totalOwned >> rent;
-        economyController.addRailroadRent(totalOwned, rent);
+        if (!(ss >> totalOwned >> rent)) {
+            continue;
+        }
+        gameContext->setRailroadRent(totalOwned, rent);
     }
 };
-void ConfigReader::loadUtility(string fileName, EconomyController &economyController){
+
+void ConfigReader::loadUtility(GameContext *gameContext, string fileName){
     ifstream file(fileName);
+    if (!file.is_open()) return;
     string line;
     while (getline(file, line)) {
         stringstream ss(line);
         int totalOwned, multiplier;
-        ss >> totalOwned >> multiplier;
-        economyController.addUtilityMultiplier(totalOwned, multiplier);
+        if (!(ss >> totalOwned >> multiplier)) {
+            continue;
+        }
+        gameContext->setUtilityMultiplier(totalOwned, multiplier);
     }
 };
 
-void ConfigReader::loadSpecial(string fileName, EconomyController &economyController){
+void ConfigReader::loadSpecial(GameContext *gameContext, string fileName){
     ifstream file(fileName);
     string line;
     while (getline(file, line)) {
         stringstream ss(line);
         int goSalary, jailFine;
-        ss >> goSalary >> jailFine;
-        economyController.setGoSalary(goSalary);
-        economyController.setJailFine(jailFine);
+        if(!(ss >> goSalary >> jailFine)){
+            continue;
+        }
+        gameContext->setGoSalary(goSalary);
+        gameContext->setJailFine(jailFine);
     }
 };
 
-void ConfigReader::loadTax(string fileName, EconomyController &economyController){
+void ConfigReader::loadTax(GameContext *gameContext, string fileName){
     ifstream file(fileName);
+    if (!file.is_open()) return;
     string line;
     while (getline(file, line)) {
         stringstream ss(line);
-        int pph, pbm;
-        ss >> pph >> pbm;
-        economyController.setPph(pph);
-        economyController.setPbm(pbm);
+        int pphFlat, pphPercentage, pbm;
+        if (!(ss >> pphFlat >> pphPercentage >> pbm)) {
+            continue;
+        }
+        gameContext->setPphFlat(pphFlat);
+        gameContext->setPphPercentage(pphPercentage);
+        gameContext->setPbm(pbm);
     }
 };
 
-void ConfigReader::loadMisc(string fileName, TurnController &turnController){
+void ConfigReader::loadMisc(GameContext* gameContext, string fileName){
     ifstream file(fileName);
+    if (!file.is_open()) return;
     string line;
     while (getline(file, line)) {
         stringstream ss(line);
         int maxTurns, startingMoney; 
-        ss >> maxTurns >> startingMoney;
-        turnController.setMaxTurns(maxTurns);
-        turnController.setStartingMoney(startingMoney);
+        if (!(ss >> maxTurns >> startingMoney)) {
+            continue;
+        }
+        gameContext->setMaxTurns(maxTurns);
+        gameContext->setStartingMoney(startingMoney);
     }
 };

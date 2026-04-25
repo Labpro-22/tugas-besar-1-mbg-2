@@ -1,12 +1,9 @@
 #pragma once
 #include "ActionCard.hpp"
 
-class DoctorFeeCard : public ActionCard
-{
-private:
-    int fee; 
+class DoctorFeeCard : public ActionCard {
 public:
-    DoctorFeeCard(string name, string desc, int fee);
-    void execute(Player &p) override;
-    ~DoctorFeeCard() override;
+    DoctorFeeCard();
+    ~DoctorFeeCard() override = default;
+    ActionCardType getActionType() const override;
 };

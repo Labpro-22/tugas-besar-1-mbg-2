@@ -1,0 +1,115 @@
+#include "InputHandler.hpp"
+#include <algorithm>
+#include <cctype>
+#include <sstream>
+
+const map<string, CommandType> InputHandler::commandMap = {
+    {"LEMPAR_DADU", CommandType::LEMPAR_DADU},
+    {"ATUR_DADU", CommandType::ATUR_DADU},
+    {"CETAK_PAPAN", CommandType::CETAK_PAPAN},
+    {"CETAK_AKTA", CommandType::CETAK_AKTA},
+    {"CETAK_PROPERTI", CommandType::CETAK_PROPERTI},
+    {"GADAI", CommandType::GADAI},
+    {"TEBUS", CommandType::TEBUS},
+    {"BANGUN", CommandType::BANGUN},
+    {"GUNAKAN_KEMAMPUAN", CommandType::GUNAKAN_KEMAMPUAN},
+    {"SIMPAN", CommandType::SIMPAN},
+    {"CETAK_LOG", CommandType::CETAK_LOG},
+    {"BID", CommandType::BID},
+    {"PASS", CommandType::PASS},
+    {"AKHIRI_GILIRAN", CommandType::AKHIRI_GILIRAN}
+};
+
+InputHandler::InputHandler(istream& input) : inputSource(input), lastStringInput(""), valInt1(0), valInt2(0) {}
+
+CommandType InputHandler::getCommand() {
+    getStringInput();
+    string commands = lastStringInput;
+    transform(commands.begin(), commands.end(), commands.begin(), [](unsigned char ch) {
+        return static_cast<char>(toupper(ch));
+    });
+
+    auto i = commandMap.find(commands);
+    if (i == commandMap.end()) {
+        return CommandType::UNKNOWN_COMMAND;
+    }
+    return i->second;
+}
+
+void InputHandler::getIntInput() {
+    inputSource >> valInt1;
+    
+    if (inputSource.fail()) {
+        clearInputBuffer();
+        valInt1 = -1; 
+    }
+}
+void InputHandler::getIntTwoInput() {
+    inputSource >> valInt1 >> valInt2;
+    
+    if (inputSource.fail()) {
+        clearInputBuffer();
+        valInt1 = -1; 
+        valInt2 = -1; 
+    }
+}
+
+void InputHandler::getStringInput() {
+    inputSource >> lastStringInput;
+}
+
+bool InputHandler::getMoneyRemaining(int& value, bool& hasValue) {
+    string rest;
+    getline(inputSource, rest); 
+
+    string numStr = "";
+    for (char c : rest) {
+        if (isdigit(c)) {
+            numStr += c; 
+        }
+    }
+
+    if (!numStr.empty()) {
+        hasValue = true;
+        value = stoi(numStr); 
+        return true;
+    }
+    
+    hasValue = false;
+    value = 0;
+    return false;
+}
+
+bool InputHandler::getIntRemaining(int& value, bool& hasValue) {
+    string rest;
+    getline(inputSource, rest);
+
+    stringstream ss(rest);
+    int val;
+
+    if (ss >> val) {
+        hasValue = true;
+        value = val;
+        return true;
+    }
+    hasValue = false;
+    return false;
+}
+
+void InputHandler::clearInputBuffer() {
+    inputSource.clear();
+    char c;
+    while (inputSource.get(c) && c != '\n');
+}
+
+string InputHandler::getLastStringInput() const {
+    return lastStringInput;
+}
+
+int InputHandler::getIntValue1() const {
+    return valInt1;
+}
+
+int InputHandler::getIntValue2() const {
+    return valInt2;
+}

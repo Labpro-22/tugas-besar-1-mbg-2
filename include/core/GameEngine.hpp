@@ -1,22 +1,20 @@
 #pragma once
 #include "GameBoard.hpp"
-#include "ConfigReader.hpp"
+#include "../utils/ConfigReader.hpp"
+#include "GameContext.hpp"
 #include "SaveLoader.hpp"
 #include "TurnController.hpp"
 #include <string>
+#include "AllCards.hpp"
 
 using namespace std;
 class GameEngine
 {
-private:
-    GameBoard gameBoard;
-    ConfigReader configReader;
-    SaveLoader saveLoader;
-    TurnController turnController;
 public:
-    void initGame();
+    void initGame(GameContext &gameContext,
+                  TurnController &turnController,
+                  ConfigReader &configReader,
+                  EconomyController &economyController);
     void run();
-    void processCommand(string cmd);
-
 };
 

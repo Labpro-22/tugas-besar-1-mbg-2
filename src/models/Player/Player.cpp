@@ -1,25 +1,44 @@
 #include <algorithm>
 
+#include "GameException.hpp"
 #include "Player.hpp"
 #include "PropertyTile.hpp"
 #include "SkillCard.hpp"
+#include "StreetTile.hpp"
 
-void Player::move(int steps) {
-    const int boardSize = 40;
-    int nextPosition = (currentPosition + steps) % boardSize;
-    if (nextPosition < 0) {
-        nextPosition += boardSize;
+Player::Player(string name) : 
+    username(name), 
+    balance(0), 
+    currentPosition(0), 
+    status(ACTIVE), 
+    jailTurns(0), 
+    doubleCount(0), 
+    shieldActive(false), 
+    rentDiscount(0) 
+{}
+
+void Player::setName(string name) {
+    username = name;
+}
+
+void Player::setBalance(int amount) {
+    if (amount < 0) {
+        balance = 0;
+        return;
     }
-    currentPosition = nextPosition;
+    balance = amount;
+}
+
+void Player::setDoubleCount(int count) {
+    if (count < 0) {
+        doubleCount = 0;   
+        return;
+    }
+    doubleCount = count;   
 }
 
 void Player::setPosition(int pos) {
-    const int boardSize = 40;
-    int normalizedPosition = pos % boardSize;
-    if (normalizedPosition < 0) {
-        normalizedPosition += boardSize;
-    }
-    currentPosition = normalizedPosition;
+    currentPosition = pos;
 }
 
 void Player::setStatus(PlayerStatus status) {
@@ -32,6 +51,14 @@ void Player::setJailTurns(int currentJailAttempt) {
         return;
     }
     jailTurns = currentJailAttempt;
+}
+
+void Player::applyShield() {
+    this->shieldActive = true;
+}
+
+void Player::applyDiscount(int percentage) {
+    this->rentDiscount = percentage;
 }
 
 Player Player::operator+(int amount) {
@@ -52,6 +79,9 @@ Player Player::operator-(int amount) {
 }
 
 Player& Player::operator-=(int amount) {
+    if (amount > balance) {
+        throw InsufficientFundsException(amount, balance);
+    }
     balance -= amount;
     return *this;
 }
@@ -76,15 +106,15 @@ bool Player::operator<(const Player &other) const {
     return balance < other.balance;
 }
 
-bool Player::operator==(Player &other) const {
+bool Player::operator==(const Player &other) const {
     return balance == other.balance;
 }
 
-bool Player::operator>=(Player &other) const {
+bool Player::operator>=(const Player &other) const {
     return balance >= other.balance;
 }
 
-bool Player::operator<=(Player &other) const {
+bool Player::operator<=(const Player &other) const {
     return balance <= other.balance;
 }
 
@@ -106,67 +136,47 @@ void Player::removeProperty(PropertyTile *property) {
     }
 }
 
-void Player::addSkillCard(SkillCard *card) {
-    if (card == nullptr) {
-        return;
-    }
-
-    auto it = std::find(skillCards.begin(), skillCards.end(), card);
-    if (it == skillCards.end()) {
-        skillCards.push_back(card);
-    }
+void Player::addCardToHand(SkillCard *card) {
+    skillCards.push_back(card);
 }
 
-void Player::removeSkillCard(SkillCard *card) {
-    if (card == nullptr) {
-        return;
+SkillCard* Player::useSkillCard(int idx) {
+    if (idx < 0 || idx >= skillCards.size()) {
+        return nullptr; 
     }
 
-    auto it = std::find(skillCards.begin(), skillCards.end(), card);
-    if (it != skillCards.end()) {
-        skillCards.erase(it);
-    }
+    SkillCard* cardToUse = skillCards[idx];
+    skillCards.erase(skillCards.begin() + idx);
+    return cardToUse;
 }
 
-SkillCard *Player::getSkillCard(const string &cardName) const {
-    auto it = std::find_if(skillCards.begin(), skillCards.end(), [&](const SkillCard *card) {
-        return card != nullptr && card->getName() == cardName;
-    });
-
-    if (it == skillCards.end()) {
-        return nullptr;
-    }
-
-    return *it;
+SkillCard* Player::dropSkillCard(int idx) {
+    return useSkillCard(idx);
 }
 
-bool Player::hasSkillCard(const SkillCard *card) const {
-    if (card == nullptr) {
-        return false;
-    }
-
-    return std::find(skillCards.begin(), skillCards.end(), card) != skillCards.end();
+bool Player::hasAnySkillCard() const {
+    return !skillCards.empty(); 
 }
 
-bool Player::hasSkillCard(const string &cardName) const {
-    return std::find_if(skillCards.begin(), skillCards.end(), [&](const SkillCard *card) {
-        return card != nullptr && card->getName() == cardName;
-    }) != skillCards.end();
+int Player::searchJailFreeCard() const {
+    for (int i = 0; i < skillCards.size(); i++) {
+        if (skillCards[i]->getName() == "JailFreeCard") { 
+            return i;
+        }
+    }
+    return -1;
+}
+
+vector<SkillCard *> Player::getSkillCard(){
+    return skillCards;
 }
 
 int Player::getSkillCardCount() const {
-    int count = 0;
-    for (const SkillCard *card : skillCards) {
-        if (card != nullptr) {
-            count++;
-        }
-    }
-    return count;
+    return skillCards.size();
 }
 
 bool Player::canHoldMoreSkillCards() const {
-    const int maxHandSize = 3;
-    return getSkillCardCount() < maxHandSize;
+    return getSkillCardCount() < MAX_CARDS;
 }
 
 string Player::getName() const {
@@ -187,6 +197,44 @@ PlayerStatus Player::getStatus() const {
 
 int Player::getJailTurns() const {
     return jailTurns;
+}
+
+vector<PropertyTile*>& Player::getOwnedProperties(){
+    return ownedProperties;
+}
+
+bool Player::hasShield() const {
+    return this->shieldActive;
+}
+
+int Player::getRentDiscount() const {
+    return this->rentDiscount;
+}
+
+int Player::totalPropertyPrice() const {
+    int output = 0;
+    for (PropertyTile *property : ownedProperties) {
+        if (property == nullptr) {
+            continue;
+        }
+        output += property->getPrice();
+    }
+    return output;
+}
+int Player::totalBuildingValue() const {
+    int output = 0;
+    for (PropertyTile *property : ownedProperties) {
+        if (property == nullptr) {
+            continue;
+        }
+        output += property->getBuildingValue();
+    }
+    return output;
+}
+
+int Player::totalWealth() const
+{
+    return balance + totalPropertyPrice() + totalBuildingValue() / 2;
 }
 
 int Player::countOwnerRailroads() const {
@@ -217,4 +265,61 @@ int Player::countOwnerUtilities() const {
         }
     }
     return count;
+}
+
+vector<PropertyTile*> Player::getMortgagedProperties() {
+    vector<PropertyTile*> mortgagedProperties;
+    for (PropertyTile* property : ownedProperties) {
+        if (property != nullptr && property->getStatus() == MORTGAGED) {
+            mortgagedProperties.push_back(property);
+        }
+    }
+    return mortgagedProperties;
+}
+
+map<string, vector<PropertyTile*>> Player::getMapColorOwnedProperty() {
+    map<string, vector<PropertyTile*>> colorMap;
+    for (PropertyTile* property : ownedProperties) {
+        if (property != nullptr) {
+            colorMap[property->getColor()].push_back(property);
+        }
+    }
+    return colorMap;
+}
+
+map<string, vector<StreetTile*>> Player::getColorOwnedStreetTile() {
+    map<string, vector<StreetTile*>> StreetTileMap;
+    for (PropertyTile* property : ownedProperties) {
+        StreetTile* street = dynamic_cast<StreetTile*>(property);
+        if (street != nullptr && street->getStatus() != MORTGAGED && street->getTypeLabel() == "ST") {
+            StreetTileMap[street->getColor()].push_back(street);
+        }
+    }
+    return StreetTileMap;
+}
+
+vector<StreetTile*> Player::getStreetTileByColor(const string& color) {
+    vector<StreetTile*> streetTiles;
+    for (PropertyTile* property : ownedProperties) {
+        StreetTile* street = dynamic_cast<StreetTile*>(property);
+        if (street != nullptr && street->getColor() == color) {
+            streetTiles.push_back(street);
+        }
+    }
+    return streetTiles;
+}
+
+map<string, vector<PropertyTile*>> Player::getUnmortgagedGroups() {
+    map<string, vector<PropertyTile*>> unmortgagedGroups;
+    for (PropertyTile* property : ownedProperties) {
+        if (property != nullptr && property->getStatus() != MORTGAGED) {
+            unmortgagedGroups[property->getColor()].push_back(property);
+        }
+    }
+    return unmortgagedGroups;
+}
+
+void Player::resetBuffs() {
+    this->shieldActive = false;
+    this->rentDiscount = 0;
 }
