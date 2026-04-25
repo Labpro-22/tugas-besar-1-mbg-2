@@ -76,30 +76,25 @@ void GameEngine::run() {
     bool gameReady = false;
 
     while (!gameReady) {
-        cout << "\n============================================\n";
-        cout << "        SELAMAT DATANG DI PERMAINAN        \n";
-        cout << "============================================\n";
-        cout << "1. Permainan Baru (NEW GAME)\n";
-        cout << "2. Muat Permainan (LOAD GAME)\n";
-        cout << "Pilih (1/2): ";
+        displayView.renderStart();
 
         inputHandler.getIntInput();
         int menuChoice = inputHandler.getIntValue1();
 
         if (menuChoice == 1) {
-            cout << "\n--- PERMAINAN BARU ---\n";
+            displayView.renderInfo("\n--- NEW GAME ---\n");
             int numPlayers = 0;
             while (numPlayers < 2 || numPlayers > 4) { 
-                cout << "Masukkan jumlah pemain (2-4): ";
+                displayView.renderInfo("Input number of players (2-4): ");
                 inputHandler.getIntInput();
                 numPlayers = inputHandler.getIntValue1();
                 if (numPlayers < 2 || numPlayers > 4) {
-                    cout << "[ERROR] Jumlah pemain harus 2, 3, atau 4!\n";
+                    displayView.renderInfo("Number of players must be 2, 3, or 4!");
                 }
             }
 
             for (int i = 0; i < numPlayers; ++i) {
-                cout << "Masukkan nama Pemain " << (i + 1) << ": ";
+                displayView.renderInfo("Input name of Player " + to_string(i + 1) + ": ");
                 inputHandler.getStringInput();
                 string pName = inputHandler.getLastStringInput();
                 
@@ -113,26 +108,26 @@ void GameEngine::run() {
 
             gameContext.setCurrentPlayerIndex(startingIndex);
             
-            cout << "\n[PENGACAKAN GILIRAN] Sedang menentukan siapa yang jalan pertama...";
-            cout << "\n>> Permainan akan dimulai oleh: " << gameContext.getPlayers()[startingIndex].getName() << "!\n";
+            displayView.renderInfo("\n[RANDOMIZING STARTING PLAYER]...");
+            displayView.renderInfo("\n>> Game will start with: " + gameContext.getPlayers()[startingIndex].getName() + "!\n");
             gameReady = true;
 
         } else if (menuChoice == 2) {
-            cout << "\n--- MUAT PERMAINAN ---\n";
-            cout << "Masukkan nama file save: ";
+            displayView.renderInfo("\n--- LOAD GAME ---\n");
+            displayView.renderInfo("Input save file name: ");
             inputHandler.getStringInput();
             string saveFile = inputHandler.getLastStringInput();
             
             saveLoader.loadGame(saveFile, gameContext, logger); 
             
             if (!gameContext.getPlayers().empty()) {
-                cout << "\n[BERHASIL] Permainan dimuat!\n";
+                displayView.renderInfo("\n[SUCCESS] Load successful!\n");
                 gameReady = true;
             } else {
-                cout << "\n[ERROR] File gagal dimuat atau data kosong. Silakan coba lagi.\n";
+                displayView.renderInfo("\n[ERROR] Failed to load save file or data is empty. Please try again.\n");
             }
         } else {
-            cout << "\n[ERROR] Pilihan tidak valid!\n";
+            displayView.renderInfo("\n[ERROR] Invalid choice!\n");
             inputHandler.clearInputBuffer();
         }
     }

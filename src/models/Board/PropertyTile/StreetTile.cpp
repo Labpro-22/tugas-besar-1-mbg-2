@@ -69,16 +69,6 @@ string StreetTile::getTypeLabel() const {
     return "ST";
 }
 
-string StreetTile::getDisplayExtra() const {
-    if (hasHotel) {
-        return " Hotel";
-    }
-    if (houseCount > 0) {
-        return " " + to_string(houseCount) + " houses";
-    }
-    return "";
-}
-
 vector<string> StreetTile::getAktaDetailLines(const GameContext& G) const {
     vector<string> lines;
     int level = 1;

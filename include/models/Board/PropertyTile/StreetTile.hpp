@@ -1,6 +1,6 @@
 #pragma once
 #include "PropertyTile.hpp"
-
+#include "FestivalState.hpp"
 using namespace std;
 
 class GameContext;
@@ -33,9 +33,9 @@ public:
     void setHouseCount(int count);
     void setHasHotel(bool value);
     
-    int getBuildingValue() const override;
+    int getBuildingValue() const;
     string getTypeLabel() const override;
-    string getDisplayExtra() const override;
+    string getDisplayExtra() const;
     string getPropertyDisplayInfo() const override;
     vector<string> getAktaDetailLines(const GameContext& G) const override;
     vector<string> getRentDetailLines(GameContext& G) const override;

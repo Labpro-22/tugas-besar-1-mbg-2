@@ -1,4 +1,5 @@
 #include "EconomyController.hpp"
+#include "GameException.hpp"
 
 #include <algorithm>
 #include <iostream>
@@ -51,12 +52,12 @@ void playerAddGoSalary(Player &player, GameContext *gameContext){
 
 void EconomyController::purchaseProperty(Player &player, PropertyTile *tile) {
     if (tile == nullptr || tile->isOwned()) {
-        return;
+        throw AuctionTriggerException();
     }
 
     int price = tile->getPrice();
     if (!player.canAfford(price)) {
-        return;
+        throw InsufficientFundsException(price, player.getBalance());
     }
 
     player -= price;
@@ -89,7 +90,7 @@ void EconomyController::redeemProperty(Player &player, PropertyTile *tile) {
 
     int redeemCost = (tile->getMortgageValue() * 11 + 9) / 10;
     if (!player.canAfford(redeemCost)) {
-        return;
+        throw InsufficientFundsException(redeemCost, player.getBalance());
     }
     player -= redeemCost;
     tile->setStatus(OWNED);
@@ -103,7 +104,7 @@ void EconomyController::buildHouse(GameContext *gameContext, Player &player, Str
 
     const int cost = tile->getHouseCost();
     if (!player.canAfford(cost)) {
-        return;
+        throw InsufficientFundsException(cost, player.getBalance());
     }
     player -= cost;
     tile->setHouseCount(tile->getHouseCount() + 1);
@@ -118,7 +119,7 @@ void EconomyController::upgradeToHotel(GameContext *gameContext, Player &player,
     }
     int cost = tile->getHotelCost();
     if (!player.canAfford(cost)) {
-        return;
+        throw InsufficientFundsException(cost, player.getBalance());
     }
     player -= cost;
     tile->setHasHotel(true);

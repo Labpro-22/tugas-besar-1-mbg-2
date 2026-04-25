@@ -29,7 +29,7 @@ private:
     vector<SkillCard*> skillCards;
     bool shieldActive = false;
     int rentDiscount = 0;
-    const int MAX_CARDS = 3;
+    int MAX_CARDS = 3;
 public:
 
     Player() = default;

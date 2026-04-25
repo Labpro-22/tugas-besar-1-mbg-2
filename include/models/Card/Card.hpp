@@ -8,8 +8,8 @@ protected:
     string name;
     string description;
     
-    Card(string name, string desc);
 public:
+    Card(string name, string desc);
     virtual ~Card() = default;
 
     string getName() const;

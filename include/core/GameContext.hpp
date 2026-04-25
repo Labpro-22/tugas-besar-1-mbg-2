@@ -3,7 +3,6 @@
 #include <map>
 #include <iostream>
 
-#include "GameBoard.hpp"
 #include "Player.hpp"
 #include "CardDeck.hpp"
 #include "ActionCard.hpp"
@@ -11,6 +10,7 @@
 #include "PropertyTile.hpp"
 #include "FestivalState.hpp"
 #include "Dice.hpp"
+#include "GameBoard.hpp"
 using namespace std;
 
 class GameContext

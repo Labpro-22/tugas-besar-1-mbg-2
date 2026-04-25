@@ -1,6 +1,6 @@
 #include "AuctionController.hpp"
 
-void startAuctionSkipBuy(GameContext &gameContext, DisplayView &dv, InputHandler &inputHandler) {
+void AuctionController::startAuctionSkipBuy(GameContext &gameContext, DisplayView &dv, InputHandler &inputHandler) {
     Player &skipPlayer = gameContext.getCurrentPlayer();
     int position = gameContext.getCurrentPlayer().getPosition();
     Tile *currentTile = gameContext.getBoard().getTile(position);
@@ -18,7 +18,7 @@ void startAuctionSkipBuy(GameContext &gameContext, DisplayView &dv, InputHandler
                 continue;
             } else {
                 bool currentBid = false;
-                placeBid(i, bid, dv, inputHandler, currentBid, maxBid);
+                placeBid(i, bid, dv, inputHandler, maxBid);
                 if (currentBid) {
                     isBid = true;
                     auctionActive = true;
@@ -54,7 +54,7 @@ void startAuctionSkipBuy(GameContext &gameContext, DisplayView &dv, InputHandler
     }
 }
 
-void startAuctionBankrupt(GameContext &gameContext, DisplayView &dv, InputHandler &inputHandler) {
+void AuctionController::startAuctionBankrupt(GameContext &gameContext, DisplayView &dv, InputHandler &inputHandler) {
     Player &bankruptPlayer = gameContext.getCurrentPlayer();
     int position = bankruptPlayer.getPosition();
     Tile *currentTile = gameContext.getBoard().getTile(position);
@@ -84,7 +84,7 @@ void startAuctionBankrupt(GameContext &gameContext, DisplayView &dv, InputHandle
                 continue;
             } else {
                 bool currentBid = false;
-                placeBid(i, bid, dv, inputHandler, currentBid, maxBid);
+                placeBid(i, bid, dv, inputHandler, maxBid);
                 if (currentBid) {
                     isBid = true;
                     auctionActive = true;
@@ -120,7 +120,7 @@ void startAuctionBankrupt(GameContext &gameContext, DisplayView &dv, InputHandle
     }
 }
 
-void placeBid(Player &bidder, vector<pair<Player *, int>> &bid, DisplayView &dv, InputHandler &inputHandler, bool &isBid, int &maxBid) {
+void AuctionController::placeBid(Player &bidder, vector<pair<Player *, int>> &bid, DisplayView &dv, InputHandler &inputHandler, int maxBid) {
     dv.renderAuctionLine(bidder.getName());
     int bidAmount = 0;
     bool hasAmount = false;
@@ -140,7 +140,6 @@ void placeBid(Player &bidder, vector<pair<Player *, int>> &bid, DisplayView &dv,
                 dv.HighestBidder(bidder.getName(), bidAmount);
                 maxBid = bidAmount;
                 bid.push_back(make_pair(&bidder, bidAmount));
-                isBid = true;
                 return;
             }
         } else {
@@ -149,7 +148,7 @@ void placeBid(Player &bidder, vector<pair<Player *, int>> &bid, DisplayView &dv,
     }
 }
 
-void resolveAuction(vector<pair<Player *, int>> &bid, DisplayView &dv) {
+void AuctionController::resolveAuction(vector<pair<Player *, int>> &bid, DisplayView &dv) {
     if (bid.empty()) {
         return;
     }

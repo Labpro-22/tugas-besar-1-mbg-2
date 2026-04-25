@@ -10,6 +10,17 @@ const char* GameException::what() const noexcept{
 InsufficientFundsException::InsufficientFundsException(const int& required, const int& cur)
     : GameException("Insufficient funds! Required: M" + to_string(required) + ", you only have M" + to_string(cur)),required(required),cur(cur) {}
 
+int InsufficientFundsException::getRequired() const {
+    return required;
+}
+
+int InsufficientFundsException::getCurrentBalance() const {
+    return cur;
+}
+
+AuctionTriggerException::AuctionTriggerException(): GameException("You don't have enough funds to purchase this property! Starting auction..."){}
+
+BankruptcyException::BankruptcyException(const string& message, const int& required, const int& cur): InsufficientFundsException(required, cur) {}
 // CARD
 InventoryFullException::InventoryFullException():GameException("Your inventory is full! You already have 3 cards."){}
 
