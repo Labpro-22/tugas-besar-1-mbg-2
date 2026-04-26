@@ -88,7 +88,7 @@ void PropertyAktaPopup::render(sf::RenderWindow& window) {
     window.draw(createText(statusStr, leftX, startY, 16, statusColor));
 
     draw3DPanel(window, closeBtnRect, sf::Color(200, 200, 200), false);
-    window.draw(createText("Tutup", closeBtnRect.left + 25.f, closeBtnRect.top + 8.f, 18, sf::Color::Black));
+    window.draw(createText("Close", closeBtnRect.left + 25.f, closeBtnRect.top + 8.f, 18, sf::Color::Black));
 }
 
 PopupResult PropertyAktaPopup::handleMouseClick(float mouseX, float mouseY) {

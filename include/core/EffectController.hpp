@@ -12,6 +12,8 @@
 #include "CardDeck.hpp"
 #include <vector>
 
+class GameView;
+
 using namespace std;
 
 class EffectController
@@ -21,7 +23,7 @@ public:
     void decrementDurations(GameContext* context);
 
     void execute(ActionCard& card, Player& currentPlayer, GameContext& ctx, BankruptcyController& bank, InputHandler& inputHandler, DisplayView& display, EconomyController& eco);
-    void execute(SkillCard& card, Player& currentPlayer, GameContext& ctx, InputHandler& input, DisplayView& display);
+    void execute(SkillCard& card, Player& currentPlayer, GameContext& ctx, InputHandler& input, DisplayView& display, bool isGUIMode = false, GameView* guiView = nullptr);
 
     //helper
     bool codeInOwned( string code, vector<StreetTile*> streetTile );

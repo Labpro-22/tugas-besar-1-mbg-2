@@ -5,10 +5,10 @@ CardPopup::CardPopup(std::string type, std::string desc, std::string buttonText)
     
     popupRect = sf::FloatRect(310.f, 220.f, 500.f, 300.f); 
     
-    if (cardType == "Dana Umum") {
-        bgColor = sf::Color(255, 235, 59); // Kuning = Dana Umum
+    if (cardType == "Community Chest") {
+        bgColor = sf::Color(255, 235, 59); // Yellow = Community Chest
     } else {
-        bgColor = sf::Color(255, 152, 0); // Oranye = Kesempatan
+        bgColor = sf::Color(255, 152, 0); // Orange = Chance
     }
 
     okBtnRect = sf::FloatRect(popupRect.left + 200.f, popupRect.top + 230.f, 100.f, 40.f);
@@ -24,7 +24,12 @@ void CardPopup::render(sf::RenderWindow& window) {
     titleText.setStyle(sf::Text::Italic); 
     window.draw(titleText);
 
-    window.draw(createText(description, innerRect.left + 40.f, innerRect.top + 80.f, 22, sf::Color::Black));
+    std::vector<std::string> wrapped = wrapTextToWidth(mainFont, 18, description, innerRect.width - 30.f);
+    float textY = innerRect.top + 60.f;
+    for (const auto& line : wrapped) {
+        window.draw(createText(line, innerRect.left + 20.f, textY, 18, sf::Color::Black));
+        textY += 22.f;
+    }
 
     draw3DPanel(window, okBtnRect, sf::Color(200, 200, 200), false);
     window.draw(createText(btnText, okBtnRect.left + (okBtnRect.width/2.f) - 15.f, okBtnRect.top + 8.f, 18, sf::Color::Black));

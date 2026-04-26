@@ -8,6 +8,7 @@
 #include "RailroadTile.hpp"
 #include "InputHandler.hpp"
 #include "DisplayView.hpp"
+#include "GameView.hpp"
 #include "GameException.hpp"
 #include <iostream>
 
@@ -142,7 +143,7 @@ void EffectController::execute(ActionCard& card, Player& currentPlayer, GameCont
     }
 }
 
-void EffectController::execute(SkillCard& card, Player& currentPlayer, GameContext& ctx, InputHandler& input, DisplayView& display) {
+void EffectController::execute(SkillCard& card, Player& currentPlayer, GameContext& ctx, InputHandler& input, DisplayView& display, bool isGUIMode, GameView* guiView) {
     switch (card.getSkillType()) {
         case SkillCardType::MOVE: {
             MoveCard& mCard = dynamic_cast<MoveCard&>(card);
@@ -167,8 +168,14 @@ void EffectController::execute(SkillCard& card, Player& currentPlayer, GameConte
         case SkillCardType::TELEPORT: {
             Tile* targetTile = nullptr;
             while (true) {
-                input.getStringInput();
-                string targetCode = input.getLastStringInput();
+                string targetCode;
+                if (isGUIMode && guiView != nullptr) {
+                    targetCode = guiView->getStringInput("Enter target tile code for Teleport (e.g.: JKT):");
+                    if (targetCode.empty()) return; // Cancel
+                } else {
+                    input.getStringInput();
+                    targetCode = input.getLastStringInput();
+                }
                 
                 targetTile = ctx.getBoard().getTileByCode(targetCode);
                 
@@ -177,7 +184,8 @@ void EffectController::execute(SkillCard& card, Player& currentPlayer, GameConte
                 } 
                 else {
                     display.renderInfo("[ERROR] Tile code '" + targetCode + "' not found!\n");
-                    display.renderInfo("Please enter a valid tile code: ");
+                    if (isGUIMode && guiView != nullptr) guiView->showInfoPopup("Error", "Tile code '" + targetCode + "' not found!");
+                    if (!isGUIMode) display.renderInfo("Please enter a valid tile code: ");
                 }
             }
 
@@ -191,13 +199,29 @@ void EffectController::execute(SkillCard& card, Player& currentPlayer, GameConte
             display.renderInfo("List of opponent players that can be pulled:\n");
             display.renderPlayer(ctx);
 
-            display.renderInfo("Enter the name of the opponent player you want to pull: ");
-
             Player* targetPlayer = nullptr;
 
             while (true) {
-                input.getStringInput();
-                string targetName = input.getLastStringInput();
+                string targetName;
+                if (isGUIMode && guiView != nullptr) {
+                    std::vector<std::string> playerNames;
+                    for (Player& p : ctx.getPlayers()) {
+                        if (&p != &currentPlayer && p.getStatus() != PlayerStatus::BANKRUPT) {
+                            playerNames.push_back(p.getName());
+                        }
+                    }
+                    if (playerNames.empty()) {
+                        guiView->showInfoPopup("Lasso", "No opponents available to pull.");
+                        return;
+                    }
+                    int idx = guiView->getIntChoiceFromList("Select an opponent to pull to your tile:", playerNames);
+                    if (idx == -1) return;
+                    targetName = playerNames[idx];
+                } else {
+                    display.renderInfo("Enter the name of the opponent player you want to pull: ");
+                    input.getStringInput();
+                    targetName = input.getLastStringInput();
+                }
 
                 targetPlayer = nullptr;
 
@@ -210,19 +234,19 @@ void EffectController::execute(SkillCard& card, Player& currentPlayer, GameConte
 
                 if (targetPlayer == nullptr) {
                     display.renderInfo("[ERROR] Player with the name '" + targetName + "' not found!\n");
-                    display.renderInfo("Enter the name correctly (case-sensitive): ");
+                    if (!isGUIMode) display.renderInfo("Enter the name correctly (case-sensitive): ");
                     continue;
                 }
 
                 if (targetPlayer == &currentPlayer) {
                     display.renderInfo("[ERROR] You cannot use Lasso on yourself!\n");
-                    display.renderInfo("Enter an OPPONENT'S name: ");
+                    if (!isGUIMode) display.renderInfo("Enter an OPPONENT'S name: ");
                     continue;
                 }
 
                 if (targetPlayer->getStatus() == PlayerStatus::BANKRUPT) {
                     display.renderInfo("[ERROR] " + targetName + " is already bankrupt and out of the game!\n");
-                    display.renderInfo("Enter the name of an active player: ");
+                    if (!isGUIMode) display.renderInfo("Enter the name of an active player: ");
                     continue;
                 }
 
@@ -238,21 +262,27 @@ void EffectController::execute(SkillCard& card, Player& currentPlayer, GameConte
             StreetTile* targetStreet = nullptr;
 
             while (true) {
-                input.getStringInput();
-                string targetCode = input.getLastStringInput();
+                string targetCode;
+                if (isGUIMode && guiView != nullptr) {
+                    targetCode = guiView->getStringInput("Enter opponent's street tile code to demolish (e.g.: SBY):");
+                    if (targetCode.empty()) return;
+                } else {
+                    input.getStringInput();
+                    targetCode = input.getLastStringInput();
+                }
 
                 targetTile = ctx.getBoard().getTileByCode(targetCode);
 
                 if (targetTile == nullptr) {
                     display.renderInfo("[ERROR] Tile code '" + targetCode + "' not found!\n");
-                    display.renderInfo("Enter the opponent's street tile code: ");
+                    if (isGUIMode && guiView != nullptr) guiView->showInfoPopup("Error", "Tile code not found.");
                     continue;
                 }
 
                 targetStreet = dynamic_cast<StreetTile*>(targetTile);
                 if (targetStreet == nullptr) {
                     display.renderInfo("[ERROR] Tile " + targetTile->getName() + " is not a destructible tile!\n");
-                    display.renderInfo("Enter the opponent's street tile code: ");
+                    if (isGUIMode && guiView != nullptr) guiView->showInfoPopup("Error", "That tile is not a street tile.");
                     continue; 
                 }
 
@@ -260,19 +290,19 @@ void EffectController::execute(SkillCard& card, Player& currentPlayer, GameConte
                 
                 if (owner == nullptr) {
                     display.renderInfo("[ERROR] This property is an empty land / not owned by anyone!\n");
-                    display.renderInfo("Enter the opponent's street tile code: ");
+                    if (isGUIMode && guiView != nullptr) guiView->showInfoPopup("Error", "This tile is not owned by anyone.");
                     continue;
                 }
 
                 if (owner == &currentPlayer) {
                     display.renderInfo("[ERROR] You cannot destroy your own property!\n");
-                    display.renderInfo("Enter an OPPONENT'S street tile code: ");
+                    if (isGUIMode && guiView != nullptr) guiView->showInfoPopup("Error", "You cannot demolish your own property.");
                     continue;
                 }
 
                 if (owner->getStatus() == PlayerStatus::BANKRUPT) {
                     display.renderInfo("[ERROR] The owner of this property is already bankrupt!\n");
-                    display.renderInfo("Enter the street tile code of an active opponent: ");
+                    if (isGUIMode && guiView != nullptr) guiView->showInfoPopup("Error", "The owner of the tile is already bankrupt.");
                     continue;
                 }
 
@@ -285,6 +315,7 @@ void EffectController::execute(SkillCard& card, Player& currentPlayer, GameConte
         case SkillCardType::JAILFREE: {
             currentPlayer.setStatus(PlayerStatus::ACTIVE);
             currentPlayer.setJailTurns(0);
+            break;
         }
     }
 }

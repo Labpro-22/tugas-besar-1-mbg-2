@@ -1,5 +1,7 @@
 #include "gui/popups/Popup.hpp"
 #include <iostream>
+#include <vector>
+#include <sstream>
 
 Popup::Popup() {
     popupRect = sf::FloatRect(310.f, 200.f, 500.f, 350.f);
@@ -8,8 +10,64 @@ Popup::Popup() {
 
 void Popup::loadAssets() {
     if (!mainFont.loadFromFile("assets/Roboto-Black.ttf")) {
-        std::cerr << "ERROR: Gagal memuat font di Popup\n";
+        std::cerr << "ERROR: Failed to load font in Popup\n";
     }
+}
+
+std::vector<std::string> Popup::wrapTextToWidth(const sf::Font& font, unsigned int size, const std::string& text, float maxWidth) {
+    std::vector<std::string> lines;
+    if (text.empty()) {
+        lines.push_back("");
+        return lines;
+    }
+
+    sf::Text measure;
+    measure.setFont(font);
+    measure.setCharacterSize(size);
+
+    std::istringstream iss(text);
+    std::string word;
+    std::string current;
+
+    auto textWidth = [&](const std::string& s) {
+        measure.setString(s);
+        return measure.getLocalBounds().width;
+    };
+
+    while (iss >> word) {
+        std::string candidate = current.empty() ? word : current + " " + word;
+        if (textWidth(candidate) <= maxWidth) {
+            current = candidate;
+            continue;
+        }
+
+        if (!current.empty()) {
+            lines.push_back(current);
+            current.clear();
+        }
+
+        if (textWidth(word) <= maxWidth) {
+            current = word;
+            continue;
+        }
+
+        std::string chunk;
+        for (char c : word) {
+            std::string nextChunk = chunk + c;
+            if (!chunk.empty() && textWidth(nextChunk) > maxWidth) {
+                lines.push_back(chunk);
+                chunk = std::string(1, c);
+            } else {
+                chunk = nextChunk;
+            }
+        }
+        current = chunk;
+    }
+
+    if (!current.empty()) {
+        lines.push_back(current);
+    }
+    return lines;
 }
 
 void Popup::renderOverlay(sf::RenderWindow& window, float windowWidth, float windowHeight) {

@@ -2,7 +2,6 @@
 #include <SFML/Graphics.hpp>
 #include <string>
 
-// Sinyal saat popup diklik
 enum class PopupResult {
     NONE,
     BUY_PROPERTY,
@@ -16,7 +15,8 @@ enum class PopupResult {
     CLOSE_POPUP,
     AUCTION_BID,
     AUCTION_PASS,
-    APPLY_FESTIVAL
+    APPLY_FESTIVAL,
+    INPUT_SUBMIT
 };
 
 class Popup {
@@ -25,7 +25,6 @@ protected:
     sf::Font mainFont;
     bool isVisible;
 
-    // Helper untuk menggambar kotak 3D Bevel (seperti di SidePanel)
     void draw3DPanel(sf::RenderWindow& window, sf::FloatRect rect, sf::Color baseColor, bool isSunken = false) const;
     sf::Text createText(const std::string& text, float x, float y, unsigned int size, const sf::Color& color) const;
     bool containsPoint(const sf::FloatRect& rect, float x, float y) const;
@@ -36,10 +35,12 @@ public:
 
     virtual void loadAssets();
     
-    // Fungsi utama yang WAJIB di-override oleh anak-anaknya
+    static std::vector<std::string> wrapTextToWidth(const sf::Font& font, unsigned int size, const std::string& text, float maxWidth);
+
     virtual void render(sf::RenderWindow& window) = 0;
     virtual PopupResult handleMouseClick(float mouseX, float mouseY) = 0;
+    virtual void handleTextInput(unsigned int unicode) {}
+    virtual std::string getPopupInputData() { return ""; }
 
-    // Fungsi untuk menggambar latar belakang gelap menutupi seluruh layar
     void renderOverlay(sf::RenderWindow& window, float windowWidth, float windowHeight);
 };

@@ -72,6 +72,7 @@ SidePanel::SidePanel() {
     flagStartClicked = false;
     flagRollFinished = false;
     flagRollClicked = false;
+    flagSkillCardsClicked = false;
 
     diceValues = {1, 1};
     cardInfoText = "No cards played yet.";
@@ -133,6 +134,8 @@ void SidePanel::update() {
         
         if (diceRollClock.getElapsedTime().asSeconds() > 0.95f) {
             isDiceRolling = false;
+            diceValues[0] = targetDiceValues[0];
+            diceValues[1] = targetDiceValues[1];
         }
     }
 }
@@ -179,6 +182,8 @@ void SidePanel::handleMouseClick(float mouseX, float mouseY) {
         if (containsPoint(rollDiceButtonRect, mouseX, mouseY)) {
             flagRollClicked = true;
             addHistoryEntry("Throwing Dice...");
+        } else if (containsPoint(skillCardsButtonRect, mouseX, mouseY)) {
+            flagSkillCardsClicked = true;
         }
     }
 }
@@ -224,6 +229,14 @@ bool SidePanel::pollStartGameClicked() {
         flagStartClicked = false; 
         return true; 
     } 
+    return false;
+}
+
+bool SidePanel::pollSkillCardsButtonClicked() {
+    if (flagSkillCardsClicked) {
+        flagSkillCardsClicked = false;
+        return true;
+    }
     return false;
 }
 
@@ -456,9 +469,14 @@ void SidePanel::renderInGameState(sf::RenderWindow& window) {
     draw3DPanel(window, actionRect, sf::Color(210, 210, 210), false);
 
     // Tombol Roll 
-    rollDiceButtonRect = sf::FloatRect(actionRect.left + 15.f, actionRect.top + 20.f, 80.f, 40.f);
+    rollDiceButtonRect = sf::FloatRect(actionRect.left + 15.f, actionRect.top + 10.f, 80.f, 30.f);
     draw3DPanel(window, rollDiceButtonRect, isDiceRolling ? sf::Color(150, 150, 150) : sf::Color(220, 220, 220), isDiceRolling);
-    window.draw(createText("ROLL", rollDiceButtonRect.left + 18.f, rollDiceButtonRect.top + 10.f, 16, sf::Color::Black));
+    window.draw(createText("ROLL", rollDiceButtonRect.left + 22.f, rollDiceButtonRect.top + 6.f, 14, sf::Color::Black));
+    
+    // Tombol Skill Cards
+    skillCardsButtonRect = sf::FloatRect(actionRect.left + 15.f, actionRect.top + 45.f, 80.f, 30.f);
+    draw3DPanel(window, skillCardsButtonRect, sf::Color(220, 220, 220), false);
+    window.draw(createText("SKILLS", skillCardsButtonRect.left + 15.f, skillCardsButtonRect.top + 6.f, 14, sf::Color::Black));
     
     for (int d = 0; d < 2; ++d) {
         int faceIndex = diceValues[d] - 1;
@@ -540,8 +558,8 @@ void SidePanel::renderInGameState(sf::RenderWindow& window) {
 }
 
 void SidePanel::setDiceResult(int d1, int d2) {
-    diceValues[0] = d1;
-    diceValues[1] = d2;
+    targetDiceValues[0] = d1;
+    targetDiceValues[1] = d2;
 
     isDiceRolling = true;
     diceRollClock.restart();

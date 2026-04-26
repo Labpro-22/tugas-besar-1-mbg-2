@@ -18,29 +18,29 @@ void MortgagePopup::render(sf::RenderWindow& window) {
     draw3DPanel(window, popupRect, sf::Color(220, 220, 220), false);
     
     draw3DPanel(window, sf::FloatRect(popupRect.left, popupRect.top, popupRect.width, 35.f), sf::Color(40, 80, 200), false);
-    window.draw(createText("=== Properti yang Dapat Digadaikan ===", popupRect.left + 120.f, popupRect.top + 6.f, 18, sf::Color::White));
+    window.draw(createText("=== Properties Available for Mortgage ===", popupRect.left + 100.f, popupRect.top + 6.f, 18, sf::Color::White));
 
     for (size_t i = 0; i < items.size(); ++i) {
         float yPos = popupRect.top + 50.f + (i * 50.f);
         
-        std::string infoText = std::to_string(i + 1) + ". " + items[i].name + " [" + items[i].colorGroup + "] Nilai: M" + std::to_string(items[i].mortgageValue);
+        std::string infoText = std::to_string(i + 1) + ". " + items[i].name + " [" + items[i].colorGroup + "] Value: M" + std::to_string(items[i].mortgageValue);
         window.draw(createText(infoText, popupRect.left + 20.f, yPos + 5.f, 16, sf::Color::Black));
 
         if (items[i].hasBuildings) {
             draw3DPanel(window, actionBtnRects[i], sf::Color(255, 165, 0), false); 
-            window.draw(createText("Jual Gedung", actionBtnRects[i].left + 15.f, actionBtnRects[i].top + 8.f, 14, sf::Color::Black));
+            window.draw(createText("Sell Build.", actionBtnRects[i].left + 15.f, actionBtnRects[i].top + 8.f, 14, sf::Color::Black));
         } else {
             draw3DPanel(window, actionBtnRects[i], sf::Color(200, 200, 200), false); 
-            window.draw(createText("GADAI", actionBtnRects[i].left + 35.f, actionBtnRects[i].top + 8.f, 16, sf::Color::Black));
+            window.draw(createText("MORTGAGE", actionBtnRects[i].left + 22.f, actionBtnRects[i].top + 8.f, 14, sf::Color::Black));
         }
     }
 
     if (items.empty()) {
-        window.draw(createText("Tidak ada properti yang dapat digadaikan saat ini.", popupRect.left + 100.f, popupRect.top + 70.f, 18, sf::Color::Red));
+        window.draw(createText("No properties can be mortgaged at this time.", popupRect.left + 100.f, popupRect.top + 70.f, 18, sf::Color::Red));
     }
 
     draw3DPanel(window, closeBtnRect, sf::Color(200, 200, 200), false);
-    window.draw(createText("Tutup", closeBtnRect.left + 25.f, closeBtnRect.top + 8.f, 18, sf::Color::Black));
+    window.draw(createText("Close", closeBtnRect.left + 25.f, closeBtnRect.top + 8.f, 18, sf::Color::Black));
 }
 
 PopupResult MortgagePopup::handleMouseClick(float mouseX, float mouseY) {

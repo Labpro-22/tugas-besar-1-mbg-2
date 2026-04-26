@@ -113,7 +113,7 @@ void Board::render( sf::RenderWindow& window,
         int pOwner = propertyData[i].getOwnerIndex();
         int pLevel = propertyData[i].getLevel();
 
-        if (pOwner != -1 && pLevel > 0 && pOwner < 4) {
+        if (pOwner != -1 && pOwner < 4 && pLevel > 0) {
             std::string color = playerColorNames[pOwner];
             std::string key = (pLevel == 5) ? color + "Hotel" : color + std::to_string(pLevel);
             

@@ -172,5 +172,5 @@ private:
     string buildPlayerPositionInfo(int tileIdx, GameContext G) const;
 
     std::function<void(const std::string&)> logSink;
-
+    class LogStreamBuf* customLogBuf = nullptr;
 };

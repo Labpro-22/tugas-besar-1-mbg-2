@@ -21,7 +21,13 @@ void AlertPopup::render(sf::RenderWindow& window) {
 
     window.draw(createText(playerName, popupRect.left + (popupRect.width/2.f) - 40.f, popupRect.top + 80.f, 20, sf::Color::Black));
 
-    window.draw(createText(message, popupRect.left + 30.f, popupRect.top + 120.f, 18, sf::Color::Black));
+    std::vector<std::string> wrapped = wrapTextToWidth(mainFont, 18, message, popupRect.width - 60.f);
+    float textY = popupRect.top + 120.f;
+    for (const auto& line : wrapped) {
+        window.draw(createText(line, popupRect.left + 30.f, textY, 18, sf::Color::Black));
+        textY += 22.f;
+        if (textY > popupRect.top + 240.f) break; 
+    }
 
     draw3DPanel(window, btn1Rect, sf::Color(200, 200, 200), false);
     window.draw(createText(btn1Text, btn1Rect.left + 20.f, btn1Rect.top + 8.f, 18, sf::Color::Black));

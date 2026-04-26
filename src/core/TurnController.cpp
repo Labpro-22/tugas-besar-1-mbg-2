@@ -4,7 +4,7 @@
 
 using namespace std;
 
-void TurnController::distributeSkillCards(GameContext& ctx, InputHandler& input, DisplayView& display) {
+void TurnController::distributeSkillCards(GameContext& ctx, InputHandler& input, DisplayView& display, bool isGUIMode, GameView* guiView) {
     for (Player& p : ctx.getPlayers()) {
         if (p.getStatus() == PlayerStatus::BANKRUPT) continue; 
 
@@ -18,13 +18,20 @@ void TurnController::distributeSkillCards(GameContext& ctx, InputHandler& input,
 
             int maxChoice = p.getSkillCardCount();
             int choice = -1;
-            while (true) {
-                input.getIntInput();
-                choice = input.getIntValue1();
-                display.renderDiscardSkillCard(p, choice);
+            
+            if (isGUIMode && guiView != nullptr) {
+                choice = guiView->getSkillCardChoice(p.getSkillCard(), true);
+                if (choice == -1) choice = 1; 
+                else choice += 1; 
+            } else {
+                while (true) {
+                    input.getIntInput();
+                    choice = input.getIntValue1();
+                    display.renderDiscardSkillCard(p, choice);
 
-                if (choice >= 1 && choice <= maxChoice) {
-                    break;
+                    if (choice >= 1 && choice <= maxChoice) {
+                        break;
+                    }
                 }
             }
 
@@ -267,26 +274,49 @@ void TurnController::handleDiceRollMovement(GameContext* context, EconomyControl
     resolveTileLanding(context, currentPlayer, eco, eff, auc, bank, dice, sl, input, logger, display, isGUIMode, guiView);
 }
 
-void TurnController::handleBuildHouse(GameContext* context, Player* player, EconomyController& eco, InputHandler& input, DisplayView& display) {
+void TurnController::handleBuildHouse(GameContext* context, Player* player, EconomyController& eco, InputHandler& input, DisplayView& display, bool isGUIMode, GameView* guiView) {
     map<string, vector<StreetTile*>> groupColor = player->getColorOwnedStreetTile();
     map<string, vector<StreetTile*>> buildableStreet = eco.buildableStreet(groupColor, context, *player);
 
     if (buildableStreet.empty()) {
         display.renderInfo("You don't have any properties eligible for building houses!");
+        if (isGUIMode && guiView != nullptr) {
+            guiView->showInfoPopup("Build", "You don't have any properties eligible for building!\nRequirement: own all tiles in a color group.");
+        }
         return;
     }
 
     display.renderBuildStart(*context, buildableStreet);
 
-    input.getIntInput();
-    int choice = input.getIntValue1();
+    int choice = -1;
+    if (isGUIMode && guiView != nullptr) {
+        std::vector<std::string> groupOptions;
+        for (const auto& entry : buildableStreet) {
+            std::string info = "[" + entry.first + "]";
+            for (StreetTile* t : entry.second) {
+                if (!t->getHasHotel()) {
+                    info += " " + t->getName() + "(" + std::to_string(t->getHouseCount()) + "H)";
+                }
+            }
+            groupOptions.push_back(info);
+        }
+        int idx = guiView->getIntChoiceFromList("Select Color Group to build in:", groupOptions);
+        if (idx == -1) {
+            display.renderBuildCancel(*context);
+            return;
+        }
+        choice = idx + 1;
+    } else {
+        input.getIntInput();
+        choice = input.getIntValue1();
+    }
     
-    if (choice == 0){
+    if (choice == 0) {
         display.renderBuildCancel(*context);
         return;
     }
 
-    if (choice < 0 || choice > buildableStreet.size()) {
+    if (choice < 0 || choice > (int)buildableStreet.size()) {
         display.renderBuildInvalid(*context);
         return;
     }
@@ -299,23 +329,39 @@ void TurnController::handleBuildHouse(GameContext* context, Player* player, Econ
 
     display.renderBuildMid(*context, allBuildableStreet);
     
-    input.getIntInput();
-    int propertyChoice = input.getIntValue1();
+    int propertyChoice = -1;
+    if (isGUIMode && guiView != nullptr) {
+        std::vector<std::string> tileOptions;
+        for (StreetTile* t : allBuildableStreet) {
+            std::string info = t->getName() + " (" + t->getCode() + ")";
+            if (t->getHasHotel()) info += " [Hotel - can't build]";
+            else info += " [" + std::to_string(t->getHouseCount()) + " Houses] Cost: M" + std::to_string(t->getHouseCost());
+            tileOptions.push_back(info);
+        }
+        int idx = guiView->getIntChoiceFromList("Select property to build in [" + color + "]:", tileOptions);
+        if (idx == -1) {
+            display.renderBuildCancel(*context);
+            return;
+        }
+        propertyChoice = idx + 1;
+    } else {
+        input.getIntInput();
+        propertyChoice = input.getIntValue1();
+    }
 
     if (propertyChoice == 0) {
         display.renderBuildCancel(*context);
         return;
     }
 
-    if (propertyChoice < 0 || propertyChoice > allBuildableStreet.size()) {
+    if (propertyChoice < 0 || propertyChoice > (int)allBuildableStreet.size()) {
         display.renderBuildInvalid(*context);
         return;
     }
 
     StreetTile* chosenTile = allBuildableStreet[propertyChoice - 1];
     
-    try
-    {
+    try {
         if (eco.canBuildOnTile(context, chosenTile)) {
             eco.buildHouse(context, *player, chosenTile);
         } else if (eco.canUpgradeToHotel(context, color)) {
@@ -326,8 +372,7 @@ void TurnController::handleBuildHouse(GameContext* context, Player* player, Econ
         }
         display.renderbuildHouses(*context, chosenTile, allBuildableStreet);
     }
-    catch(const InsufficientFundsException& ex)
-    {
+    catch(const InsufficientFundsException& ex) {
         display.renderInfo("You don't have enough funds to build on this property. Required: " + to_string(ex.getRequired()) + ", Your Balance: " + to_string(ex.getCurrentBalance()));
     }
 }

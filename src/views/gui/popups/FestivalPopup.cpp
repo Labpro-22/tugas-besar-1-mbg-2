@@ -21,22 +21,22 @@ void FestivalPopup::render(sf::RenderWindow& window) {
     window.draw(createText("=== FESTIVAL ===", popupRect.left + 180.f, popupRect.top + 6.f, 18, sf::Color::White));
 
     if (!showResultState) {
-        window.draw(createText("Kamu mendarat di petak Festival!", popupRect.left + 20.f, popupRect.top + 45.f, 18, sf::Color::Black));
+        window.draw(createText("You landed on the Festival tile!", popupRect.left + 20.f, popupRect.top + 45.f, 18, sf::Color::Black));
         
         for (size_t i = 0; i < items.size(); ++i) {
             float yPos = popupRect.top + 80.f + (i * 45.f);
             
-            std::string info = std::to_string(i + 1) + ". " + items[i].name + " (Sewa: M" + std::to_string(items[i].baseRent * items[i].currentMultiplier) + ")";
+            std::string info = std::to_string(i + 1) + ". " + items[i].name + " (Rent: M" + std::to_string(items[i].baseRent * items[i].currentMultiplier) + ")";
             window.draw(createText(info, popupRect.left + 20.f, yPos + 5.f, 16, sf::Color::Black));
 
             draw3DPanel(window, actionBtnRects[i], sf::Color(200, 200, 200), false);
-            window.draw(createText("PILIH", actionBtnRects[i].left + 20.f, actionBtnRects[i].top + 5.f, 14, sf::Color::Black));
+            window.draw(createText("SELECT", actionBtnRects[i].left + 15.f, actionBtnRects[i].top + 5.f, 14, sf::Color::Black));
         }
 
         if (items.empty()) {
-            window.draw(createText("Kamu belum memiliki properti apapun.", popupRect.left + 20.f, popupRect.top + 100.f, 16, sf::Color::Red));
+            window.draw(createText("You don't own any properties yet.", popupRect.left + 20.f, popupRect.top + 100.f, 16, sf::Color::Red));
             draw3DPanel(window, closeBtnRect, sf::Color(200, 200, 200), false);
-            window.draw(createText("Tutup", closeBtnRect.left + 25.f, closeBtnRect.top + 8.f, 16, sf::Color::Black));
+            window.draw(createText("Close", closeBtnRect.left + 25.f, closeBtnRect.top + 8.f, 16, sf::Color::Black));
         }
     } else {
         window.draw(createText(resultMessage, popupRect.left + 30.f, popupRect.top + 60.f, 18, sf::Color::Black));
@@ -59,15 +59,15 @@ PopupResult FestivalPopup::handleMouseClick(float mouseX, float mouseY) {
                 int currentSewa = items[i].baseRent * items[i].currentMultiplier;
                 
                 if (items[i].currentMultiplier >= 8) {
-                    resultMessage = "Efek sudah maksimum!\n(Harga sewa sudah digandakan 3 kali)\n\nDurasi di-reset menjadi: 3 giliran";
+                    resultMessage = "Effect is at maximum!\n(Rent already doubled 3 times)\n\nDuration reset to: 3 turns";
                 } 
                 else if (items[i].currentMultiplier > 1) {
                     int newSewa = currentSewa * 2;
-                    resultMessage = "Efek diperkuat!\n\nSewa sebelumnya: M" + std::to_string(currentSewa) + "\nSewa sekarang: M" + std::to_string(newSewa) + "\nDurasi di-reset menjadi: 3 giliran";
+                    resultMessage = "Effect strengthened!\n\nPrevious Rent: M" + std::to_string(currentSewa) + "\nNew Rent: M" + std::to_string(newSewa) + "\nDuration reset to: 3 turns";
                 } 
                 else {
                     int newSewa = currentSewa * 2;
-                    resultMessage = "Efek festival aktif!\n\nSewa awal: M" + std::to_string(currentSewa) + "\nSewa sekarang: M" + std::to_string(newSewa) + "\nDurasi: 3 giliran";
+                    resultMessage = "Festival effect active!\n\nInitial Rent: M" + std::to_string(currentSewa) + "\nNew Rent: M" + std::to_string(newSewa) + "\nDuration: 3 turns";
                 }
                 
                 showResultState = true; 

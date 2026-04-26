@@ -17,6 +17,7 @@ private:
     sf::FloatRect giveDiceButtonRect;
     sf::FloatRect startGameButtonRect;
     sf::FloatRect rollDiceButtonRect;
+    sf::FloatRect skillCardsButtonRect;
     std::array<int, 4> playerBalances;
 
     // --- Assets ---
@@ -35,6 +36,7 @@ private:
     std::array<bool, 4> isPlayerEnabled;
     std::array<bool, 4> isNameEdited;
     std::array<int, 2> diceValues;
+    std::array<int, 2> targetDiceValues;
 
     std::vector<std::string> gameHistory;
     std::string cardInfoText;
@@ -45,7 +47,8 @@ private:
     sf::Clock diceTickClock;
     bool flagStartClicked;
     bool flagRollFinished;
-    bool flagRollClicked; 
+    bool flagRollClicked;
+    bool flagSkillCardsClicked; 
 
     // --- Command ---
     std::string currentCommandInput;
@@ -86,6 +89,7 @@ public:
     int getFirstTurnPlayerIndex() const;
 
     bool pollStartGameClicked();
+    bool pollSkillCardsButtonClicked();
     bool pollRollDiceFinished(int& outDice1, int& outDice2);
     bool pollRollButtonClicked();
 

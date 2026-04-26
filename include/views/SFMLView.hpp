@@ -53,6 +53,7 @@ private:
     int auctionPassCount = 0;
     int lastPopupResponse = -1;
     int lastPopupTileIndex = -1;
+    std::string lastPopupInputData = "";
     GameContext* latestContext = nullptr;
 
     // Animation
@@ -91,6 +92,17 @@ public:
     bool isAnimationPlaying() const override;
     int getPopupResponse() override;
     int getLastPopupTileIndex() const override;
-    CommandType getGUICommand() override;
+    std::string getGUICommandString();
+    CommandType getGUICommand();
+    
+    std::string getStringInput(const std::string& prompt) override;
+    int getAuctionBid(int minBid, int activePlayerIdx, const std::string& propName, int currentMaxBid, int highBidderIdx) override;
+    int getSkillCardChoice(const std::vector<SkillCard*>& cards, bool isDiscardMode) override;
+    int getIntChoiceFromList(const std::string& prompt, const std::vector<std::string>& options) override;
+    void showInfoPopup(const std::string& title, const std::string& message) override;
+
+    std::string getLastPopupInputData() const { return lastPopupInputData; }
+    void clearLastPopupInputData() { lastPopupInputData = ""; }
+
     void addLog(const std::string& msg) override;
 };

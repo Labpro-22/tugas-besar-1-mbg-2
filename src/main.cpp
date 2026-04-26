@@ -3,18 +3,17 @@
 #include "core/GameEngine.hpp"
 
 int main() {
-    // 1. Berikan pilihan mode kepada pengguna
     std::cout << "=================================\n";
     std::cout << "      NIMONSPOLI LAUNCHER        \n";
     std::cout << "=================================\n";
-    std::cout << "Pilih Mode Tampilan:\n";
-    std::cout << "1. Mode Terminal (CLI)\n";
-    std::cout << "2. Mode Grafis (GUI SFML)\n";
-    std::cout << "Masukkan pilihan (1/2): ";
+    std::cout << "Select Display Mode:\n";
+    std::cout << "1. Terminal Mode (CLI)\n";
+    std::cout << "2. Graphical Mode (GUI SFML)\n";
+    std::cout << "Enter choice (1/2): ";
     
     int choice;
     if (!(std::cin >> choice)) {
-        std::cout << "Input tidak valid. Menjalankan mode default (CLI)...\n";
+        std::cout << "Invalid input. Running default mode (CLI)...\n";
         choice = 1;
     }
 
@@ -30,6 +29,6 @@ int main() {
         game.run();
     }
 
-    std::cout << "\nTerima kasih telah bermain Nimonspoli!\n";
+    std::cout << "\nThank you for playing Nimonspoli!\n";
     return 0;
 }
