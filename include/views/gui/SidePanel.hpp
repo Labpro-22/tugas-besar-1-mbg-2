@@ -41,7 +41,8 @@ private:
     sf::Clock diceRollClock;
     sf::Clock diceTickClock;
     bool flagStartClicked;
-    bool flagRollFinished; 
+    bool flagRollFinished;
+    bool flagRollClicked; 
 
     void renderSetupState(sf::RenderWindow& window);
     void renderInGameState(sf::RenderWindow& window);
@@ -72,4 +73,5 @@ public:
     int getFirstTurnPlayerIndex() const;
 
     std::string getPlayerName(int index) const;
+    bool pollRollButtonClicked();
 };

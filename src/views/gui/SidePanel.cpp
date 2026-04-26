@@ -19,6 +19,7 @@ SidePanel::SidePanel() {
     isPlayerEnabled.fill(false); 
     // isPlayerEnabled[0] = true;
     isNameEdited.fill(false);
+    flagRollClicked = false;
 
     for (int i = 0; i < 4; ++i) {
         playerNames[i] = "Player " + std::to_string(i + 1);
