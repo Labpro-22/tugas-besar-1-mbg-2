@@ -162,7 +162,7 @@ void GameEngine::run() {
 
     Player* previousPlayer = nullptr;
     bool hasUsedSkillThisTurn = false;
-
+    bool isCommand = false;
     while (!gameContext.isGameOver()) {
         if (gameContext.getCurrentPlayerIndex() == startingIndex) {
             if (isLoad){
@@ -179,8 +179,10 @@ void GameEngine::run() {
         }
 
         if (currentPlayer != previousPlayer) {
+
             hasUsedSkillThisTurn = false;
             previousPlayer = currentPlayer;
+            isCommand = false;
         }
 
         displayView.renderInfo("============================================");
@@ -215,10 +217,11 @@ void GameEngine::run() {
                     displayView.renderInfo("1. Pay fine (M" + to_string(gameContext.getJailFine()) + ")");
                     displayView.renderInfo("2. Use 'Get Out of Jail' card");
                     displayView.renderInfo("3. Roll dice (must be doubles)");
-                    displayView.renderPrompt("Choice (1/2/3): ");
+                    displayView.renderInfo("4. Save Game");
+                    displayView.renderPrompt("Choice (1/2/3/4): ");
 
                     inputHandler.getIntInput();
-                    int choice = inputHandler.getIntValue1(); 
+                    int choice = inputHandler.getIntValue1();
 
                     if (choice == 1) {
                         try {
@@ -268,7 +271,14 @@ void GameEngine::run() {
                                 turnEnded = true;
                             }
                             hasRolledDice = true;
-                        } else {
+                        }else if (choice == 4){
+                            displayView.renderPrompt("Input save file name: ");
+                            inputHandler.getStringInput();
+                            saveLoader.saveGame(inputHandler.getLastStringInput(), gameContext, logger);
+                            logger.addLog(gameContext.getCurrentTurn(), currentPlayer->getName(), "SIMPAN", inputHandler.getLastStringInput());
+                            break;
+                        }
+                        else {
                             displayView.renderInfo("Failed to roll doubles. You remain in jail.");
                             turnEnded = true;
                         }
