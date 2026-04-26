@@ -171,6 +171,7 @@ void EffectController::execute(SkillCard& card, Player& currentPlayer, GameConte
             break;
         }
         case SkillCardType::SHIELD: {
+
             currentPlayer.applyShield(); 
             logger.addLog(ctx.getCurrentTurn(), currentPlayer.getName(), "USE_SKILL_CARD", "Used Shield card");
             break;
@@ -179,6 +180,7 @@ void EffectController::execute(SkillCard& card, Player& currentPlayer, GameConte
             Tile* targetTile = nullptr;
             string targetCode;
             while (true) {
+                display.renderInfo("Enter the code of the tile you want to teleport to: ");
                 input.getStringInput();
                 targetCode = input.getLastStringInput();
                 
@@ -195,6 +197,7 @@ void EffectController::execute(SkillCard& card, Player& currentPlayer, GameConte
 
             int targetIdx = targetTile->getIdx();
             currentPlayer.setPosition(targetIdx);
+            display.renderInfo("Teleporting to " + targetTile->getName() + "...");
             logger.addLog(ctx.getCurrentTurn(), currentPlayer.getName(), "USE_SKILL_CARD", "Used Teleport card to " + targetCode);
             break;
         }
@@ -250,6 +253,7 @@ void EffectController::execute(SkillCard& card, Player& currentPlayer, GameConte
             StreetTile* targetStreet = nullptr;
 
             while (true) {
+                display.renderInfo("Enter the code of the opponent's street tile you want to demolish: ");
                 input.getStringInput();
                 string targetCode = input.getLastStringInput();
 
@@ -292,10 +296,13 @@ void EffectController::execute(SkillCard& card, Player& currentPlayer, GameConte
             }
 
             targetStreet->demolishBuilding();
+            display.renderInfo("Demolishing buildings on " + targetStreet->getName() + "...");
+
             logger.addLog(ctx.getCurrentTurn(), currentPlayer.getName(), "USE_SKILL_CARD", "Used Demolition card on " + targetStreet->getName());
             break;
         }
         case SkillCardType::JAILFREE: {
+
             currentPlayer.setStatus(PlayerStatus::ACTIVE);
             currentPlayer.setJailTurns(0);
             logger.addLog(ctx.getCurrentTurn(), currentPlayer.getName(), "USE_SKILL_CARD", "Used Jail Free card");
