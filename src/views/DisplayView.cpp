@@ -660,15 +660,11 @@ void DisplayView::renderAuctionResult(string winnerName, int winningBid){
 }
 
 // Festival 
-void DisplayView::renderFestivalTile(GameContext G, FestivalTile *tile) {
+void DisplayView::renderFestivalTile(GameContext G, vector<StreetTile*> streetTiles) {
     renderTile(G);
-    if (G.getCurrentPlayer().getOwnedProperties().empty()) {
-        cout << "You don't have any properties to apply the festival on." << endl;
-        return;
-    }
-
+    
     cout << "Your owned properties:" << endl;
-    for (const PropertyTile* Tile : G.getCurrentPlayer().getOwnedProperties())
+    for (const StreetTile* Tile : streetTiles)
     {
         cout << "- " << Tile->getCode() << " (" << Tile->getName() << ")" << endl;
     }
@@ -676,10 +672,14 @@ void DisplayView::renderFestivalTile(GameContext G, FestivalTile *tile) {
     cout << "Insert code property: ";
 }
 
-void DisplayView::InputUnvalidFestivalProperty(GameContext G){
-    cout << "Invalid property code. Please enter a valid property code from your owned properties." << endl;
+void DisplayView::InputUnvalidFestivalProperty(GameContext G, vector<StreetTile*> streetTiles, bool notOwner) {
+    if (notOwner) {
+        cout << "You don't own this property. Please enter a valid property code from your owned properties." << endl;
+    } else {
+        cout << "This property is not a street tile. Please enter a valid property code from your owned properties." << endl;
+    }
     cout << "Your owned properties:" << endl;
-    for (const PropertyTile* Tile : G.getCurrentPlayer().getOwnedProperties())
+    for (const StreetTile* Tile : streetTiles)
     {
         cout << "- " << Tile->getCode() << " (" << Tile->getName() << ")" << endl;
     }
