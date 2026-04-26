@@ -104,8 +104,8 @@ public:
     void renderLoadFailure(GameContext G, string filename, bool fileExists);
     
     //Finish Game
-    void DisplayView::renderGameOverMaxTurn(const vector<Player*>& survivors, const vector<Player*>& winners);
-    void DisplayView::renderGameOverBankruptcy(Player* winner);
+    void renderGameOverMaxTurn(const vector<Player*>& survivors, const vector<Player*>& winners);
+    void renderGameOverBankruptcy(Player* winner);
 
     // Bankruptcy / liquidation
     void renderBankruptFirstSceneRent(GameContext G, Player* bankruptPlayer, Player* creditorPlayer, int amountToPay, vector<string> best, int total);

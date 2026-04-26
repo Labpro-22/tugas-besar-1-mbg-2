@@ -22,7 +22,7 @@ void EffectController::handleFestival(GameContext* gameContext, DisplayView* dis
     }
     if (streetTile.empty()){
         // gada
-        break;
+        return;
     }
     // display->renderFestivalTile(&gameContext);
     string choice;
