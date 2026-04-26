@@ -95,9 +95,30 @@ void GameEngine::run() {
             }
 
             for (int i = 0; i < numPlayers; ++i) {
-                displayView.renderInfo("Input name of Player " + to_string(i + 1) + ": ");
-                inputHandler.getStringInput();
-                string pName = inputHandler.getLastStringInput();
+                string pName;
+                bool isUnique = false;
+
+                while (!isUnique) {
+                    displayView.renderInfo("Input name of Player " + to_string(i + 1) + ": ");
+                    inputHandler.getStringInput();
+                    pName = inputHandler.getLastStringInput();
+
+                    isUnique = true;
+
+                    if (pName == "" || pName == "BANK") {
+                        displayView.renderWarning("[ERROR] Invalid name! You cannot use an empty name or 'BANK'.");
+                        isUnique = false;
+                        continue;
+                    }
+
+                    for (const Player& p : gameContext.getPlayers()) {
+                        if (p.getName() == pName) {
+                            displayView.renderWarning("[ERROR] Name '" + pName + "' is already taken! Please choose a different name.");
+                            isUnique = false;
+                            break;
+                        }
+                    }
+                }
                 
                 Player newPlayer(pName);
                 newPlayer.setBalance(gameContext.getStartingMoney()); 
@@ -268,6 +289,7 @@ void GameEngine::run() {
                         break;
                     }
                     dice.roll();
+                    gameContext.getDice().setRoll(dice.getDice1(), dice.getDice2());
                     if (dice.isDouble()) {
                         int currentDoubleCount = currentPlayer->getDoubleCount() + 1;
                         currentPlayer->setDoubleCount(currentDoubleCount);
@@ -322,6 +344,7 @@ void GameEngine::run() {
                     int x = inputHandler.getIntValue1();
                     int y = inputHandler.getIntValue2();
                     dice.setRoll(x, y);
+                    gameContext.getDice().setRoll(dice.getDice1(), dice.getDice2());
                     if (dice.isDouble()) {
                         int currentDoubleCount = currentPlayer->getDoubleCount() + 1;
                         currentPlayer->setDoubleCount(currentDoubleCount);
@@ -642,5 +665,51 @@ void GameEngine::run() {
                 gameContext.setCurrentTurn(gameContext.getCurrentTurn() + 1);
             }
         }
+    }
+
+    int finalActivePlayers = gameContext.countActivePlayers();
+
+    if (finalActivePlayers == 1) {
+        Player* winner = nullptr;
+        for (Player& p : gameContext.getPlayers()) {
+            if (p.getStatus() != PlayerStatus::BANKRUPT) {
+                winner = &p;
+                break;
+            }
+        }
+        displayView.renderGameOverBankruptcy(winner);
+    }
+    else {
+        vector<Player*> remainingPlayers;
+        for (Player& p : gameContext.getPlayers()) {
+            if (p.getStatus() != PlayerStatus::BANKRUPT) {
+                remainingPlayers.push_back(&p);
+            }
+        }
+
+        sort(remainingPlayers.begin(), remainingPlayers.end(), [](Player* a, Player* b) {
+            if (a->getBalance() != b->getBalance()) {
+                return a->getBalance() > b->getBalance();
+            }
+            if (a->getOwnedProperties().size() != b->getOwnedProperties().size()) {
+                return a->getOwnedProperties().size() > b->getOwnedProperties().size();
+            }
+            return a->getSkillCardCount() > b->getSkillCardCount();
+        });
+
+        vector<Player*> winners;
+        winners.push_back(remainingPlayers[0]);
+        for (int i = 1; i < remainingPlayers.size(); ++i) {
+            if (remainingPlayers[i]->getBalance() == winners[0]->getBalance() &&
+                remainingPlayers[i]->getOwnedProperties().size() == winners[0]->getOwnedProperties().size() &&
+                remainingPlayers[i]->getSkillCardCount() == winners[0]->getSkillCardCount()) {
+                
+                winners.push_back(remainingPlayers[i]);
+            } 
+            else {
+                break;
+            }
+        }
+        displayView.renderGameOverMaxTurn(remainingPlayers, winners);
     }
 }
