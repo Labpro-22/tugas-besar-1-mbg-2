@@ -71,6 +71,7 @@ void GameEngine::run() {
 
     initGame(gameContext, turnController, configReader, economyController);
 
+    int startingIndex = 0;
     bool gameReady = false;
 
     while (!gameReady) {
@@ -102,7 +103,7 @@ void GameEngine::run() {
             }
             
             srand(static_cast<unsigned>(time(0)));
-            int startingIndex = rand() % numPlayers;
+            startingIndex = rand() % numPlayers;
 
             gameContext.setCurrentPlayerIndex(startingIndex);
             
@@ -244,7 +245,6 @@ void GameEngine::run() {
                                 turnEnded = true;
                             }
                             hasRolledDice = true;
-                            isDoubleRoll = true;
                         } else {
                             cliView.renderInfo("Failed to roll doubles. You remain in jail.");
                             turnEnded = true;
@@ -279,9 +279,41 @@ void GameEngine::run() {
                     }
                     dice.roll();
                     if (dice.isDouble()) {
+                        int currentDoubleCount = currentPlayer->getDoubleCount() + 1;
+                        currentPlayer->setDoubleCount(currentDoubleCount);
+
+                        if (currentDoubleCount == 3) {
+                            displayView.renderInfo("\n*** 3 DOUBLES IN A ROW! GO TO JAIL! ***\n");
+                            if (currentPlayer->hasShield()) {
+                                displayView.renderInfo("[SHIELD ACTIVE] You are protected! You safely escaped from going to Jail.");
+                            } 
+                            else {
+                                displayView.renderInfo("YOU ARE SENT TO JAIL!");
+                                Tile* jailTile = gameContext.getBoard().getTileByCode("PEN");
+                                
+                                if (jailTile != nullptr) {
+                                    int jailPos = jailTile->getIdx();
+                                    currentPlayer->setPosition(jailPos);
+                                    currentPlayer->setStatus(PlayerStatus::JAILED); 
+                                    currentPlayer->setJailTurns(0);
+                                }
+                            }
+                            currentPlayer->setDoubleCount(0);
+                            hasRolledDice = true;
+                            turnEnded = true; 
+                            break;
+                        } 
+                        else {
+                            isDoubleRoll = true;
+                            displayView.renderInfo("\n" + currentPlayer->getName() + " rolled DOUBLES! Gets an extra turn! (Double count: " + to_string(currentDoubleCount) + ")");
+                        }
+                    }
+                    else {
+                        currentPlayer->setDoubleCount(0);
                         isDoubleRoll = true;
                         cliView.renderInfo("\n " + currentPlayer->getName() + " rolled DOUBLES! Gets an extra turn! \n");
                     }
+                    
                     try {
                         cliView.renderDiceRoll(gameContext, dice);
                         if (isGUIMode && guiView != nullptr) {
@@ -311,6 +343,39 @@ void GameEngine::run() {
                     int y = inputHandler.getIntValue2();
                     dice.setRoll(x, y);
                     if (dice.isDouble()) {
+                        int currentDoubleCount = currentPlayer->getDoubleCount() + 1;
+                        currentPlayer->setDoubleCount(currentDoubleCount);
+
+                        if (currentDoubleCount == 3) {
+                            displayView.renderInfo("\n*** 3 DOUBLES IN A ROW! ***");
+                            
+                            if (currentPlayer->hasShield()) {
+                                displayView.renderInfo("[SHIELD ACTIVE] You are protected! You safely escaped from going to Jail.");
+                            } 
+                            else {
+                                displayView.renderInfo("YOU ARE SENT TO JAIL!");
+                                Tile* jailTile = gameContext.getBoard().getTileByCode("PEN");
+                                
+                                if (jailTile != nullptr) {
+                                    int jailPos = jailTile->getIdx();
+                                    currentPlayer->setPosition(jailPos);
+                                    currentPlayer->setStatus(PlayerStatus::JAILED); 
+                                    currentPlayer->setJailTurns(0);
+                                }
+                            }
+                            
+                            currentPlayer->setDoubleCount(0);
+                            hasRolledDice = true;
+                            turnEnded = true;
+                            break;
+                        }
+                        else {
+                            isDoubleRoll = true;
+                            displayView.renderInfo("\n" + currentPlayer->getName() + " set DOUBLES! Gets an extra turn! (Double count: " + to_string(currentDoubleCount) + ")\n");
+                        }
+                    }
+                    else {
+                        currentPlayer->setDoubleCount(0);
                         isDoubleRoll = true;
                         cliView.renderInfo("\n" + currentPlayer->getName() + " set DOUBLES! Gets an extra turn! \n");
                     }
@@ -351,6 +416,7 @@ void GameEngine::run() {
                 case CommandType::GADAI:
                 case CommandType::TEBUS:
                 case CommandType::BANGUN:
+                    turnController.handleBuildHouse(&gameContext, currentPlayer, economyController, inputHandler, displayView);
                     break;
 
                 case CommandType::GUNAKAN_KEMAMPUAN: {
@@ -494,8 +560,9 @@ void GameEngine::run() {
             gameContext.setGameOver(true);
         } 
         else {
+            currentPlayer->setDoubleCount(0);
             gameContext.nextPlayer();
-            if (gameContext.getCurrentPlayerIndex() == 0) {
+            if (gameContext.getCurrentPlayerIndex() == startingIndex) {
                 gameContext.setCurrentTurn(gameContext.getCurrentTurn() + 1);
             }
         }

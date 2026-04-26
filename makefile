@@ -12,7 +12,13 @@ DATA_DIR    := data
 CONFIG_DIR  := config
 
 INCLUDE_DIRS := $(shell find $(INCLUDE_DIR) -type d)
-CXXFLAGS := -Wall -Wextra -std=c++17 $(addprefix -I,$(INCLUDE_DIRS))
+MODE ?= debug
+
+ifeq ($(MODE), debug)
+    CXXFLAGS := -g -O0 -Wall -Wextra -std=c++17 $(addprefix -I,$(INCLUDE_DIRS))
+else
+    CXXFLAGS := -O3 -Wall -Wextra -std=c++17 $(addprefix -I,$(INCLUDE_DIRS))
+endif
 
 LDFLAGS := -lsfml-graphics -lsfml-window -lsfml-system
 

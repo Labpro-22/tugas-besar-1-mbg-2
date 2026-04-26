@@ -60,7 +60,8 @@ void TurnController::resolveTileLanding(GameContext* context, Player* player, Ec
         }
 
         case LandEventType::GIVEPROPERTY:{
-            player->addProperty(dynamic_cast<PropertyTile*>(currentTile));
+            PropertyTile* propTile = dynamic_cast<PropertyTile*>(currentTile);
+            eco.acquirePropertyFree(*player, propTile);
             if (currentTile->getType() == "Railroad"){
                 display.renderGetRailroad(*context, dynamic_cast<RailroadTile*>(currentTile));
             } else if (currentTile->getType() == "Utility"){
@@ -74,11 +75,9 @@ void TurnController::resolveTileLanding(GameContext* context, Player* player, Ec
             try {
                 display.renderRent(*context, dynamic_cast<PropertyTile*>(currentTile));
                 int rentAmount = eco.calculateRent(context, dynamic_cast<PropertyTile*>(currentTile), dice.getTotal());
-                *player -= rentAmount;
                 Player* owner = dynamic_cast<PropertyTile*>(currentTile)->getOwner();
-                if (owner != nullptr) {
-                    *owner += rentAmount;
-                }
+                eco.payRent(*player, *owner, dynamic_cast<PropertyTile*>(currentTile), dice.getTotal());
+                display.renderCurrentBalancePayed(*context, rentAmount);
             } catch (const InsufficientFundsException& ex) {
                 display.renderCantPay(*context, ex.getRequired());
                 throw BankruptcyException("Player cannot afford to pay rent.", ex.getRequired(), player->getBalance(), dynamic_cast<PropertyTile*>(currentTile)->getOwner(), currentTile);
@@ -117,7 +116,7 @@ void TurnController::resolveTileLanding(GameContext* context, Player* player, Ec
             break;
 
         case LandEventType::DOFESTIVAL:{
-            eff.handleFestival(currentTile);
+           eff.handleFestival(context, &display, &input );
             break;
         }
 
@@ -176,4 +175,69 @@ void TurnController::handleDiceRollMovement(GameContext* context, EconomyControl
     }
 
     resolveTileLanding(context, currentPlayer, eco, eff, auc, bank, dice, sl, input, logger, display);
+}
+
+void TurnController::handleBuildHouse(GameContext* context, Player* player, EconomyController& eco, InputHandler& input, DisplayView& display) {
+    map<string, vector<StreetTile*>> groupColor = player->getColorOwnedStreetTile();
+    map<string, vector<StreetTile*>> buildableStreet = eco.buildableStreet(groupColor, context, *player);
+
+    if (buildableStreet.empty()) {
+        display.renderInfo("You don't have any properties eligible for building houses!");
+        return;
+    }
+
+    display.renderBuildStart(*context, buildableStreet);
+
+    input.getIntInput();
+    int choice = input.getIntValue1();
+    
+    if (choice == 0){
+        display.renderBuildCancel(*context);
+        return;
+    }
+
+    if (choice < 0 || choice > buildableStreet.size()) {
+        display.renderBuildInvalid(*context);
+        return;
+    }
+
+    auto itMap = buildableStreet.begin();
+    advance(itMap, choice - 1);
+
+    string color = itMap->first;
+    vector<StreetTile*> allBuildableStreet = itMap->second;
+
+    display.renderBuildMid(*context, allBuildableStreet);
+    
+    input.getIntInput();
+    int propertyChoice = input.getIntValue1();
+
+    if (propertyChoice == 0) {
+        display.renderBuildCancel(*context);
+        return;
+    }
+
+    if (propertyChoice < 0 || propertyChoice > allBuildableStreet.size()) {
+        display.renderBuildInvalid(*context);
+        return;
+    }
+
+    StreetTile* chosenTile = allBuildableStreet[propertyChoice - 1];
+    
+    try
+    {
+        if (eco.canBuildOnTile(context, chosenTile)) {
+            eco.buildHouse(context, *player, chosenTile);
+        } else if (eco.canUpgradeToHotel(context, color)) {
+            eco.upgradeToHotel(context, *player, chosenTile);
+        } else {
+            display.renderInfo("This property cannot be built on anymore.");
+            return;
+        }
+        display.renderbuildHouses(*context, chosenTile, allBuildableStreet);
+    }
+    catch(const InsufficientFundsException& ex)
+    {
+        display.renderInfo("You don't have enough funds to build on this property. Required: " + to_string(ex.getRequired()) + ", Your Balance: " + to_string(ex.getCurrentBalance()));
+    }
 }

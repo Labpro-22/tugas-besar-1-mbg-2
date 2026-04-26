@@ -72,6 +72,7 @@ public:
 
     string getName() const;
     int getBalance() const;
+    int getDoubleCount() const;
     int getPosition() const;
     PlayerStatus getStatus() const;
     int getJailTurns() const;

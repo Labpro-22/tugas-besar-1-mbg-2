@@ -187,6 +187,10 @@ int Player::getBalance() const {
     return balance;
 }
 
+int Player::getDoubleCount() const {
+    return doubleCount;
+}
+
 int Player::getPosition() const {
     return currentPosition;
 }
