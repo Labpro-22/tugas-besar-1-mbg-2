@@ -467,10 +467,10 @@ void GameEngine::run() {
                             }
                         }
                         if (hasBuildingInGroup) {
+                            displayView.renderMortgageGroupColorStart(gameContext, sameColorTiles);
                             inputHandler.getStringInput();
                             string sellChoice = inputHandler.getLastStringInput();
 
-                            displayView.renderMortgageGroupColorStart(gameContext, sameColorTiles);
                             displayView.renderMortgageGroupColorResult(gameContext, sellChoice, sameColorTiles);
                             if (sellChoice != "y" && sellChoice != "Y") {
                                 break;
@@ -506,12 +506,12 @@ void GameEngine::run() {
                     inputHandler.getIntInput();
                     int choice = inputHandler.getIntValue1();
                     while (choice < 0 || choice > mortgageProperty.size()){
+                        displayView.renderRedeemChoose(gameContext, mortgageProperty, choice, 0);   
                         if (choice == 0){
                             break;
                         }
                         inputHandler.getIntInput();
                         choice = inputHandler.getIntValue1();
-                        displayView.renderRedeemChoose(gameContext, mortgageProperty, choice, 0);   
                     }
                     
                     

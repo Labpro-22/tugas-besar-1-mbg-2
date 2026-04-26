@@ -1,5 +1,22 @@
 #include "GameLogger.hpp"
 
+LogEntry::LogEntry(int turn, const string& username, const string& action, const string& details)
+    : turn(turn), username(username), action(action), details(details) {}
+
+int LogEntry::getTurn() const {
+    return turn;
+}
+
+const string& LogEntry::getUsername() const {
+    return username;
+}
+
+const string& LogEntry::getAction() const {
+    return action;
+}
+const string& LogEntry::getDetails() const {
+    return details;
+}
 
 void GameLogger::addLog(int turn, const string& username, const string& action, const string& details){
     logs.push_back(LogEntry{turn, username, action, details});
@@ -17,11 +34,11 @@ void GameLogger::printLogs(int count) const{
     int start = total - limit;
     for (int i = start; i < total; i++){
         auto& entry = logs[i];
-        cout << "[Turn " << entry.turn << "] " << entry.username << " | " << entry.action << " | ";
-        if (entry.details.empty()){
+        cout << "[Turn " << entry.getTurn() << "] " << entry.getUsername() << " | " << entry.getAction() << " | ";
+        if (entry.getDetails().empty()){
             cout << "-" <<endl;
         } else {
-            cout << entry.details << endl;
+            cout << entry.getDetails() << endl;
         }
     }
 }
@@ -41,7 +58,7 @@ void GameLogger::clearLogs(){
 void GameLogger::saveToStream(ostream& out) const {
     out << logs.size() << '\n';
     for (const auto& entry : logs) {
-        out << entry.turn << ' ' << quoted(entry.username) << ' ' << quoted(entry.action) << ' ' << quoted(entry.details) << '\n';
+        out << entry.getTurn() << ' ' << quoted(entry.getUsername()) << ' ' << quoted(entry.getAction()) << ' ' << quoted(entry.getDetails()) << '\n';
     }
 }
 
@@ -55,10 +72,12 @@ void GameLogger::loadFromStream(istream& in) {
     logs.reserve(count); 
 
     for (int i = 0; i < count; ++i) {
-        LogEntry entry{};
-        if (!(in >> entry.turn >> quoted(entry.username) >> quoted(entry.action) >> quoted(entry.details))) {
+        LogEntry entry;
+        int turn;
+        string username, action, details;
+        if (!(in >> turn >> quoted(username) >> quoted(action) >> quoted(details))) {
             break;
         }
-        logs.push_back(entry);
+        logs.push_back(LogEntry(turn, username, action, details));
     }
 }
