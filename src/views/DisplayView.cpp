@@ -811,14 +811,9 @@ void DisplayView::renderRedeemChoose(GameContext G, vector<PropertyTile*> mortga
 void DisplayView::renderBuildStart(GameContext G, map<string, vector<StreetTile*>> tiles){
     cout << "== Qualified Color Groups ==" << endl;
     int i = 1;
-    map<string, vector<StreetTile*>> properties = G.getBoard().getMapColorProperty();
-
+    
     for (const auto& entry : tiles) {
         const vector<StreetTile*>& streets = entry.second;
-
-        if (properties[entry.first].size() != streets.size()) {
-            continue; // Skip color groups that are not fully owned
-        }
 
         cout << i << ". [" << entry.first << "]" << endl;
         for (StreetTile* tile : streets) {

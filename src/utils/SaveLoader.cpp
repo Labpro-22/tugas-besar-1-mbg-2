@@ -50,7 +50,7 @@ void SaveLoader::saveGame(string fileName, GameContext &gameContext, GameLogger&
     // Player Turn Order
     for (Player &player : players)
     {
-        out << player.getName();
+        out << player.getName() << " ";
     }
 
     out << "\n";
@@ -171,7 +171,7 @@ void SaveLoader::loadGame(string fileName, GameContext &gameContext, GameLogger&
             }
         }
     }
-
+    
 
     int totalProperties;
     in >> totalProperties;

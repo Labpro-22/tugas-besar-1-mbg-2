@@ -386,6 +386,7 @@ void GameEngine::run() {
                 case CommandType::GADAI:
                 case CommandType::TEBUS:
                 case CommandType::BANGUN:
+                    turnController.handleBuildHouse(&gameContext, currentPlayer, economyController, inputHandler, displayView);
                     break;
 
                 case CommandType::GUNAKAN_KEMAMPUAN: {
