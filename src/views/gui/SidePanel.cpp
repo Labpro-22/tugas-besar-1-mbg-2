@@ -83,6 +83,10 @@ void SidePanel::render(sf::RenderWindow& window) {
     else renderInGameState(window);
 }
 
+void SidePanel::setPlayerBalance(int index, int balance) {
+    if (index >= 0 && index < 4) playerBalances[index] = balance;
+}
+
 // --- Input Handler
 void SidePanel::handleMouseClick(float mouseX, float mouseY) {
     if (currentState == PanelState::PLAYER_SETUP) {
@@ -379,11 +383,12 @@ void SidePanel::renderInGameState(sf::RenderWindow& window) {
         window.draw(bigAvatar);
     }
 
+    std::string moneyStr = "M" + std::to_string(playerBalances[activePlayerIndex]);
     sf::FloatRect cashRect(tabX + 15.f, tabY + 65.f, 150.f, 35.f);
     draw3DPanel(window, cashRect, sf::Color(240, 240, 240), true);
     window.draw(createText("Cash", cashRect.left + 50.f, cashRect.top + 2.f, 14, sf::Color::Black));
-    window.draw(createText("$1,500", cashRect.left + 42.f, cashRect.top + 16.f, 16, sf::Color::Black));
-    
+    window.draw(createText(moneyStr, cashRect.left + 42.f, cashRect.top + 16.f, 16, sf::Color(28, 35, 64)));  
+      
     currentY += 170.f;
 
     // Dadu

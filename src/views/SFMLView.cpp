@@ -25,6 +25,7 @@ SFMLView::SFMLView() {
     currentTurnVisual = 0;
 
     lastPopupResponse = -1;
+    lastPopupTileIndex = -1;
 }
 
 SFMLView::~SFMLView() {
@@ -152,6 +153,7 @@ bool SFMLView::isWindowOpen() const {
 
 // --- GameView ---
 void SFMLView::updateBoardState(GameContext& G) {
+    latestContext = &G;
     std::vector<Player>& players = G.getPlayers();
 
     if (appState == AppState::IDLE || appState == AppState::SETUP) {
@@ -172,30 +174,38 @@ void SFMLView::updateBoardState(GameContext& G) {
 
     visualPlayerActive.fill(false); // Kalau ada yang bankrut 
 
-    for (size_t i = 0; i < players.size() && i < 4; ++i) {
-        visualPlayerPositions[i] = players[i].getPosition();
+        for (size_t i = 0; i < players.size() && i < 4; ++i) {
+            rightSide.setPlayerBalance(i, players[i].getBalance());
 
-        if (players[i].getStatus() != PlayerStatus::BANKRUPT){
-            visualPlayerActive[i] = true;
-        } else {
-            rightSide.setPlayerData(i, players[i].getName(), false);
+            if (players[i].getStatus() != PlayerStatus::BANKRUPT){
+                visualPlayerActive[i] = true;
+            } else {
+                rightSide.setPlayerData(i, players[i].getName(), false);
+            }
+
+            if (isAnimatingToken && (int)i == animatingPlayerIdx) {
+                continue; 
+            }
+
+            visualPlayerPositions[i] = players[i].getPosition();
+
         }
-
-        if (isAnimatingToken && (int)i == animatingPlayerIdx) {
-            continue; 
-        }
-
-    }
 }
 
 void SFMLView::showDiceAnimation(int dice1, int dice2) {
     rightSide.setDiceResult(dice1, dice2);
 
     int totalRoll = dice1 + dice2;
+    if (totalRoll <= 0) {
+        return;
+    }
+
     int startTile = visualPlayerPositions[currentTurnVisual];
+    int finalTile = (startTile + totalRoll) % 40;
     
     isAnimatingToken = true;
     animatingPlayerIdx = currentTurnVisual;
+    int animatedPlayerIdx = animatingPlayerIdx;
     animationPath.clear();
     hopProgress = 0.0f;
     
@@ -206,13 +216,97 @@ void SFMLView::showDiceAnimation(int dice1, int dice2) {
     startVisualPos = boardGame.getTokenPosition(startTile) + boardGame.computeTokenOffsetForStackIndex(animatingPlayerIdx);
     int nextTile = animationPath.front();
     targetVisualPos = boardGame.getTokenPosition(nextTile) + boardGame.computeTokenOffsetForStackIndex(animatingPlayerIdx);
-    playerDirections[animatingPlayerIdx] = getDirectionForTile(nextTile);
+
+    sf::Clock animClock;
+    sf::Clock waitClock;
+    
+    while (window.isOpen() && (isAnimatingToken || waitClock.getElapsedTime().asSeconds() < 1.0f)) {
+        float dt = animClock.restart().asSeconds();
+
+        sf::Event event;
+        while (window.pollEvent(event)) {
+            if (event.type == sf::Event::Closed) {
+                window.close();
+                return;
+            }
+        }
+
+        if (isAnimatingToken) {
+            updateTokenAnimation(dt); 
+        }
+        
+        rightSide.update(); 
+        renderBoard();
+    }
+
+    if (animatedPlayerIdx >= 0 && animatedPlayerIdx < static_cast<int>(playerDirections.size())) {
+        playerDirections[animatedPlayerIdx] = getDirectionForTile(finalTile);
+    }
 }
 
 void SFMLView::triggerPopup(const std::string& popupType, Tile* tileData) {
     if (activePopup != nullptr) {
         delete activePopup;
         activePopup = nullptr;
+    }
+
+    lastPopupResponse = -1;
+    lastPopupTileIndex = -1;
+
+    const std::string activePlayerName = rightSide.getPlayerName(currentTurnVisual);
+
+    if (popupType == "PROPERTY") {
+        PropertyTile* pTile = dynamic_cast<PropertyTile*>(tileData);
+
+        if (pTile != nullptr) {
+            std::string namaTanah = pTile->getName();
+            int hargaTanah = pTile->getPrice();
+
+            activePopup = new PropertyPopup(namaTanah, hargaTanah, activePlayerName);
+        }
+    } else if (popupType == "LANDING") {
+        std::string tileInfo = "Unknown Tile";
+        if (tileData != nullptr) {
+            tileInfo = tileData->getName() + " (" + tileData->getCode() + ")";
+        }
+        activePopup = new AlertPopup("Tile", "You landed on " + tileInfo, activePlayerName, "OK");
+    } else if (popupType == "TAX_PPH") {
+        activePopup = new AlertPopup("Tax", "Choose payment mode", activePlayerName, "% Wealth", "Flat");
+    } else if (popupType == "FESTIVAL") {
+        std::vector<FestivalItem> items;
+
+        if (latestContext != nullptr) {
+            Player& current = latestContext->getCurrentPlayer();
+            for (PropertyTile* prop : current.getOwnedProperties()) {
+                StreetTile* street = dynamic_cast<StreetTile*>(prop);
+                if (street == nullptr) continue;
+
+                int baseRent = 0;
+                const std::vector<int> rentPrices = street->getRentPrices();
+                if (street->getHasHotel() && rentPrices.size() > 5) {
+                    baseRent = rentPrices[5];
+                } else {
+                    int houseCount = street->getHouseCount();
+                    if (houseCount >= 0 && houseCount < static_cast<int>(rentPrices.size())) {
+                        baseRent = rentPrices[houseCount];
+                    }
+                }
+
+                FestivalItem item;
+                item.tileIndex = street->getIdx();
+                item.name = street->getName() + " (" + street->getCode() + ")";
+                item.baseRent = baseRent;
+                item.currentMultiplier = std::max(1, street->getFestivalStack());
+                item.currentDuration = street->getFestivalTurn();
+                items.push_back(item);
+            }
+        }
+
+        if (items.empty()) {
+            activePopup = new AlertPopup("Festival", "No eligible street property", activePlayerName, "OK");
+        } else {
+            activePopup = new FestivalPopup(items);
+        }
     }
 
     if (activePopup != nullptr) {
@@ -229,9 +323,52 @@ bool SFMLView::isAnimationPlaying() const {
 }
 
 int SFMLView::getPopupResponse() {
-    int temp = lastPopupResponse;
-    lastPopupResponse = -1;
-    return temp;
+    while (window.isOpen() && activePopup != nullptr) {
+        sf::Event event;
+        while (window.pollEvent(event)) {
+            if (event.type == sf::Event::Closed) { 
+                window.close(); 
+                return 0; 
+            }
+            
+            if (event.type == sf::Event::MouseButtonPressed && event.mouseButton.button == sf::Mouse::Left) {
+                sf::Vector2f mPos = window.mapPixelToCoords(sf::Mouse::getPosition(window));
+                PopupResult res = activePopup->handleMouseClick(mPos.x, mPos.y);
+                
+                if (res != PopupResult::NONE) {
+                    if (res == PopupResult::BUY_PROPERTY) {
+                        lastPopupResponse = 1;
+                    } else if (res == PopupResult::AUCTION_PROPERTY) {
+                        lastPopupResponse = 2;
+                    } else if (res == PopupResult::TAX_FLAT) {
+                        lastPopupResponse = 1;
+                    } else if (res == PopupResult::TAX_PERCENTAGE) {
+                        lastPopupResponse = 2;
+                    } else if (res == PopupResult::APPLY_FESTIVAL) {
+                        lastPopupResponse = 1;
+                    } else {
+                        lastPopupResponse = 0;
+                    }
+
+                    if (FestivalPopup* festivalPopup = dynamic_cast<FestivalPopup*>(activePopup)) {
+                        lastPopupTileIndex = festivalPopup->getSelectedTileIndex();
+                    }
+                    
+                    if (res != PopupResult::AUCTION_BID && res != PopupResult::AUCTION_PASS) {
+                        delete activePopup; 
+                        activePopup = nullptr;
+                    }
+                    return lastPopupResponse;
+                }
+            }
+        }
+        renderBoard(); 
+    }
+    return lastPopupResponse;
+}
+
+int SFMLView::getLastPopupTileIndex() const {
+    return lastPopupTileIndex;
 }
 
 CommandType SFMLView::getGUICommand() {
@@ -239,6 +376,40 @@ CommandType SFMLView::getGUICommand() {
         float deltaTime = frameClock.restart().asSeconds();
         updateTokenAnimation(deltaTime); 
         rightSide.update();
+
+        if (activePopup != nullptr) {
+            sf::Event popupEvent;
+            while (window.pollEvent(popupEvent)) {
+                if (popupEvent.type == sf::Event::Closed) {
+                    window.close();
+                    return CommandType::UNKNOWN_COMMAND;
+                }
+
+                if (popupEvent.type == sf::Event::MouseButtonPressed && popupEvent.mouseButton.button == sf::Mouse::Left) {
+                    PopupResult res = activePopup->handleMouseClick(popupEvent.mouseButton.x, popupEvent.mouseButton.y);
+                    if (res != PopupResult::NONE) {
+                        if (res == PopupResult::BUY_PROPERTY) lastPopupResponse = 1;
+                        else if (res == PopupResult::AUCTION_PROPERTY) lastPopupResponse = 2;
+                        else if (res == PopupResult::TAX_FLAT) lastPopupResponse = 1;
+                        else if (res == PopupResult::TAX_PERCENTAGE) lastPopupResponse = 2;
+                        else if (res == PopupResult::APPLY_FESTIVAL) lastPopupResponse = 1;
+                        else lastPopupResponse = 0;
+
+                        if (FestivalPopup* festivalPopup = dynamic_cast<FestivalPopup*>(activePopup)) {
+                            lastPopupTileIndex = festivalPopup->getSelectedTileIndex();
+                        }
+
+                        if (res != PopupResult::AUCTION_BID && res != PopupResult::AUCTION_PASS) {
+                            delete activePopup;
+                            activePopup = nullptr;
+                        }
+                    }
+                }
+            }
+
+            renderBoard();
+            continue;
+        }
 
         std::string cmdStr = rightSide.pollCommandString();
         if (!cmdStr.empty()) {
@@ -266,22 +437,6 @@ CommandType SFMLView::getGUICommand() {
 
             if (event.type == sf::Event::TextEntered) {
                 rightSide.handleTextInput(event.text.unicode);
-            }
-
-            if (activePopup != nullptr) {
-                if (event.type == sf::Event::MouseButtonPressed && event.mouseButton.button == sf::Mouse::Left) {
-                    PopupResult res = activePopup->handleMouseClick(event.mouseButton.x, event.mouseButton.y);
-                    if (res != PopupResult::NONE) {
-                        if (res == PopupResult::BUY_PROPERTY) lastPopupResponse = 1;
-                        else if (res == PopupResult::AUCTION_PROPERTY) lastPopupResponse = 2;
-                        else lastPopupResponse = 0;
-
-                        if (res != PopupResult::AUCTION_BID && res != PopupResult::AUCTION_PASS) {
-                            delete activePopup; activePopup = nullptr; 
-                        }
-                    }
-                }
-                continue; 
             }
 
             if (event.type == sf::Event::MouseButtonPressed && event.mouseButton.button == sf::Mouse::Left) {

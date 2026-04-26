@@ -17,6 +17,7 @@ private:
     sf::FloatRect giveDiceButtonRect;
     sf::FloatRect startGameButtonRect;
     sf::FloatRect rollDiceButtonRect;
+    std::array<int, 4> playerBalances;
 
     // --- Assets ---
     sf::Font mainFont;
@@ -66,6 +67,7 @@ public:
     // --- Method Utama ---
     void update(); 
     void render(sf::RenderWindow& window);
+    void setPlayerBalance(int index, int balance);
 
     // --- Input Handler ---
     void handleMouseClick(float mouseX, float mouseY);

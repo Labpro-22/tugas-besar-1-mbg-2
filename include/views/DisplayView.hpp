@@ -12,6 +12,7 @@
 #include "GameLogger.hpp"
 #include "InputHandler.hpp"
 #include "Liquidation.hpp"
+#include <functional>
 
 class DisplayView
 {
@@ -90,6 +91,9 @@ public:
     void renderWarning(const string& message);
     void renderPrompt(const string& message);
 
+    void setLogSink(const std::function<void(const std::string&)>& sink);
+    void clearLogSink();
+
     // Festival
     void renderFestivalTile(GameContext G, FestivalTile *tile);
     void renderFestivalResult(GameContext G, StreetTile* tile);
@@ -165,5 +169,7 @@ private:
     vector<Player*> getPlayersOnTile(int tileIdx, GameContext G) const;
     string buildOwnershipInfo(Tile* tile, GameContext G) const;
     string buildPlayerPositionInfo(int tileIdx, GameContext G) const;
+
+    std::function<void(const std::string&)> logSink;
 
 };

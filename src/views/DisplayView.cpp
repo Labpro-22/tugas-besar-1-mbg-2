@@ -514,15 +514,32 @@ void DisplayView::showMenu(){
     cout << "13. [HELP] Show this menu again" << endl;
 }
 
+void DisplayView::setLogSink(const std::function<void(const std::string&)>& sink) {
+    logSink = sink;
+}
+
+void DisplayView::clearLogSink() {
+    logSink = nullptr;
+}
+
 void DisplayView::renderInfo(const string& message) {
+    if (logSink) {
+        logSink(message);
+    }
     cout << message << endl;
 }
 
 void DisplayView::renderWarning(const string& message) {
+    if (logSink) {
+        logSink("[REJECTED] " + message);
+    }
     cout << "[REJECTED] " << message << endl;
 }
 
 void DisplayView::renderPrompt(const string& message) {
+    if (logSink) {
+        logSink(message);
+    }
     cout << message;
 }
 

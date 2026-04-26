@@ -71,6 +71,16 @@ void GameEngine::run() {
 
     initGame(gameContext, turnController, configReader, economyController);
 
+    if (isGUIMode && guiView != nullptr) {
+        cliView.setLogSink([this](const std::string& message) {
+            if (this->guiView != nullptr) {
+                this->guiView->addLog(message);
+            }
+        });
+    } else {
+        cliView.clearLogSink();
+    }
+
     int startingIndex = 0;
     bool gameReady = false;
 
@@ -236,7 +246,10 @@ void GameEngine::run() {
                             currentPlayer->setStatus(PlayerStatus::ACTIVE);
                             currentPlayer->setJailTurns(0);
                             try {
-                                turnController.handleDiceRollMovement(&gameContext, economyController, effectController, auctionController, bankruptcyController, dice, saveLoader, inputHandler, logger, cliView);
+                                turnController.handleDiceRollMovement(&gameContext, economyController, effectController, auctionController, bankruptcyController, dice, saveLoader, inputHandler, logger, cliView, isGUIMode, guiView);
+                                if (isGUIMode && guiView != nullptr) {
+                                    guiView->updateBoardState(gameContext);
+                                }
                             } catch (const AuctionTriggerException&) {
                                 auctionController.startAuctionSkipBuy(gameContext, cliView, inputHandler);
                                 turnEnded = true;
@@ -283,12 +296,12 @@ void GameEngine::run() {
                         currentPlayer->setDoubleCount(currentDoubleCount);
 
                         if (currentDoubleCount == 3) {
-                            displayView.renderInfo("\n*** 3 DOUBLES IN A ROW! GO TO JAIL! ***\n");
+                            cliView.renderInfo("\n*** 3 DOUBLES IN A ROW! GO TO JAIL! ***\n");
                             if (currentPlayer->hasShield()) {
-                                displayView.renderInfo("[SHIELD ACTIVE] You are protected! You safely escaped from going to Jail.");
+                                cliView.renderInfo("[SHIELD ACTIVE] You are protected! You safely escaped from going to Jail.");
                             } 
                             else {
-                                displayView.renderInfo("YOU ARE SENT TO JAIL!");
+                                cliView.renderInfo("YOU ARE SENT TO JAIL!");
                                 Tile* jailTile = gameContext.getBoard().getTileByCode("PEN");
                                 
                                 if (jailTile != nullptr) {
@@ -305,13 +318,11 @@ void GameEngine::run() {
                         } 
                         else {
                             isDoubleRoll = true;
-                            displayView.renderInfo("\n" + currentPlayer->getName() + " rolled DOUBLES! Gets an extra turn! (Double count: " + to_string(currentDoubleCount) + ")");
+                            cliView.renderInfo("\n" + currentPlayer->getName() + " rolled DOUBLES! Gets an extra turn! (Double count: " + to_string(currentDoubleCount) + ")");
                         }
                     }
                     else {
                         currentPlayer->setDoubleCount(0);
-                        isDoubleRoll = true;
-                        cliView.renderInfo("\n " + currentPlayer->getName() + " rolled DOUBLES! Gets an extra turn! \n");
                     }
                     
                     try {
@@ -319,7 +330,7 @@ void GameEngine::run() {
                         if (isGUIMode && guiView != nullptr) {
                             guiView->showDiceAnimation(dice.getDice1(), dice.getDice2());
                         }
-                        turnController.handleDiceRollMovement(&gameContext, economyController, effectController, auctionController, bankruptcyController, dice, saveLoader, inputHandler, logger, cliView);
+                        turnController.handleDiceRollMovement(&gameContext, economyController, effectController, auctionController, bankruptcyController, dice, saveLoader, inputHandler, logger, cliView, isGUIMode, guiView);
                         if (isGUIMode && guiView != nullptr) {
                             guiView->updateBoardState(gameContext);
                         }
@@ -347,13 +358,13 @@ void GameEngine::run() {
                         currentPlayer->setDoubleCount(currentDoubleCount);
 
                         if (currentDoubleCount == 3) {
-                            displayView.renderInfo("\n*** 3 DOUBLES IN A ROW! ***");
+                            cliView.renderInfo("\n*** 3 DOUBLES IN A ROW! ***");
                             
                             if (currentPlayer->hasShield()) {
-                                displayView.renderInfo("[SHIELD ACTIVE] You are protected! You safely escaped from going to Jail.");
+                                cliView.renderInfo("[SHIELD ACTIVE] You are protected! You safely escaped from going to Jail.");
                             } 
                             else {
-                                displayView.renderInfo("YOU ARE SENT TO JAIL!");
+                                cliView.renderInfo("YOU ARE SENT TO JAIL!");
                                 Tile* jailTile = gameContext.getBoard().getTileByCode("PEN");
                                 
                                 if (jailTile != nullptr) {
@@ -371,24 +382,25 @@ void GameEngine::run() {
                         }
                         else {
                             isDoubleRoll = true;
-                            displayView.renderInfo("\n" + currentPlayer->getName() + " set DOUBLES! Gets an extra turn! (Double count: " + to_string(currentDoubleCount) + ")\n");
+                            cliView.renderInfo("\n" + currentPlayer->getName() + " set DOUBLES! Gets an extra turn! (Double count: " + to_string(currentDoubleCount) + ")\n");
                         }
                     }
                     else {
                         currentPlayer->setDoubleCount(0);
-                        isDoubleRoll = true;
-                        cliView.renderInfo("\n" + currentPlayer->getName() + " set DOUBLES! Gets an extra turn! \n");
                     }
                     try {
                         cliView.renderDiceRoll(gameContext, dice);
                         if (isGUIMode && guiView != nullptr) {
                             guiView->showDiceAnimation(dice.getDice1(), dice.getDice2());
                         }
-                        turnController.handleDiceRollMovement(&gameContext, economyController, effectController, auctionController, bankruptcyController, dice, saveLoader, inputHandler, logger, cliView);
+                        turnController.handleDiceRollMovement(&gameContext, economyController, effectController, auctionController, bankruptcyController, dice, saveLoader, inputHandler, logger, cliView, isGUIMode, guiView);
+                        if (isGUIMode && guiView != nullptr) guiView->updateBoardState(gameContext);
                     } catch (const AuctionTriggerException&) {
                         auctionController.startAuctionSkipBuy(gameContext, cliView, inputHandler);
+                        if (isGUIMode && guiView != nullptr) guiView->updateBoardState(gameContext);
                     } catch (const BankruptcyException& ex) {
                         bankruptcyController.liquidateAssets(gameContext, *currentPlayer, ex.getCreditor(), ex.getRequired(), cliView, economyController, inputHandler, ex.getBankruptTile());
+                        if (isGUIMode && guiView != nullptr) guiView->updateBoardState(gameContext);
                     }
                     hasRolledDice = true;
                     break;
@@ -416,7 +428,8 @@ void GameEngine::run() {
                 case CommandType::GADAI:
                 case CommandType::TEBUS:
                 case CommandType::BANGUN:
-                    turnController.handleBuildHouse(&gameContext, currentPlayer, economyController, inputHandler, displayView);
+                    turnController.handleBuildHouse(&gameContext, currentPlayer, economyController, inputHandler, cliView);
+                    if (isGUIMode && guiView != nullptr) guiView->updateBoardState(gameContext);
                     break;
 
                 case CommandType::GUNAKAN_KEMAMPUAN: {
@@ -486,7 +499,7 @@ void GameEngine::run() {
                             }
 
                             try {
-                                turnController.resolveTileLanding(&gameContext, targetP, economyController, effectController, auctionController, bankruptcyController, dice, saveLoader, inputHandler, logger, cliView);
+                                turnController.resolveTileLanding(&gameContext, targetP, economyController, effectController, auctionController, bankruptcyController, dice, saveLoader, inputHandler, logger, cliView, isGUIMode, guiView);
                             } catch (const AuctionTriggerException&) {
                                 auctionController.startAuctionSkipBuy(gameContext, cliView, inputHandler);
                             } catch (const BankruptcyException& ex) {
@@ -499,6 +512,8 @@ void GameEngine::run() {
                             }
                         }
                     }
+
+                    if (isGUIMode && guiView != nullptr) guiView->updateBoardState(gameContext);
                     break; 
                 }
 

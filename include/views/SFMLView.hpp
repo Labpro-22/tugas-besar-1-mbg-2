@@ -6,12 +6,16 @@
 #include <string>
 #include <vector>
 #include <array>
+#include <algorithm>
 
 // SFML, Interface
 #include <SFML/Graphics.hpp>
 #include "GameView.hpp"
 
 // Komponen GUI, Popups
+#include "PropertyTile.hpp"
+#include "StreetTile.hpp"
+
 #include "gui/Board.hpp"
 #include "gui/SidePanel.hpp"
 #include "gui/MenuBar.hpp"
@@ -44,10 +48,12 @@ private:
     std::array<bool, 4> visualPlayerActive;
 	std::array<StatusProperty, 40> visualPropertyData; 
 
-    int currentTurnVisual;
+    int currentTurnVisual = 0;
     int lastRolledPlayer = 0;
     int auctionPassCount = 0;
     int lastPopupResponse = -1;
+    int lastPopupTileIndex = -1;
+    GameContext* latestContext = nullptr;
 
     // Animation
     sf::Clock frameClock; 
@@ -84,6 +90,7 @@ public:
     void closeUI() override;
     bool isAnimationPlaying() const override;
     int getPopupResponse() override;
+    int getLastPopupTileIndex() const override;
     CommandType getGUICommand() override;
     void addLog(const std::string& msg) override;
 };

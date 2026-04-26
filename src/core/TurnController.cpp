@@ -35,17 +35,36 @@ void TurnController::distributeSkillCards(GameContext& ctx, InputHandler& input,
     }
 }
 
-void TurnController::resolveTileLanding(GameContext* context, Player* player, EconomyController& eco, EffectController& eff, AuctionController& auc, BankruptcyController& bank, Dice& dice, SaveLoader& sl, InputHandler& input, GameLogger& logger, DisplayView& display) {
+void TurnController::resolveTileLanding(GameContext* context, Player* player, EconomyController& eco, EffectController& eff, AuctionController& auc, BankruptcyController& bank, Dice& dice, SaveLoader& sl, InputHandler& input, GameLogger& logger, DisplayView& display, bool isGUIMode, GameView* guiView) {
     
     Tile* currentTile = context->getBoard().getTile(player->getPosition());
     display.renderTile(*context);
     LandResult result = currentTile->land(*context);
 
+    if (isGUIMode && guiView != nullptr &&
+        result.getType() != LandEventType::OFFERBUYPROPERTY &&
+        result.getType() != LandEventType::PAYTAX &&
+        result.getType() != LandEventType::DOFESTIVAL) {
+        guiView->triggerPopup("LANDING", currentTile);
+        guiView->getPopupResponse();
+    }
+
     switch (result.getType()) {
         case LandEventType::OFFERBUYPROPERTY:{
             display.renderBuyStreet(*context, dynamic_cast<StreetTile*>(currentTile));
-            input.getStringInput();
-            string choice = input.getLastStringInput();
+
+            std::string choice = "n";
+            if (isGUIMode && guiView != nullptr) {
+                guiView->triggerPopup("PROPERTY", currentTile); 
+                int res = guiView->getPopupResponse();          
+                
+                if (res == 1) choice = "y";      
+                else choice = "n";               
+            } else {
+                input.getStringInput();
+                choice = input.getLastStringInput();
+            }
+
             if (choice == "Y" || choice == "y") {
                 try {
                     eco.purchaseProperty(*player, dynamic_cast<PropertyTile*>(currentTile));
@@ -89,8 +108,17 @@ void TurnController::resolveTileLanding(GameContext* context, Player* player, Ec
             display.renderTax(*context, dynamic_cast<TaxTile*>(currentTile));
             if (auto* taxTile = dynamic_cast<TaxTile*>(currentTile)) {
                 if (taxTile->getIsPPH()) {
-                    input.getIntInput();
-                    int choice = input.getIntValue1();
+                    int choice = 1;
+
+                    if (isGUIMode && guiView != nullptr) {
+                        guiView->triggerPopup("TAX_PPH", currentTile);
+                        int res = guiView->getPopupResponse();
+                        choice = (res == 2) ? 2 : 1;
+                    } else {
+                        input.getIntInput();
+                        choice = input.getIntValue1();
+                    }
+
                     try {
                         int balanceBeforeTax = player->getBalance();
                         display.renderPayTax(*context, choice);
@@ -116,7 +144,36 @@ void TurnController::resolveTileLanding(GameContext* context, Player* player, Ec
             break;
 
         case LandEventType::DOFESTIVAL:{
-           eff.handleFestival(context, &display, &input );
+            if (isGUIMode && guiView != nullptr) {
+                guiView->triggerPopup("FESTIVAL", currentTile);
+                int popupRes = guiView->getPopupResponse();
+
+                if (popupRes == 1) {
+                    int selectedTileIndex = guiView->getLastPopupTileIndex();
+                    if (selectedTileIndex < 0) {
+                        display.renderWarning("Festival target is invalid. No festival effect applied.");
+                        break;
+                    }
+
+                    Tile* chosenTile = context->getBoard().getTile(selectedTileIndex);
+                    StreetTile* selectedStreet = dynamic_cast<StreetTile*>(chosenTile);
+
+                    if (selectedStreet != nullptr) {
+                        if (selectedStreet->isFestivalActive()) {
+                            selectedStreet->playerReenterFestival();
+                        } else {
+                            selectedStreet->applyFestival();
+                        }
+                        display.renderFestivalResult(*context, selectedStreet);
+                    } else {
+                        display.renderWarning("Festival target is invalid. No festival effect applied.");
+                    }
+                } else {
+                    display.renderInfo("Festival action canceled.");
+                }
+            } else {
+                eff.handleFestival(context, &display, &input );
+            }
             break;
         }
 
@@ -159,7 +216,7 @@ void TurnController::resolveTileLanding(GameContext* context, Player* player, Ec
     }
 }
 
-void TurnController::handleDiceRollMovement(GameContext* context, EconomyController& eco, EffectController& eff, AuctionController& auc, BankruptcyController& bank, Dice& dice, SaveLoader& sl, InputHandler& input, GameLogger& logger, DisplayView& display) {
+void TurnController::handleDiceRollMovement(GameContext* context, EconomyController& eco, EffectController& eff, AuctionController& auc, BankruptcyController& bank, Dice& dice, SaveLoader& sl, InputHandler& input, GameLogger& logger, DisplayView& display, bool isGUIMode, GameView* guiView) {
     
     Player* currentPlayer = &context->getCurrentPlayer(); 
     
@@ -174,7 +231,7 @@ void TurnController::handleDiceRollMovement(GameContext* context, EconomyControl
         display.renderInfo("You passed GO! Collected " + to_string(context->getGoSalary()) + " coins.");
     }
 
-    resolveTileLanding(context, currentPlayer, eco, eff, auc, bank, dice, sl, input, logger, display);
+    resolveTileLanding(context, currentPlayer, eco, eff, auc, bank, dice, sl, input, logger, display, isGUIMode, guiView);
 }
 
 void TurnController::handleBuildHouse(GameContext* context, Player* player, EconomyController& eco, InputHandler& input, DisplayView& display) {
