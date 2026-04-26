@@ -153,7 +153,7 @@ void GameEngine::run() {
             
             if (!gameContext.getPlayers().empty()) {
                 logger.addLog(gameContext.getCurrentTurn(), "SYSTEM", "LOAD", saveFile);
-                displayView.renderInfo("\n[SUCCESS] Load successful!\n");
+                cliView.renderInfo("\n[SUCCESS] Load successful!\n");
                 gameReady = true;
             } else {
                 cliView.renderInfo("\n[ERROR] Failed to load save file or data is empty. Please try again.\n");
@@ -226,12 +226,12 @@ void GameEngine::run() {
                 bool validJailAction = false;
 
                 while (!validJailAction) {
-                    displayView.renderInfo("Jail escape options:");
-                    displayView.renderInfo("1. Pay fine (M" + to_string(gameContext.getJailFine()) + ")");
-                    displayView.renderInfo("2. Use 'Get Out of Jail' card");
-                    displayView.renderInfo("3. Roll dice (must be doubles)");
-                    displayView.renderInfo("4. Save Game");
-                    displayView.renderPrompt("Choice (1/2/3/4): ");
+                    cliView.renderInfo("Jail escape options:");
+                    cliView.renderInfo("1. Pay fine (M" + to_string(gameContext.getJailFine()) + ")");
+                    cliView.renderInfo("2. Use 'Get Out of Jail' card");
+                    cliView.renderInfo("3. Roll dice (must be doubles)");
+                    cliView.renderInfo("4. Save Game");
+                    cliView.renderPrompt("Choice (1/2/3/4): ");
 
                     inputHandler.getIntInput();
                     int choice = inputHandler.getIntValue1();
@@ -244,8 +244,8 @@ void GameEngine::run() {
                             cliView.renderInfo("Fine paid. You are now free!");
                             validJailAction = true;
                         } catch (const InsufficientFundsException& ex) {
-                            displayView.renderWarning("Insufficient funds!");
-                            bankruptcyController.liquidateAssets(gameContext, *currentPlayer, nullptr, ex.getRequired(), displayView, economyController, inputHandler, nullptr, logger);
+                            cliView.renderWarning("Insufficient funds!");
+                            bankruptcyController.liquidateAssets(gameContext, *currentPlayer, nullptr, ex.getRequired(), cliView, economyController, inputHandler, nullptr, logger);
                             turnEnded = true;
                             validJailAction = true;
                         }
@@ -261,7 +261,7 @@ void GameEngine::run() {
                                 gameContext.getSkillDeck().discard(usedCard);
                             }
 
-                            effectController.execute(*usedCard, *currentPlayer, gameContext, inputHandler, displayView, logger);
+                            effectController.execute(*usedCard, *currentPlayer, gameContext, inputHandler, cliView, logger);
                             validJailAction = true;
                         } else {
                             cliView.renderWarning("FAILED: You do not have a 'Get Out of Jail' card! Choose another option.");
@@ -280,22 +280,22 @@ void GameEngine::run() {
                                     guiView->updateBoardState(gameContext);
                                 }
                             } catch (const AuctionTriggerException&) {
-                                auctionController.startAuctionSkipBuy(gameContext, displayView, inputHandler, logger, isGUIMode, guiView);
+                                auctionController.startAuctionSkipBuy(gameContext, cliView, inputHandler, logger, isGUIMode, guiView);
                                 turnEnded = true;
                             } catch (const BankruptcyException& ex) {
-                                bankruptcyController.liquidateAssets(gameContext, *currentPlayer, nullptr, ex.getRequired(), displayView, economyController, inputHandler, ex.getBankruptTile(), logger);
+                                bankruptcyController.liquidateAssets(gameContext, *currentPlayer, nullptr, ex.getRequired(), cliView, economyController, inputHandler, ex.getBankruptTile(), logger);
                                 turnEnded = true;
                             }
                             hasRolledDice = true;
                         }else if (choice == 4){
-                            displayView.renderPrompt("Input save file name: ");
+                            cliView.renderPrompt("Input save file name: ");
                             inputHandler.getStringInput();
                             saveLoader.saveGame(inputHandler.getLastStringInput(), gameContext, logger);
                             logger.addLog(gameContext.getCurrentTurn(), currentPlayer->getName(), "SIMPAN", inputHandler.getLastStringInput());
                             break;
                         }
                         else {
-                            displayView.renderInfo("Failed to roll doubles. You remain in jail.");
+                            cliView.renderInfo("Failed to roll doubles. You remain in jail.");
                             turnEnded = true;
                         }
                         validJailAction = true;
@@ -372,9 +372,9 @@ void GameEngine::run() {
                             guiView->updateBoardState(gameContext);
                         }
                     } catch (const AuctionTriggerException&) {
-                        auctionController.startAuctionSkipBuy(gameContext, displayView, inputHandler, logger, isGUIMode, guiView);
+                        auctionController.startAuctionSkipBuy(gameContext, cliView, inputHandler, logger, isGUIMode, guiView);
                     } catch (const BankruptcyException& ex) {
-                        bankruptcyController.liquidateAssets(gameContext, *currentPlayer, nullptr, ex.getRequired(), displayView, economyController, inputHandler, ex.getBankruptTile(), logger);
+                        bankruptcyController.liquidateAssets(gameContext, *currentPlayer, nullptr, ex.getRequired(), cliView, economyController, inputHandler, ex.getBankruptTile(), logger);
                     }
                     hasRolledDice = true;
                     break;
@@ -444,9 +444,9 @@ void GameEngine::run() {
                         turnController.handleDiceRollMovement(&gameContext, economyController, effectController, auctionController, bankruptcyController, dice, saveLoader, inputHandler, logger, cliView, isGUIMode, guiView);
                         if (isGUIMode && guiView != nullptr) guiView->updateBoardState(gameContext);
                     } catch (const AuctionTriggerException&) {
-                        auctionController.startAuctionSkipBuy(gameContext, displayView, inputHandler, logger, isGUIMode, guiView);
+                        auctionController.startAuctionSkipBuy(gameContext, cliView, inputHandler, logger, isGUIMode, guiView);
                     } catch (const BankruptcyException& ex) {
-                        bankruptcyController.liquidateAssets(gameContext, *currentPlayer, ex.getCreditor(), ex.getRequired(), displayView, economyController, inputHandler, ex.getBankruptTile(), logger);
+                        bankruptcyController.liquidateAssets(gameContext, *currentPlayer, ex.getCreditor(), ex.getRequired(), cliView, economyController, inputHandler, ex.getBankruptTile(), logger);
                     }
                     hasRolledDice = true;
                     break;
@@ -532,14 +532,14 @@ void GameEngine::run() {
 
                     if (auto* railroadTile = dynamic_cast<RailroadTile*>(tile)) {
                         economyController.mortgageProperty( *currentPlayer, railroadTile );
-                        displayView.renderMortgageResult( gameContext, mortgageProperty[choice - 1] );
+                        cliView.renderMortgageResult( gameContext, mortgageProperty[choice - 1] );
                         logger.addLog(gameContext.getCurrentTurn(), currentPlayer->getName(), "MORTGAGE_PROPERTY", railroadTile->getName() + " mortgaged for M" + to_string(railroadTile->getMortgageValue()));
                         break;
                     }
 
                     if (auto* utilityTile = dynamic_cast<UtilityTile*>(tile)) {
                         economyController.mortgageProperty( *currentPlayer, utilityTile );
-                        displayView.renderMortgageResult( gameContext, mortgageProperty[choice - 1] );
+                        cliView.renderMortgageResult( gameContext, mortgageProperty[choice - 1] );
                         logger.addLog(gameContext.getCurrentTurn(), currentPlayer->getName(), "MORTGAGE_PROPERTY", utilityTile->getName() + " mortgaged for M" + to_string(utilityTile->getMortgageValue()));
                         break;
                     }
@@ -585,7 +585,7 @@ void GameEngine::run() {
                             }
                         }
                         economyController.mortgageProperty( *currentPlayer, tile );
-                        displayView.renderMortgageResult( gameContext, mortgageProperty[choice - 1] );
+                        cliView.renderMortgageResult( gameContext, mortgageProperty[choice - 1] );
                         logger.addLog(gameContext.getCurrentTurn(), currentPlayer->getName(), "MORTGAGE_PROPERTY", tile->getName() + " mortgaged for M" + to_string(tile->getMortgageValue()));
                     
                     }
@@ -601,37 +601,38 @@ void GameEngine::run() {
                         break;  
                     }
 
-                    displayView.renderRedeemStart(gameContext, mortgageProperty);   
-                    inputHandler.getIntInput();
-                    int choice = inputHandler.getIntValue1();
-                    while (choice < 0 || choice > mortgageProperty.size()){
-                        displayView.renderRedeemChoose(gameContext, mortgageProperty, choice, 0);   
-                        if (choice == 0){
+                    cliView.renderRedeemStart(gameContext, mortgageProperty);   
+                    
+                    int choice = 0;
+                    if (isGUIMode && guiView != nullptr) {
+                        std::vector<std::string> options;
+                        for (auto* p : mortgageProperty) {
+                            options.push_back(p->getName() + " (" + p->getCode() + ") - M" + std::to_string(p->getPrice()));
+                        }
+                        int idx = guiView->getIntChoiceFromList("Select property to redeem:", options);
+                        if (idx == -1) {
+                            cliView.renderInfo("Redeem cancelled.");
                             break;
                         }
                         choice = idx + 1;
                     } else {
                         inputHandler.getIntInput();
                         choice = inputHandler.getIntValue1();
-                        while (choice < 0 || choice > (int)mortgageProperty.size()){
-                            if (choice == 0){
-                                break;
-                            }
-                            inputHandler.getIntInput();
-                            choice = inputHandler.getIntValue1();
-                            cliView.renderRedeemChoose(gameContext, mortgageProperty, choice, 0);   
+                        if (choice == 0) {
+                            cliView.renderInfo("Redeem cancelled.");
+                            break;
+                        }
+                        if (choice < 1 || choice > (int)mortgageProperty.size()) {
+                            cliView.renderWarning("Invalid choice! Redeem cancelled.");
+                            break;
                         }
                     }
-                    
-                    if (choice == 0) {
-                        cliView.renderRedeemChoose(gameContext, mortgageProperty, choice, 0);   
-                        break;
-                    }
+
                     PropertyTile* selected = mortgageProperty[choice - 1];
                     try {
                         int redeemPrice = selected->getPrice();
                         economyController.redeemProperty(*currentPlayer, selected);
-                        displayView.renderRedeemChoose(gameContext, mortgageProperty, choice, redeemPrice);
+                        cliView.renderRedeemChoose(gameContext, mortgageProperty, choice, redeemPrice);
                         logger.addLog(gameContext.getCurrentTurn(), currentPlayer->getName(), "REDEEM_PROPERTY", selected->getName() + " redeemed for M" + to_string(redeemPrice));
                     }
                     catch (const InsufficientFundsException& ex) {
@@ -643,7 +644,7 @@ void GameEngine::run() {
                     break;
                 }   
                 case CommandType::BANGUN:
-                    turnController.handleBuildHouse(&gameContext, currentPlayer, economyController, inputHandler, logger, displayView, isGUIMode, guiView);
+                    turnController.handleBuildHouse(&gameContext, currentPlayer, economyController, inputHandler, logger, cliView, isGUIMode, guiView);
                     break;
 
                 case CommandType::GUNAKAN_KEMAMPUAN: {
@@ -703,29 +704,29 @@ void GameEngine::run() {
                         preSkillPositions.push_back(p.getPosition());
                     }
 
-                    effectController.execute(*cardToUse, *currentPlayer, gameContext, inputHandler, displayView, logger, isGUIMode, guiView);
+                    effectController.execute(*cardToUse, *currentPlayer, gameContext, inputHandler, cliView, logger, isGUIMode, guiView);
                     gameContext.getSkillDeck().discard(cardToUse);
                     logger.addLog(gameContext.getCurrentTurn(), currentPlayer->getName(), "USE_SKILL_CARD", cardToUse->getName());
                     hasUsedSkillThisTurn = true;
 
-                    for (int i = 0; i < gameContext.getPlayers().size(); i++) {
+                    for (int i = 0; i < (int)gameContext.getPlayers().size(); i++) {
                         int oldPos = preSkillPositions[i];
                         Player& targetP = gameContext.getPlayers()[i];
                         if (targetP.getStatus() == PlayerStatus::BANKRUPT) continue;
 
                         if (targetP.getPosition() != oldPos) {
                             if (&targetP == currentPlayer) {
-                                displayView.renderInfo("\n[CARD EFFECT] You have moved to a new tile!");
+                                cliView.renderInfo("\n[CARD EFFECT] You have moved to a new tile!");
                             } else {
-                                displayView.renderInfo("\n[CARD EFFECT] Player " + targetP.getName() + " has moved to a new tile!");
+                                cliView.renderInfo("\n[CARD EFFECT] Player " + targetP.getName() + " has moved to a new tile!");
                             }
 
                             try {
-                                turnController.resolveTileLanding(&gameContext, &targetP, economyController, effectController, auctionController, bankruptcyController, dice, saveLoader, inputHandler, logger, displayView);
+                                turnController.resolveTileLanding(&gameContext, &targetP, economyController, effectController, auctionController, bankruptcyController, dice, saveLoader, inputHandler, logger, cliView, isGUIMode, guiView);
                             } catch (const AuctionTriggerException&) {
-                                auctionController.startAuctionSkipBuy(gameContext, displayView, inputHandler, logger);
+                                auctionController.startAuctionSkipBuy(gameContext, cliView, inputHandler, logger, isGUIMode, guiView);
                             } catch (const BankruptcyException& ex) {
-                                bankruptcyController.liquidateAssets(gameContext, targetP, nullptr, ex.getRequired(), displayView, economyController, inputHandler, ex.getBankruptTile(), logger);
+                                bankruptcyController.liquidateAssets(gameContext, targetP, nullptr, ex.getRequired(), cliView, economyController, inputHandler, ex.getBankruptTile(), logger);
                             }
 
                             if (&targetP == currentPlayer && (currentPlayer->getStatus() == PlayerStatus::JAILED || currentPlayer->getStatus() == PlayerStatus::BANKRUPT)) {
@@ -751,21 +752,21 @@ void GameEngine::run() {
 
                 case CommandType::SIMPAN:
                     if (isCommand){
-                        displayView.renderWarning("You have already entered a command this turn! Please complete it before saving.");
+                        cliView.renderWarning("You have already entered a command this turn! Please complete it before saving.");
                         break;
                     }
                     inputHandler.getStringInput();
                     saveLoader.saveGame(inputHandler.getLastStringInput(), gameContext, logger);
                     logger.addLog(gameContext.getCurrentTurn(), currentPlayer->getName(), "SIMPAN", inputHandler.getLastStringInput());
                     break;
-                }
+
 
 
                 case CommandType::CETAK_LOG: {
                     if (isGUIMode && guiView != nullptr) {
                         std::string logStr = "";
                         for (const auto& entry : logger.getLogs()) {
-                            logStr += "[Turn " + std::to_string(entry.turn) + "] " + entry.username + ": " + entry.action + " " + entry.details + "\n";
+                            logStr += "[Turn " + std::to_string(entry.getTurn()) + "] " + entry.getUsername() + ": " + entry.getAction() + " " + entry.getDetails() + "\n";
                         }
                         if (logStr.empty()) logStr = "(No game logs yet)";
                         guiView->showInfoPopup("Game Log", logStr);
@@ -792,7 +793,6 @@ void GameEngine::run() {
                 default:
                     cliView.renderWarning("Invalid command.");
                     break;
-
                 }
             isCommand = true;
             if (isDoubleRoll && currentPlayer->getStatus() == PlayerStatus::ACTIVE && currentPlayer->getJailTurns() == 0) {
@@ -805,7 +805,7 @@ void GameEngine::run() {
 
         int activePlayers = gameContext.countActivePlayers();
 
-        if (gameContext.getMaxTurns() > 0 && gameContext.getCurrentTurn() > gameContext.getMaxTurns() || activePlayers == 1) {
+        if ((gameContext.getMaxTurns() > 0 && gameContext.getCurrentTurn() > gameContext.getMaxTurns()) || activePlayers == 1) {
             gameContext.setGameOver(true);
         } 
         else {
@@ -849,7 +849,7 @@ void GameEngine::run() {
 
         vector<Player*> winners;
         winners.push_back(remainingPlayers[0]);
-        for (int i = 1; i < remainingPlayers.size(); ++i) {
+        for (int i = 1; i < (int)remainingPlayers.size(); ++i) {
             if (remainingPlayers[i]->getBalance() == winners[0]->getBalance() &&
                 remainingPlayers[i]->getOwnedProperties().size() == winners[0]->getOwnedProperties().size() &&
                 remainingPlayers[i]->getSkillCardCount() == winners[0]->getSkillCardCount()) {

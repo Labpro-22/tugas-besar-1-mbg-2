@@ -22,9 +22,7 @@ public:
 
     GameEngine(GameView* gui) : guiView(gui), isGUIMode(true) {}
     
-    void initGame(GameContext &gameContext,
-                  ConfigReader &configReader,
-                  );
+    void initGame(GameContext &gameContext, ConfigReader &configReader);
 
     void run();
 };

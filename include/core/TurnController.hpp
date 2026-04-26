@@ -21,5 +21,5 @@ public:
     void distributeSkillCards(GameContext& ctx, InputHandler& input, DisplayView& display, bool isGUIMode = false, GameView* guiView = nullptr);
     void resolveTileLanding(GameContext* context, Player* player, EconomyController& eco, EffectController& eff, AuctionController& auc, BankruptcyController& bank, Dice& dice, SaveLoader& sl, InputHandler& input, GameLogger& logger, DisplayView& display, bool isGUIMode = false, GameView* guiView = nullptr);
     void handleDiceRollMovement(GameContext* context, EconomyController& eco, EffectController& eff, AuctionController& auc, BankruptcyController& bank, Dice& dice, SaveLoader& sl, InputHandler& input, GameLogger& logger, DisplayView& display, bool isGUIMode = false, GameView* guiView = nullptr);
-    void handleBuildHouse(GameContext* context, Player* player, EconomyController& eco, InputHandler& input, DisplayView& display, bool isGUIMode = false, GameView* guiView = nullptr);
+    void handleBuildHouse(GameContext* context, Player* player, EconomyController& eco, InputHandler& input, GameLogger& logger, DisplayView& display, bool isGUIMode = false, GameView* guiView = nullptr);
 };

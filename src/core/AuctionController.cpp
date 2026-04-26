@@ -14,7 +14,7 @@ void AuctionController::startAuctionSkipBuy(GameContext &gameContext, DisplayVie
     int startIndexInGlobal = (gameContext.getCurrentPlayerIndex() + 1) % gameContext.getPlayers().size();
     
     int startIdx = 0;
-    for(int i = 0; i < participants.size(); i++) {
+    for(size_t i = 0; i < participants.size(); i++) {
         if (participants[i]->getName() == gameContext.getPlayers()[startIndexInGlobal].getName()) {
             startIdx = i;
             break;
@@ -23,6 +23,7 @@ void AuctionController::startAuctionSkipBuy(GameContext &gameContext, DisplayVie
 
     dv.renderAuctionStart(gameContext, property);
     runAuctionLogic(gameContext, dv, inputHandler, participants, startIdx, property, logger, isGUIMode, guiView);
+
 }
 
 void AuctionController::startAuctionBankrupt(GameContext &gameContext, DisplayView &dv, InputHandler &inputHandler, PropertyTile* property, GameLogger &logger, bool isGUIMode, GameView* guiView) {
@@ -38,7 +39,7 @@ void AuctionController::startAuctionBankrupt(GameContext &gameContext, DisplayVi
     if (participants.size() <= 1) return;
 
     dv.renderAuctionStart(gameContext, property);
-    runAuctionLogic(gameContext, dv, inputHandler, participants, 0, property, isGUIMode, guiView);
+    runAuctionLogic(gameContext, dv, inputHandler, participants, 0, property, logger, isGUIMode, guiView);
 }
 
 void AuctionController::runAuctionLogic(GameContext &gameContext, DisplayView &dv, InputHandler &inputHandler, vector<Player*> participants, int startIndex, PropertyTile* property, GameLogger &logger, bool isGUIMode, GameView* guiView) {
@@ -148,8 +149,7 @@ void AuctionController::placeBid(GameContext &gameContext, Player &bidder, vecto
         }
     }
 }
-
-void AuctionController::resolveAuction(GameContext &gameContext, vector<pair<Player *, int>> &bid, DisplayView &dv, PropertyTile* property, GameLogger &logger) {
+void AuctionController::resolveAuction(GameContext &gameContext, vector<pair<Player *, int>> &bid, DisplayView &dv, PropertyTile* property, GameLogger &logger, bool isGUIMode, GameView* guiView) {
     if (bid.empty()) {
         return;
     }
