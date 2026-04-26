@@ -383,9 +383,99 @@ void GameEngine::run() {
                     displayView.renderProperty(gameContext);
                     break;
 
-                case CommandType::GADAI:
-                case CommandType::TEBUS:
+                case CommandType::GADAI: {
+                    vector<PropertyTile*> mortgageProperty;
+                    for (auto i : currentPlayer->getOwnedProperties()){
+                        if (i->getStatus() == OWNED){
+                            mortgageProperty.push_back(i);
+                        }
+                    }
+                    displayView.renderMortgageStart(gameContext, mortgageProperty);
+                    inputHandler.getIntInput();
+                    int choice = inputHandler.getIntValue1();
+
+                    if (choice == 0) {
+                        // displayView.renderInfo( "Mortgage cancelled." );
+                        break;
+                    }
+                    if (choice < 1 || choice >( int )mortgageProperty.size()) {
+                        // displayView.renderWarning( "Invalid Input." );
+                        break;
+                    }
+                    PropertyTile* tile = mortgageProperty[choice - 1];
+
+                    if (auto* railroadTile = dynamic_cast<RailroadTile*>(tile)) {
+                        economyController.mortgageProperty( *currentPlayer, railroadTile );
+                        // displayView.renderMortgageResult( gameContext, mortgageProperty[choice - 1] );
+                        break;
+                    }
+                    if (auto* utilityTile = dynamic_cast<UtilityTile*>(tile)) {
+                        economyController.mortgageProperty( *currentPlayer, utilityTile );
+                        break;
+                    }
+                    if (auto* streetTile = dynamic_cast<StreetTile*>(tile)) {
+                        vector<StreetTile*> sameColorTiles = economyController.getColorGroupTiles( &gameContext, streetTile->getColor() );
+                        bool hasBuildingInGroup = false;
+
+                        for (StreetTile* street : sameColorTiles) {
+                            if (street->getOwner() == currentPlayer && (street->getHouseCount() > 0 || street->getHasHotel())) {
+                                hasBuildingInGroup = true;
+                                break;
+                            }
+                        }
+                        if (hasBuildingInGroup) {
+                            inputHandler.getStringInput();
+                            string sellChoice = inputHandler.getLastStringInput();
+
+                            if (sellChoice != "y" && sellChoice != "Y") {
+                                break;
+                            }
+                            economyController.sellAllBuildingsInColorGroup(&gameContext, *currentPlayer,streetTile->getColor());
+                            
+                            inputHandler.getStringInput();
+                            string continueChoice = inputHandler.getLastStringInput();
+
+                            if (continueChoice != "y" && continueChoice != "Y") {
+                                break;
+                            }
+                        }
+                        economyController.mortgageProperty( *currentPlayer, tile );
+                    
+                    }
+                    
+                    break;
+                }
+                case CommandType::TEBUS:{
+                    vector<PropertyTile*> mortgageProperty = currentPlayer->getMortgagedProperties();
+                    if (mortgageProperty.empty()){
+                        // JJ
+                        break;
+                    }
+                    inputHandler.getIntInput();
+                    int choice = inputHandler.getIntValue1();
+                    while (choice < 0 || choice > mortgageProperty.size()){
+                        if (choice == 0){
+                            break;
+                        }
+                        inputHandler.getIntInput();
+                        choice = inputHandler.getIntValue1();
+                        // JJ
+                    }
+                    if (choice == 0) break;
+                    PropertyTile* selected = mortgageProperty[choice - 1];
+                    try {
+                        int redeemPrice = selected->getPrice();
+                        *currentPlayer -= redeemPrice;
+                        selected->setStatus( OWNED );
+
+                    }
+                    catch (const InsufficientFundsException& ex) {
+                       // JJ
+                    }
+                    break;
+                }   
                 case CommandType::BANGUN:
+                    turnController.handleBuildHouse(&gameContext, currentPlayer, economyController, inputHandler, displayView);
                     break;
 
                 case CommandType::GUNAKAN_KEMAMPUAN: {
