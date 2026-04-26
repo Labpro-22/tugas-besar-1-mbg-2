@@ -125,8 +125,8 @@ void GameEngine::run() {
                 gameContext.getPlayers().push_back(newPlayer);
             }
             
-            srand(static_cast<unsigned>(time(0)));
-            startingIndex = rand() % numPlayers;
+            std::shuffle(gameContext.getPlayers().begin(), gameContext.getPlayers().end(), std::default_random_engine(std::random_device{}()));
+            startingIndex = 0;
 
             gameContext.setCurrentPlayerIndex(startingIndex);
             
