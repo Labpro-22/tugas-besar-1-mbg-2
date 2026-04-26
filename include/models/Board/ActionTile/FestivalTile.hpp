@@ -8,7 +8,7 @@ class FestivalTile : public ActionTile
 {    
 public:
     FestivalTile(int idx, string code, string name, string color);
-    LandResult land(GameContext &G) override;
+    LandResult land(Player &p) override;
 };
 
 

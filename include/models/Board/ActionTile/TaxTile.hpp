@@ -9,6 +9,6 @@ private:
     bool isPPH; // true for PPh, false for PBM
 public:
     TaxTile(int idx, string code, string name, bool isPPH, string color = "DEFAULT");
-    LandResult land(GameContext &G) override;
+    LandResult land(Player &p) override;
     bool getIsPPH() const;
 };

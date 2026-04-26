@@ -21,7 +21,7 @@ public:
         int mortgageValue, vector<int> rentPrices, 
         int houseCost, int hotelCost, string color);
     
-    LandResult land(GameContext &G) override;
+    LandResult land(Player &p) override;
     
     int getFestivalStack() const;
     int getFestivalTurn() const;
