@@ -436,10 +436,12 @@ void GameEngine::run() {
                         displayView.renderInfo("Mortgage cancelled.");
                         break;
                     }
+
                     if (choice < 1 || choice >( int )mortgageProperty.size()) {
                         displayView.renderWarning("Invalid choice! Mortgage cancelled.");
                         break;
                     }
+
                     PropertyTile* tile = mortgageProperty[choice - 1];
 
                     if (auto* railroadTile = dynamic_cast<RailroadTile*>(tile)) {
@@ -486,8 +488,8 @@ void GameEngine::run() {
                                 break;
                             }
                         }
-                        displayView.renderMortgageResult( gameContext, mortgageProperty[choice - 1] );
                         economyController.mortgageProperty( *currentPlayer, tile );
+                        displayView.renderMortgageResult( gameContext, mortgageProperty[choice - 1] );
                         logger.addLog(gameContext.getCurrentTurn(), currentPlayer->getName(), "MORTGAGE_PROPERTY", tile->getName() + " mortgaged for M" + to_string(tile->getMortgageValue()));
                     
                     }
@@ -522,8 +524,7 @@ void GameEngine::run() {
                     PropertyTile* selected = mortgageProperty[choice - 1];
                     try {
                         int redeemPrice = selected->getPrice();
-                        *currentPlayer -= redeemPrice;
-                        selected->setStatus( OWNED );
+                        economyController.redeemProperty(*currentPlayer, selected);
                         displayView.renderRedeemChoose(gameContext, mortgageProperty, choice, redeemPrice);
                         logger.addLog(gameContext.getCurrentTurn(), currentPlayer->getName(), "REDEEM_PROPERTY", selected->getName() + " redeemed for M" + to_string(redeemPrice));
                     }
