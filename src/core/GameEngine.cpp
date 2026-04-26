@@ -9,7 +9,7 @@
 
 using namespace std;
 
-void GameEngine::initGame(GameContext& gameContext, TurnController& turnController, ConfigReader& configReader, EconomyController& economyController) {
+void GameEngine::initGame(GameContext& gameContext, ConfigReader& configReader) {
     configReader.loadAllConfigs(&gameContext, gameContext.getBoard());
 
     CardDeck<ActionCard>& chanceDeck = gameContext.getChanceDeck();
@@ -71,7 +71,7 @@ void GameEngine::run() {
     DisplayView displayView;
     Dice dice;
 
-    initGame(gameContext, turnController, configReader, economyController);
+    initGame(gameContext, configReader);
 
     int startingIndex = 0;
     bool gameReady = false;
@@ -318,7 +318,7 @@ void GameEngine::run() {
                                 Tile* jailTile = gameContext.getBoard().getTileByCode("PEN");
                                 
                                 if (jailTile != nullptr) {
-                                    int jailPos = jailTile->getIdx();
+                                    int jailPos = gameContext.getBoard().getIndexOfTile(jailTile);
                                     currentPlayer->setPosition(jailPos);
                                     currentPlayer->setStatus(PlayerStatus::JAILED); 
                                     currentPlayer->setJailTurns(0);
@@ -374,7 +374,7 @@ void GameEngine::run() {
                                 Tile* jailTile = gameContext.getBoard().getTileByCode("PEN");
                                 
                                 if (jailTile != nullptr) {
-                                    int jailPos = jailTile->getIdx();
+                                    int jailPos = gameContext.getBoard().getIndexOfTile(jailTile);
                                     currentPlayer->setPosition(jailPos);
                                     currentPlayer->setStatus(PlayerStatus::JAILED); 
                                     currentPlayer->setJailTurns(0);

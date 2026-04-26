@@ -11,10 +11,7 @@ using namespace std;
 class GameEngine
 {
 public:
-    void initGame(GameContext &gameContext,
-                  TurnController &turnController,
-                  ConfigReader &configReader,
-                  EconomyController &economyController);
+    void initGame(GameContext &gameContext, ConfigReader &configReader);
     void run();
 };
 

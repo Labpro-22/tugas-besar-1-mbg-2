@@ -156,7 +156,7 @@ void TurnController::resolveTileLanding(GameContext* context, Player* player, Ec
         case LandEventType::GOTOJAIL:
             display.renderInfo("[" + player->getName() + "] landed on 'Go To Jail' tile!");
             player->setStatus(PlayerStatus::JAILED);
-            player->setPosition(context->getBoard().getTileByCode("PEN")->getIdx()); // indeks penjara
+            player->setPosition(context->getBoard().getIndexOfTile(context->getBoard().getTileByCode("PEN"))); // indeks penjara
             player->setJailTurns(0);
             break;
 
