@@ -95,9 +95,30 @@ void GameEngine::run() {
             }
 
             for (int i = 0; i < numPlayers; ++i) {
-                displayView.renderInfo("Input name of Player " + to_string(i + 1) + ": ");
-                inputHandler.getStringInput();
-                string pName = inputHandler.getLastStringInput();
+                string pName;
+                bool isUnique = false;
+
+                while (!isUnique) {
+                    displayView.renderInfo("Input name of Player " + to_string(i + 1) + ": ");
+                    inputHandler.getStringInput();
+                    pName = inputHandler.getLastStringInput();
+
+                    isUnique = true;
+
+                    if (pName == "" || pName == "BANK") {
+                        displayView.renderWarning("[ERROR] Invalid name! You cannot use an empty name or 'BANK'.");
+                        isUnique = false;
+                        continue;
+                    }
+
+                    for (const Player& p : gameContext.getPlayers()) {
+                        if (p.getName() == pName) {
+                            displayView.renderWarning("[ERROR] Name '" + pName + "' is already taken! Please choose a different name.");
+                            isUnique = false;
+                            break;
+                        }
+                    }
+                }
                 
                 Player newPlayer(pName);
                 newPlayer.setBalance(gameContext.getStartingMoney()); 
