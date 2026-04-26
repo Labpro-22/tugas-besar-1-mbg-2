@@ -405,35 +405,39 @@ void GameEngine::run() {
                     break;
 
                 case CommandType::GADAI: {
-                    vector<PropertyTile*> mortgageProperty;
-                    for (auto i : currentPlayer->getOwnedProperties()){
-                        if (i->getStatus() == OWNED){
-                            mortgageProperty.push_back(i);
-                        }
-                    }
+                    vector<PropertyTile*> mortgageProperty = currentPlayer->getUnmortgagedProperties();
                     displayView.renderMortgageStart(gameContext, mortgageProperty);
+
+                    if (mortgageProperty.empty()){
+                        displayView.renderInfo("You have no properties available to mortgage!");
+                        break;
+                    }
+
                     inputHandler.getIntInput();
                     int choice = inputHandler.getIntValue1();
 
                     if (choice == 0) {
-                        // displayView.renderInfo( "Mortgage cancelled." );
+                        displayView.renderInfo("Mortgage cancelled.");
                         break;
                     }
                     if (choice < 1 || choice >( int )mortgageProperty.size()) {
-                        // displayView.renderWarning( "Invalid Input." );
+                        displayView.renderWarning("Invalid choice! Mortgage cancelled.");
                         break;
                     }
                     PropertyTile* tile = mortgageProperty[choice - 1];
 
                     if (auto* railroadTile = dynamic_cast<RailroadTile*>(tile)) {
                         economyController.mortgageProperty( *currentPlayer, railroadTile );
-                        // displayView.renderMortgageResult( gameContext, mortgageProperty[choice - 1] );
+                        displayView.renderMortgageResult( gameContext, mortgageProperty[choice - 1] );
                         break;
                     }
+
                     if (auto* utilityTile = dynamic_cast<UtilityTile*>(tile)) {
                         economyController.mortgageProperty( *currentPlayer, utilityTile );
+                        displayView.renderMortgageResult( gameContext, mortgageProperty[choice - 1] );
                         break;
                     }
+
                     if (auto* streetTile = dynamic_cast<StreetTile*>(tile)) {
                         vector<StreetTile*> sameColorTiles = economyController.getColorGroupTiles( &gameContext, streetTile->getColor() );
                         bool hasBuildingInGroup = false;
@@ -448,18 +452,23 @@ void GameEngine::run() {
                             inputHandler.getStringInput();
                             string sellChoice = inputHandler.getLastStringInput();
 
+                            displayView.renderMortgageGroupColorStart(gameContext, sameColorTiles);
+                            displayView.renderMortgageGroupColorResult(gameContext, sellChoice, sameColorTiles);
                             if (sellChoice != "y" && sellChoice != "Y") {
                                 break;
                             }
                             economyController.sellAllBuildingsInColorGroup(&gameContext, *currentPlayer,streetTile->getColor());
                             
+                            displayView.renderPrompt("Continue to mortgage " + streetTile->getName() + "? (y/n): "); 
                             inputHandler.getStringInput();
                             string continueChoice = inputHandler.getLastStringInput();
 
                             if (continueChoice != "y" && continueChoice != "Y") {
+                                displayView.renderInfo("Mortgage cancelled.");
                                 break;
                             }
                         }
+                        displayView.renderMortgageResult( gameContext, mortgageProperty[choice - 1] );
                         economyController.mortgageProperty( *currentPlayer, tile );
                     
                     }
@@ -468,10 +477,13 @@ void GameEngine::run() {
                 }
                 case CommandType::TEBUS:{
                     vector<PropertyTile*> mortgageProperty = currentPlayer->getMortgagedProperties();
+
                     if (mortgageProperty.empty()){
-                        // JJ
-                        break;
+                        displayView.renderInfo("You have no properties available to redeem!");
+                        break;  
                     }
+
+                    displayView.renderRedeemStart(gameContext, mortgageProperty);   
                     inputHandler.getIntInput();
                     int choice = inputHandler.getIntValue1();
                     while (choice < 0 || choice > mortgageProperty.size()){
@@ -480,18 +492,25 @@ void GameEngine::run() {
                         }
                         inputHandler.getIntInput();
                         choice = inputHandler.getIntValue1();
-                        // JJ
+                        displayView.renderRedeemChoose(gameContext, mortgageProperty, choice, 0);   
                     }
-                    if (choice == 0) break;
+                    
+                    
+                    if (choice == 0) {
+                        displayView.renderRedeemChoose(gameContext, mortgageProperty, choice, 0);   
+                        break;
+                    }
                     PropertyTile* selected = mortgageProperty[choice - 1];
                     try {
                         int redeemPrice = selected->getPrice();
                         *currentPlayer -= redeemPrice;
                         selected->setStatus( OWNED );
-
+                        displayView.renderRedeemChoose(gameContext, mortgageProperty, choice, redeemPrice);
                     }
                     catch (const InsufficientFundsException& ex) {
-                       // JJ
+                        displayView.renderInfo("You don't have enough balance to redeem this property.");
+                        displayView.renderInfo("Required: M" + to_string(ex.getRequired()) + "| Your Balance: M" + to_string(currentPlayer->getBalance()));
+                        break;
                     }
                     break;
                 }   

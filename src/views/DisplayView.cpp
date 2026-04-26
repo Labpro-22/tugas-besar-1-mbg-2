@@ -543,9 +543,9 @@ void DisplayView::renderRent(GameContext G, PropertyTile* tile){
     cout << "You need to pay rent for landing on " << tile->getName() << "." ;
     Player* owner = tile->getOwner();
     if (owner != nullptr) {
-        cout << "Owned by " << owner->getName() << "." << endl;
+        cout << " Owned by " << owner->getName() << "." << endl;
     }
-    
+        
     for (string line : tile->getRentDetailLines(G)) {
         cout << line << endl;
     }
@@ -777,7 +777,7 @@ void DisplayView::renderMortgageGroupColorResult(GameContext G, string choice, v
     }
 }
 
-void DisplayView::renderRedeemChoose(GameContext G, vector<PropertyTile*> mortgagedTiles, int choose){
+void DisplayView::renderRedeemChoose(GameContext G, vector<PropertyTile*> mortgagedTiles, int choose, int redeemCost){
     if (choose == 0) {
         cout << "You chose not to unmortgage any property." << endl;
         return;
@@ -795,16 +795,9 @@ void DisplayView::renderRedeemChoose(GameContext G, vector<PropertyTile*> mortga
         return; 
     }
 
-    int unmortgageCost = chosenTile->getPrice();
-    if (G.getCurrentPlayer().getBalance() < unmortgageCost) {
-        cout << "You don't have enough balance to unmortgage this property." << endl; 
-        cout << "Required: M" << unmortgageCost << "| Your Balance: M" << G.getCurrentPlayer().getBalance() << endl;
-        return;
-    }
-
     cout << "You chose to unmortgage " << chosenTile->getName() << " (" << chosenTile->getCode() << ")." << endl;
-    cout << "You paying M" << unmortgageCost << "To the bank" << endl;
-    cout << "Your Current Balance: M" << G.getCurrentPlayer().getBalance() << " -> M" << G.getCurrentPlayer().getBalance() - unmortgageCost << endl;
+    cout << "You paying M" << redeemCost << "To the bank" << endl;
+    cout << "Your Current Balance: M" << G.getCurrentPlayer().getBalance() + redeemCost << " -> M" << G.getCurrentPlayer().getBalance() << endl;
 }
 
 // Build 
