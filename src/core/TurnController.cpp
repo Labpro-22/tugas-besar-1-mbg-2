@@ -60,7 +60,10 @@ void TurnController::resolveTileLanding(GameContext* context, Player* player, Ec
         }
 
         case LandEventType::GIVEPROPERTY:{
-            player->addProperty(dynamic_cast<PropertyTile*>(currentTile));
+            PropertyTile* propTile = dynamic_cast<PropertyTile*>(currentTile);
+            player->addProperty(propTile);
+            propTile->setOwner(player);
+            propTile->setStatus(OWNED);
             if (currentTile->getType() == "Railroad"){
                 display.renderGetRailroad(*context, dynamic_cast<RailroadTile*>(currentTile));
             } else if (currentTile->getType() == "Utility"){
