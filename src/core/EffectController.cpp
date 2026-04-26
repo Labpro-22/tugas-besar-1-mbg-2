@@ -54,7 +54,9 @@ void EffectController::execute(ActionCard& card, Player& currentPlayer, GameCont
             if (jailTile != nullptr) {
                 int jailPos = jailTile->getIdx();
                 currentPlayer.setPosition(jailPos);
-                currentPlayer.setStatus(PlayerStatus::JAILED); 
+                currentPlayer.setStatus(PlayerStatus::JAILED);
+                currentPlayer.setJailTurns(0); 
+                currentPlayer.setDoubleCount(0);
             }
             break;
         }
