@@ -8,7 +8,7 @@
 #include "DisplayView.hpp"
 #include <iostream>
 
-void handleFestival(Tile *tile){
+void EffectController::handleFestival(Tile *tile){
     StreetTile* festivalTile = dynamic_cast<StreetTile*>(tile);
     if (festivalTile->isFestivalActive()) {
         festivalTile->playerReenterFestival();

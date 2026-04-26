@@ -22,6 +22,7 @@ public:
     void processIncomeTax(GameContext *gameContext, Player &player, int choice);
     void processLuxuryTax(GameContext *gameContext, Player &player);
     void playerAddGoSalary(Player &player, GameContext *gameContext);
+    void payRent(Player &payer, Player &receiver, PropertyTile *tile, int diceTotal);
 
     void purchaseProperty(Player &player, PropertyTile *tile);
     void acquirePropertyFree(Player &player, PropertyTile *tile);

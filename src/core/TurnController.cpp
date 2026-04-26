@@ -61,9 +61,7 @@ void TurnController::resolveTileLanding(GameContext* context, Player* player, Ec
 
         case LandEventType::GIVEPROPERTY:{
             PropertyTile* propTile = dynamic_cast<PropertyTile*>(currentTile);
-            player->addProperty(propTile);
-            propTile->setOwner(player);
-            propTile->setStatus(OWNED);
+            eco.acquirePropertyFree(*player, propTile);
             if (currentTile->getType() == "Railroad"){
                 display.renderGetRailroad(*context, dynamic_cast<RailroadTile*>(currentTile));
             } else if (currentTile->getType() == "Utility"){
@@ -77,11 +75,9 @@ void TurnController::resolveTileLanding(GameContext* context, Player* player, Ec
             try {
                 display.renderRent(*context, dynamic_cast<PropertyTile*>(currentTile));
                 int rentAmount = eco.calculateRent(context, dynamic_cast<PropertyTile*>(currentTile), dice.getTotal());
-                *player -= rentAmount;
                 Player* owner = dynamic_cast<PropertyTile*>(currentTile)->getOwner();
-                if (owner != nullptr) {
-                    *owner += rentAmount;
-                }
+                eco.payRent(*player, *owner, dynamic_cast<PropertyTile*>(currentTile), dice.getTotal());
+                display.renderCurrentBalancePayed(*context, rentAmount);
             } catch (const InsufficientFundsException& ex) {
                 display.renderCantPay(*context, ex.getRequired());
                 throw BankruptcyException("Player cannot afford to pay rent.", ex.getRequired(), player->getBalance(), dynamic_cast<PropertyTile*>(currentTile)->getOwner(), currentTile);

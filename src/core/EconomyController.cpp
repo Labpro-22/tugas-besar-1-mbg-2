@@ -395,3 +395,21 @@ int EconomyController::calculateUtilityRent(GameContext *gameContext, UtilityTil
     return diceTotal * it->second;
 }
 
+void EconomyController::payRent(Player &payer, Player &receiver, PropertyTile *tile, int diceTotal) {
+    if (tile == nullptr || tile->getOwner() == nullptr || tile->getOwner() != &receiver) {
+        return;
+    }
+
+    int rentAmount = calculateRent(nullptr, tile, diceTotal);
+    if (rentAmount <= 0) {
+        return;
+    }
+
+    if (!payer.canAfford(rentAmount)) {
+        throw InsufficientFundsException(rentAmount, payer.getBalance());
+    }
+
+    payer -= rentAmount;
+    receiver += rentAmount;
+}
+
