@@ -856,30 +856,32 @@ void DisplayView::renderBuildMid(GameContext G, vector<StreetTile*> buildableTil
 }
 
 void DisplayView::renderStreetBuilt(vector<StreetTile*> tiles, int maxHouseCount, int minHouseCount){
+    int i = 1;
     for (StreetTile* streetTile : tiles){
     
         string buildableInfo;
         string buildingInfo = streetTile->getHouseCount() > 0 ? to_string(streetTile->getHouseCount()) + " Houses" : "No Houses";
         
         if (streetTile->getHasHotel()) {
-            buildableInfo = "Can't Build (Already has Hotel)";
+            buildableInfo = "<- Can't Build (Already has Hotel)";
             buildingInfo = "Hotel";
         }
 
         
         if (streetTile->getStatus() == MORTGAGED) {
-            buildableInfo = "Can't Build (Property is Mortgaged)";
+            buildableInfo = "<- Can't Build (Property is Mortgaged)";
         }
         
         if (minHouseCount != maxHouseCount && streetTile->getHouseCount() == minHouseCount) {
-            buildableInfo = streetTile->getHouseCount() == minHouseCount ? "Can Build" : "Can't Build (Must build evenly)";
+            buildableInfo = streetTile->getHouseCount() == minHouseCount ? "<- Can Build" : "<- Can't Build (Must build evenly)";
         }
         
         if (streetTile->getHouseCount() == 4 && !streetTile->getHasHotel() && minHouseCount == 4) {
-            buildableInfo = "Ready to Upgrade to Hotel";
+            buildableInfo = "<- Ready to Upgrade to Hotel";
         }
 
-        cout << "- " << streetTile->getName() << " (" << streetTile->getCode() << "): " << buildingInfo << " <- " << buildableInfo << endl;
+        cout << i << ". " << streetTile->getName() << " (" << streetTile->getCode() << "): " << buildingInfo << buildableInfo << endl;
+        i++;
     }
 }
 void DisplayView::renderBuildCancel(GameContext G){
