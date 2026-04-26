@@ -643,9 +643,7 @@ void DisplayView::renderAuctionResult(string winnerName, int winningBid){
 }
 
 // Festival 
-void DisplayView::renderFestivalTile(GameContext G, vector<StreetTile*> streetTiles) {
-    renderTile(G);
-    
+void DisplayView::renderFestivalTile(GameContext G, vector<StreetTile*> streetTiles) {    
     cout << "Your owned properties:" << endl;
     for (const StreetTile* Tile : streetTiles)
     {
@@ -989,7 +987,7 @@ void DisplayView::renderPlayerInfo(GameContext G, Player* player){
 
 void DisplayView::renderPlayer(GameContext G){
     for (Player& p : G.getPlayers()) {
-        if (p.getStatus() != PlayerStatus::BANKRUPT) {
+        if (p.getStatus() != PlayerStatus::BANKRUPT && G.getCurrentPlayer().getName() != p.getName()) {
             cout << "- " << p.getName() << " (Currently at tile: " << p.getPosition() << ")\n";
         }
     }

@@ -161,12 +161,14 @@ void EffectController::execute(SkillCard& card, Player& currentPlayer, GameConte
             break;
         }
         case SkillCardType::SHIELD: {
+
             currentPlayer.applyShield(); 
             break;
         }
         case SkillCardType::TELEPORT: {
             Tile* targetTile = nullptr;
             while (true) {
+                display.renderInfo("Enter the code of the tile you want to teleport to: ");
                 input.getStringInput();
                 string targetCode = input.getLastStringInput();
                 
@@ -183,7 +185,7 @@ void EffectController::execute(SkillCard& card, Player& currentPlayer, GameConte
 
             int targetIdx = targetTile->getIdx();
             currentPlayer.setPosition(targetIdx);
-            
+            display.renderInfo("Teleporting to " + targetTile->getName() + "...");
             break;
         }
         case SkillCardType::LASSO: {
@@ -238,6 +240,7 @@ void EffectController::execute(SkillCard& card, Player& currentPlayer, GameConte
             StreetTile* targetStreet = nullptr;
 
             while (true) {
+                display.renderInfo("Enter the code of the opponent's street tile you want to demolish: ");
                 input.getStringInput();
                 string targetCode = input.getLastStringInput();
 
@@ -280,9 +283,12 @@ void EffectController::execute(SkillCard& card, Player& currentPlayer, GameConte
             }
 
             targetStreet->demolishBuilding();
+            display.renderInfo("Demolishing buildings on " + targetStreet->getName() + "...");
+
             break;
         }
         case SkillCardType::JAILFREE: {
+
             currentPlayer.setStatus(PlayerStatus::ACTIVE);
             currentPlayer.setJailTurns(0);
         }
