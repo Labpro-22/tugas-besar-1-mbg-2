@@ -6,10 +6,10 @@ CardTile::CardTile(int idx, string code, string name, CardType cardType, string 
 
 LandResult CardTile::land(GameContext &G){
     if (this->cardType == CardType::CHANCE) {
-        return LandResult{LandEventType::DRAWCHANCE, this, nullptr, &G.getCurrentPlayer(), nullptr, 0, false};
+        return LandResult(LandEventType::DRAWCHANCE, this, nullptr, &G.getCurrentPlayer(), nullptr, 0, false);
     }
     else {
-        return LandResult{LandEventType::DRAWCOMMUNITYCHEST, this, nullptr, &G.getCurrentPlayer(), nullptr, 0, false};
+        return LandResult(LandEventType::DRAWCOMMUNITYCHEST, this, nullptr, &G.getCurrentPlayer(), nullptr, 0, false);
     }
 };
 

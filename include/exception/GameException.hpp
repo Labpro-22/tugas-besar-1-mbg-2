@@ -1,6 +1,8 @@
 #pragma once
 #include <exception>
 #include <string>
+#include "Player.hpp"
+#include "Tile.hpp"
 
 using namespace std;
 
@@ -30,8 +32,13 @@ public:
 };
 
 class BankruptcyException : public InsufficientFundsException{
-public:
-    BankruptcyException(const string& message, const int& required, const int& cur);
+    private:
+        Tile* bankruptTile;
+        Player* creditor;
+    public:
+        BankruptcyException(const string& message, const int& required, const int& cur, Player* creditor, Tile* bankruptTile);
+        Player* getCreditor() const;
+        Tile* getBankruptTile() const;
 };
 
 // CARD 

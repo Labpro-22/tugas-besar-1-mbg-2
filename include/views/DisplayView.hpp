@@ -10,6 +10,8 @@
 #include "FestivalTile.hpp"
 #include "CardTile.hpp"
 #include "GameLogger.hpp"
+#include "InputHandler.hpp"
+#include "Liquidation.hpp"
 
 class DisplayView
 {
@@ -81,7 +83,7 @@ public:
     void renderTile(GameContext G);
     
     // Rendering game menu
-    void showMenu(GameContext G);
+    void showMenu();
 
     // Generic game flow rendering
     void renderInfo(const string& message);
@@ -109,13 +111,13 @@ public:
     void renderBankruptFirstSceneTax(GameContext G, Player* bankruptPlayer, TaxTile* bankruptTile, int amountToPay);
     void renderBankruptSecondScene(GameContext G, Player* bankruptPlayer, Player* creditorPlayer, PropertyTile* bankruptTile, int amountToPay);
     void renderBankruptThirdScene(GameContext G, Player* bankruptPlayer, TaxTile* Tile, int amountToPay);
-    void liquidatePanel(GameContext G, Player* bankruptPlayer, Player* creditorPlayer, int amountToPay);
+    void liquidatePanel(GameContext G, Player* bankruptPlayer, Player* creditorPlayer, int amountToPay, vector<LiquidationOption> options);
     void renderLiquidateChoose(GameContext G, Player* bankruptPlayer, PropertyTile* chosenTile);
     void renderNotEnoughLiquidate(GameContext G, Player* bankruptPlayer, int amountToPay);
     void renderEnoughLiquidate(GameContext G, Player* bankruptPlayer, Player* creditorPlayer, int amountToPay);
 
     // Card Tile
-    void renderCardTile(GameContext G, CardTile* tile, Card );
+    void renderCardTile(GameContext G, ActionCard* card);
 
     // Use Card
     void renderPlayerCard(Player& player);

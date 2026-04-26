@@ -5,5 +5,5 @@ GoToJailTile::GoToJailTile(int idx, string code, string name, string color)
 };
 
 LandResult GoToJailTile::land(GameContext &G){
-    return LandResult{LandEventType::GOTOJAIL, this, nullptr, &G.getCurrentPlayer(), nullptr, 0, false};
+    return LandResult(LandEventType::GOTOJAIL, this, nullptr, &G.getCurrentPlayer(), nullptr, 0, false);
 }

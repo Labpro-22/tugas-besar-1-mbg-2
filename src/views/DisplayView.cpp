@@ -326,7 +326,7 @@ void DisplayView::printBottomRow(GameContext G, int sideLength) {
     string border = makeBorderLine(sideLength);
     int bottomLeft = 3 * (sideLength - 1);
     int bottomRight = 2 * (sideLength - 1);
-    
+
     cout << border << endl;
 
     for (int i = bottomLeft; i >= bottomRight; --i) {
@@ -464,7 +464,7 @@ void DisplayView::renderGetUtility(GameContext G, UtilityTile* tile){
 void DisplayView::renderProperty(GameContext G){
     Player* current = &G.getCurrentPlayer();
     
-    map<string, vector<PropertyTile*>> ownedProperties; // key: warna, value: pointer ke property tile yang dimiliki
+    map<string, vector<PropertyTile*>> ownedProperties = current->getMapColorOwnedProperty(); // key: warna, value: pointer ke property tile yang dimiliki
     int totalTile = G.getBoard().getTotalTile();
     for (int i = 0; i < totalTile; ++i) {
         Tile* tile = G.getBoard().getTile(i);
@@ -497,8 +497,21 @@ void DisplayView::renderTile(GameContext G){
     cout << "You landed on " << G.getBoard().getTile(G.getCurrentPlayer().getPosition())->getName() << " (" << G.getBoard().getTile(G.getCurrentPlayer().getPosition())->getCode() << ")" << endl;
 }
 
-void DisplayView::showMenu(GameContext G){
-    
+void DisplayView::showMenu(){
+    cout << "=== Menu ===" << endl;
+    cout << "1. [ATUR_DADU X Y] Set dice values manually (for testing)" << endl;
+    cout << "2. [LEMPAR_DADU] Roll the dice normally" << endl;
+    cout << "3. [CETAK_PROPERTI] View your owned properties" << endl;
+    cout << "4. [CETAK_PAPAN] View the game board" << endl;
+    cout << "5. [CETAK_AKTA <CODE>] View the deed of the property you are currently on" << endl;
+    cout << "6. [GADAI] Mortgage a property" << endl;
+    cout << "7. [TEBUS] Redeem a mortgaged property" << endl;
+    cout << "8. [BANGUN] Build houses/hotel on your street properties" << endl;
+    cout << "9. [GUNAKAN_KEMAMPUAN] Use a skill card in your hand" << endl;
+    cout << "10. [AKHIRI_GILIRAN] End your turn" << endl;
+    cout << "11. [SIMPAN] Save game" << endl;
+    cout << "12. [CETAK_LOG] View game log" << endl;
+    cout << "13. [HELP] Show this menu again" << endl;
 }
 
 void DisplayView::renderInfo(const string& message) {
@@ -546,7 +559,7 @@ void DisplayView::renderMortgage(GameContext G, PropertyTile* tile){
 
 
 void DisplayView::renderCantPay(GameContext G, int amountOwed){
-    cout << "You can't pay the required amount of rent." << "(M" << amountOwed << ")" << endl;
+    cout << "You can't pay the required amount of rent." << " (M" << amountOwed << ")" << endl;
 }
 
 void DisplayView::renderTax(GameContext G, TaxTile* tile){
@@ -1031,34 +1044,50 @@ void DisplayView::renderBankruptFirstSceneTax(GameContext G, Player* bankruptPla
     cout << "You should liquidate assets to pay off your debt." << endl;
 }
 
-void DisplayView::liquidatePanel(GameContext G, Player* bankruptPlayer, Player* creditorPlayer, int amountToPay){
+void DisplayView::liquidatePanel(GameContext G, Player* bankruptPlayer, Player* creditorPlayer, int amountToPay, vector<LiquidationOption> options){
     cout << "=== Liquidation Panel ===" << endl;
     cout << "Your current balance: M" << bankruptPlayer->getBalance() << "| Amount owed: M" << amountToPay << endl;
     int i = 1;
     cout << "[Sell to BANK]" << endl;
-    for (PropertyTile* tile : bankruptPlayer->getOwnedProperties()) {
-        if (tile->getStatus() == OWNED){
-            string buildingInfo = "";
+    // for (PropertyTile* tile : bankruptPlayer->getOwnedProperties()) {
+    //     if (tile->getStatus() == OWNED){
+    //         string buildingInfo = "";
             
-            if (StreetTile* streetTile = dynamic_cast<StreetTile*>(tile)) {
-                buildingInfo = " with :" + to_string(streetTile->getHouseCount()) + " houses";
+    //         if (StreetTile* streetTile = dynamic_cast<StreetTile*>(tile)) {
+    //             buildingInfo = " with :" + to_string(streetTile->getHouseCount()) + " houses";
+    //             if (streetTile->getHasHotel()) {
+    //                 buildingInfo = " a hotel";
+    //             }
+    //             cout << i << "." << streetTile->getName() << " (" << streetTile->getCode() << ") [" << streetTile->getColor() << "] Sell Price: M" << streetTile->getPrice() + streetTile->getBuildingValue() / 2 << "(" << buildingInfo << ": M" << streetTile->getBuildingValue() << ")" << endl;
+    //         }else{
+    //             cout << i << "." << tile->getName() << " (" << tile->getCode() << ") [" << tile->getColor() << "] Sell Price: M" << tile->getMortgageValue() << endl;
+
+    //         }
+    //         i++;
+    //     }
+    // }
+
+    for (const LiquidationOption& option : options) 
+    {
+        if (option.getType() == LiquidationType::SELL) {
+            if (StreetTile* streetTile = dynamic_cast<StreetTile*>(option.getTile())) {
+                string buildingInfo = streetTile->getHouseCount() > 0 ? to_string(streetTile->getHouseCount()) + " houses" : "no houses";
                 if (streetTile->getHasHotel()) {
-                    buildingInfo = " a hotel";
+                    buildingInfo = "a hotel";
                 }
-                cout << i << "." << streetTile->getName() << " (" << streetTile->getCode() << ") [" << streetTile->getColor() << "] Sell Price: M" << streetTile->getPrice() + streetTile->getBuildingValue() / 2 << "(" << buildingInfo << ": M" << streetTile->getBuildingValue() << ")" << endl;
-            }else{
-                cout << i << "." << tile->getName() << " (" << tile->getCode() << ") [" << tile->getColor() << "] Sell Price: M" << tile->getMortgageValue() << endl;
-
+                cout << i << ". Sell " << streetTile->getName() << " (" << streetTile->getCode() << ") [" << streetTile->getColor() << "] -> M" << option.getValue() << " (Building Value: M" << streetTile->getBuildingValue() / 2 << ")" << endl;
+            } else {
+                cout << i << ". Sell " << option.getTile()->getName() << " (" << option.getTile()->getCode() << ") [" << option.getTile()->getColor() << "] -> M" << option.getValue() << endl;
             }
-            i++;
-        }
+        } 
     }
-
+    
     cout << "Mortgage Properties" << endl;
-    for (PropertyTile* tile : bankruptPlayer->getOwnedProperties()) {
-        if (tile->getStatus() == MORTGAGED){
-            cout << i << "." << tile->getName() << " (" << tile->getCode() << ") [" << tile->getColor() << "] Mortgage Value: M" << tile->getMortgageValue() << endl;
-            i++;
+    
+    for (const LiquidationOption& option : options) 
+    {
+        if (option.getType() == LiquidationType::MORTGAGE) {
+            cout << i << ". Mortgage " << option.getTile()->getName() << " (" << option.getTile()->getCode() << ") [" << option.getTile()->getColor() << "] -> M" << option.getValue() << endl;
         }
     }
 
@@ -1193,8 +1222,7 @@ void DisplayView::renderDiscardSkillCard(Player& player, int choice){
     cout << "Now you have 3 skill cards in your hand." << endl;
 }
 
-void DisplayView::renderCardTile(GameContext G, CardTile* tile, ActionCard* card){
-    renderTile(G);
+void DisplayView::renderCardTile(GameContext G, ActionCard* card){
     cout << "You draw a card..." << endl;
     cout << "Card: " << card->getDescription() << endl;
 }

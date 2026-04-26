@@ -5,5 +5,5 @@ JailTile::JailTile(int idx, std::string code, std::string name, string color)
 }
 
 LandResult JailTile::land(GameContext &G){
-    return LandResult{LandEventType::DONOTHING, this, nullptr, &G.getCurrentPlayer(), nullptr, 0, false};
+    return LandResult(LandEventType::DONOTHING, this, nullptr, &G.getCurrentPlayer(), nullptr, 0, false);
 }

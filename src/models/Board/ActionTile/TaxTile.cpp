@@ -5,7 +5,7 @@ TaxTile::TaxTile(int idx, string code, string name, bool isPPH, string color)
 
 }
 LandResult TaxTile::land(GameContext &G){
-    return LandResult{LandEventType::PAYTAX, this, nullptr, &G.getCurrentPlayer(), nullptr, 0, false};
+    return LandResult(LandEventType::PAYTAX, this, nullptr, &G.getCurrentPlayer(), nullptr, 0, false);
 };
 
 bool TaxTile::getIsPPH() const {

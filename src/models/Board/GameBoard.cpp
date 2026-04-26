@@ -1,5 +1,5 @@
 #include "GameBoard.hpp"
-
+#include <algorithm>
 GameBoard::GameBoard() : totalTiles(0) {}
 
 void GameBoard::addTile(Tile* tile)
@@ -119,6 +119,11 @@ vector<PropertyTile*> GameBoard::getPropertyTile() const {
     return properties;
 }
 
+void GameBoard::SortTilesByIndex() {
+    sort(tiles.begin(), tiles.end(), [](Tile* a, Tile* b) {
+        return a->getIdx() < b->getIdx();
+    });
+}
 int GameBoard::calculateTargetPosition(int currPos, int steps) const {
     int boardSize = totalTiles;
     int targetPos = (currPos + steps) % totalTiles;

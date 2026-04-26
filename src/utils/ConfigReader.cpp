@@ -13,16 +13,9 @@ void ConfigReader::loadAllConfigs(GameContext *gameContext, GameBoard &gameBoard
     loadSpecial(gameContext, "config/special.txt");
     loadTax(gameContext, "config/tax.txt");
     loadMisc(gameContext, "config/misc.txt");
-    auto props = gameBoard.getPropertyTile();
-    
-    props.erase(std::remove(props.begin(), props.end(), nullptr), props.end());
-
-    std::sort(props.begin(), props.end(), [](PropertyTile* a, PropertyTile* b) {
-        // Double check: Pastikan pointer valid
-        if (a == nullptr || b == nullptr) return false; 
-        return a->getIdx() < b->getIdx();
-    });
+    gameBoard.SortTilesByIndex();
 }
+
 void ConfigReader::loadAksi(string fileName, GameBoard &gameBoard) {
     ifstream file(fileName);
     if (!file.is_open()) return;

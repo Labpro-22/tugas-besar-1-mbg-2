@@ -63,6 +63,7 @@ void EconomyController::purchaseProperty(Player &player, PropertyTile *tile) {
     player -= price;
     tile->setOwner(&player);
     tile->setStatus(OWNED);
+    
     player.addProperty(tile);
 }
 
@@ -208,6 +209,21 @@ void EconomyController::returnAllAssetsToBank(Player &bankrupt) {
         bankrupt.removeProperty(property);
         property->setOwner(nullptr);
         property->setStatus(BANK);
+    }
+
+    
+}
+
+void EconomyController::returnSkillCardsToDeck(Player &bankrupt, GameContext *gameContext){ 
+    int totalCards = bankrupt.getSkillCardCount();
+    if (totalCards > 0) {
+        cout << "- Mengembalikan " << totalCards << " Kartu Kemampuan ke tumpukan..." << endl;
+        
+        // Selalu ambil dari index 0 sampai tangan kosong
+        while (bankrupt.getSkillCardCount() > 0) {
+            SkillCard* returnedCard = bankrupt.dropSkillCard(0);
+            gameContext->getSkillDeck().discard(returnedCard);
+        }
     }
 }
 
