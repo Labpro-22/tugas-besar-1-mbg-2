@@ -727,7 +727,7 @@ void DisplayView::renderRedeemStart(GameContext G, vector<PropertyTile*> mortgag
     for (const PropertyTile* tile : mortgagedTiles)
     {
         if (tile->getStatus() == MORTGAGED){
-            cout << i << ". " << tile->getName() << " (" << tile->getCode() << ")" << "[ << " << tile->getColor() << " >> ]" << "[M]"  << "Mortgage Value: M" << tile->getPrice() << endl;
+            cout << i << ". " << tile->getName() << " (" << tile->getCode() << ")" << " [" << tile->getColor() << "]" << " [M]"  << "Mortgage Value: M" << tile->getPrice() << endl;
             i++;
         }
     }
@@ -747,7 +747,7 @@ void DisplayView::renderMortgageStart(GameContext G, vector<PropertyTile*> unmor
     for (const PropertyTile* tile : unmortgagedTiles)
     {
         if (tile->getStatus() != MORTGAGED){
-            cout << i << ". " << tile->getName() << " (" << tile->getCode() << ")" << "[ << " << tile->getColor() << " >> ]"  << "Mortgage Value: M" << tile->getMortgageValue() << endl;
+            cout << i << ". " << tile->getName() << " (" << tile->getCode() << ")" << " [" << tile->getColor() << "]"  << " Mortgage Value: M" << tile->getMortgageValue() << endl;
             i++;
         }
     }
@@ -820,7 +820,7 @@ void DisplayView::renderRedeemChoose(GameContext G, vector<PropertyTile*> mortga
     }
 
     cout << "You chose to unmortgage " << chosenTile->getName() << " (" << chosenTile->getCode() << ")." << endl;
-    cout << "You paying M" << redeemCost << "To the bank" << endl;
+    cout << "You paying M " << redeemCost << " To the bank" << endl;
     cout << "Your Current Balance: M" << G.getCurrentPlayer().getBalance() + redeemCost << " -> M" << G.getCurrentPlayer().getBalance() << endl;
 }
 
