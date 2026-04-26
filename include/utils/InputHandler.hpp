@@ -19,7 +19,8 @@ enum class CommandType {
     UNKNOWN_COMMAND,
     BID,
     PASS,
-    AKHIRI_GILIRAN
+    AKHIRI_GILIRAN,
+    HELP
 };
 
 class InputHandler

@@ -41,7 +41,7 @@ void TurnController::resolveTileLanding(GameContext* context, Player* player, Ec
     display.renderTile(*context);
     LandResult result = currentTile->land(*context);
 
-    switch (result.type) {
+    switch (result.getType()) {
         case LandEventType::OFFERBUYPROPERTY:{
             display.renderBuyStreet(*context, dynamic_cast<StreetTile*>(currentTile));
             input.getStringInput();
@@ -49,9 +49,10 @@ void TurnController::resolveTileLanding(GameContext* context, Player* player, Ec
             if (choice == "Y" || choice == "y") {
                 try {
                     eco.purchaseProperty(*player, dynamic_cast<PropertyTile*>(currentTile));
+                    display.renderBoughtStreet(*context, dynamic_cast<StreetTile*>(currentTile));
                 } catch (const InsufficientFundsException& ex) {
                     throw AuctionTriggerException();
-                }
+                }   
             } else {
                 throw AuctionTriggerException();
             }
@@ -80,7 +81,7 @@ void TurnController::resolveTileLanding(GameContext* context, Player* player, Ec
                 }
             } catch (const InsufficientFundsException& ex) {
                 display.renderCantPay(*context, ex.getRequired());
-                throw BankruptcyException("Player cannot afford to pay rent.", ex.getRequired(), player->getBalance());
+                throw BankruptcyException("Player cannot afford to pay rent.", ex.getRequired(), player->getBalance(), dynamic_cast<PropertyTile*>(currentTile)->getOwner(), currentTile);
             }
             // eco.handlePayRent(result, context, bank, diceTotal);
             break;
@@ -92,12 +93,15 @@ void TurnController::resolveTileLanding(GameContext* context, Player* player, Ec
                     input.getIntInput();
                     int choice = input.getIntValue1();
                     try {
+                        int balanceBeforeTax = player->getBalance();
                         display.renderPayTax(*context, choice);
                         eco.processIncomeTax(context, *player, choice);
-                        display.renderCurrentBalancePayed(*context, choice);
+                        int balanceAfterTax = player->getBalance();
+                        int taxPaid = balanceBeforeTax - balanceAfterTax;
+                        display.renderCurrentBalancePayed(*context, taxPaid);
                     } catch (const InsufficientFundsException& ex) {
                         display.renderCantPayTax(*context, ex.getRequired());
-                        throw BankruptcyException("Player cannot afford to pay income tax.", ex.getRequired(), player->getBalance());
+                        throw BankruptcyException("Player cannot afford to pay income tax.", ex.getRequired(), player->getBalance(), nullptr, taxTile);
                     }
                 } else {
                     try {
@@ -106,21 +110,20 @@ void TurnController::resolveTileLanding(GameContext* context, Player* player, Ec
                     } catch (const InsufficientFundsException& ex) {
                         display.renderCantPayTax(*context, ex.getRequired());
                         display.renderCurrentBalance(*context);
-                        throw BankruptcyException("Player cannot afford to pay luxury tax.", ex.getRequired(), player->getBalance());
+                        throw BankruptcyException("Player cannot afford to pay luxury tax.", ex.getRequired(), player->getBalance(), nullptr, taxTile);
                     }
                 }
             }
             break;
 
         case LandEventType::DOFESTIVAL:{
+            eff.handleFestival(currentTile);
             break;
-
         }
-            
-            // eff.handleFestival(result, context);
 
         case LandEventType::DRAWCHANCE: {
             ActionCard* drawnCard = context->getChanceDeck().draw();
+            display.renderCardTile(*context, drawnCard);
             if (drawnCard != nullptr) {
                 eff.execute(*drawnCard, *player, *context);
                 context->getChanceDeck().returnAndShuffle(drawnCard);
@@ -129,11 +132,16 @@ void TurnController::resolveTileLanding(GameContext* context, Player* player, Ec
         }
 
         case LandEventType::DRAWCOMMUNITYCHEST: {
-            ActionCard* drawnCard = context->getCommunityChestDeck().draw();
-            
-            if (drawnCard != nullptr) {
-                eff.execute(*drawnCard, *player, *context);
-                context->getCommunityChestDeck().returnAndShuffle(drawnCard);
+            try {
+                ActionCard* drawnCard = context->getCommunityChestDeck().draw();
+                display.renderCardTile(*context, drawnCard);
+                if (drawnCard != nullptr) {
+                    eff.execute(*drawnCard, *player, *context);
+                    context->getCommunityChestDeck().returnAndShuffle(drawnCard);
+                }
+            } catch (const InsufficientFundsException& ex) {
+                display.renderCantPay(*context, ex.getRequired());
+                throw BankruptcyException("Player cannot afford to pay due to a Community Chest card.", ex.getRequired(), player->getBalance(), nullptr, context->getBoard().getTile(player->getPosition()));
             }
             break;
         }

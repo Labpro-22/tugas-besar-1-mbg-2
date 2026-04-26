@@ -8,7 +8,20 @@
 #include "DisplayView.hpp"
 #include <iostream>
 
-void EffectController::decrementDurations() {
+void handleFestival(Tile *tile){
+    StreetTile* festivalTile = dynamic_cast<StreetTile*>(tile);
+    if (festivalTile->isFestivalActive()) {
+        festivalTile->playerReenterFestival();
+    }
+    else {
+        festivalTile->applyFestival();
+    }
+}
+
+void EffectController::decrementDurations(GameContext* context){
+    Tile* tile = context->getBoard().getTile(context->getCurrentPlayer().getPosition());
+    StreetTile* s = dynamic_cast<StreetTile*>(tile);
+    s->decreaseFestivalTurn();
     // minimal kosong dulu
 }
 void EffectController::execute(ActionCard& card, Player& currentPlayer, GameContext& ctx) {

@@ -177,8 +177,8 @@ void GameEngine::run() {
                     currentPlayer->setJailTurns(0);
                     cliView.renderInfo("Fine paid. You are free now!");
                 } catch (const InsufficientFundsException& ex) {
-                    bankruptcyController.handleInsufficientFunds(gameContext, *currentPlayer, nullptr, ex.getRequired(), economyController, cliView);
-                    turnEnded = true; 
+                    bankruptcyController.liquidateAssets(gameContext, *currentPlayer, nullptr, ex.getRequired(), cliView, economyController, inputHandler, nullptr);
+                    turnEnded = true;
                 }
             } else {
                 bool validJailAction = false;
@@ -202,7 +202,7 @@ void GameEngine::run() {
                             validJailAction = true;
                         } catch (const InsufficientFundsException& ex) {
                             cliView.renderWarning("Insufficient funds!");
-                            bankruptcyController.handleInsufficientFunds(gameContext, *currentPlayer, nullptr, ex.getRequired(), economyController, cliView);
+                            bankruptcyController.liquidateAssets(gameContext, *currentPlayer, nullptr, ex.getRequired(), cliView, economyController, inputHandler, nullptr);
                             turnEnded = true;
                             validJailAction = true;
                         }
@@ -236,8 +236,8 @@ void GameEngine::run() {
                             } catch (const AuctionTriggerException&) {
                                 auctionController.startAuctionSkipBuy(gameContext, cliView, inputHandler);
                                 turnEnded = true;
-                            } catch (const InsufficientFundsException& ex) {
-                                bankruptcyController.handleInsufficientFunds(gameContext, *currentPlayer, nullptr, ex.getRequired(), economyController, cliView);
+                            } catch (const BankruptcyException& ex) {
+                                bankruptcyController.liquidateAssets(gameContext, *currentPlayer, nullptr, ex.getRequired(), cliView, economyController, inputHandler, ex.getBankruptTile());
                                 turnEnded = true;
                             }
                             hasRolledDice = true;
@@ -261,13 +261,9 @@ void GameEngine::run() {
             CommandType cmd;
             
             if (isGUIMode && guiView != nullptr) {
-                // --- MODE GUI ---
-                // GameEngine akan menunggu sampai user mengklik tombol di jendela SFML
                 cmd = guiView->getGUICommand(); 
             } 
             else {
-                // --- MODE CLI (Temanmu) ---
-                // GameEngine menunggu user mengetik di terminal
                 cliView.renderPrompt("\n[" + currentPlayer->getName() + "] Enter Command: ");
                 cmd = inputHandler.getCommand(); 
             }
@@ -279,7 +275,10 @@ void GameEngine::run() {
                         break;
                     }
                     dice.roll();
-                    if (dice.isDouble()) isDoubleRoll = true;
+                    if (dice.isDouble()) {
+                        isDoubleRoll = true;
+                        cliView.renderInfo("\n " + currentPlayer->getName() + " rolled DOUBLES! Gets an extra turn! \n");
+                    }
                     try {
                         cliView.renderDiceRoll(gameContext, dice);
                         if (isGUIMode && guiView != nullptr) {
@@ -288,8 +287,8 @@ void GameEngine::run() {
                         turnController.handleDiceRollMovement(&gameContext, economyController, effectController, auctionController, bankruptcyController, dice, saveLoader, inputHandler, logger, cliView);
                     } catch (const AuctionTriggerException&) {
                         auctionController.startAuctionSkipBuy(gameContext, cliView, inputHandler);
-                    } catch (const InsufficientFundsException& ex) {
-                        bankruptcyController.handleInsufficientFunds(gameContext, *currentPlayer, nullptr, ex.getRequired(), economyController, cliView);
+                    } catch (const BankruptcyException& ex) {
+                        bankruptcyController.liquidateAssets(gameContext, *currentPlayer, nullptr, ex.getRequired(), cliView, economyController, inputHandler, ex.getBankruptTile());
                     }
                     hasRolledDice = true;
                     break;
@@ -303,7 +302,10 @@ void GameEngine::run() {
                     int x = inputHandler.getIntValue1();
                     int y = inputHandler.getIntValue2();
                     dice.setRoll(x, y);
-                    if (dice.isDouble()) isDoubleRoll = true;
+                    if (dice.isDouble()) {
+                        isDoubleRoll = true;
+                        cliView.renderInfo("\n" + currentPlayer->getName() + " set DOUBLES! Gets an extra turn! \n");
+                    }
                     try {
                         cliView.renderDiceRoll(gameContext, dice);
                         if (isGUIMode && guiView != nullptr) {
@@ -312,8 +314,8 @@ void GameEngine::run() {
                         turnController.handleDiceRollMovement(&gameContext, economyController, effectController, auctionController, bankruptcyController, dice, saveLoader, inputHandler, logger, cliView);
                     } catch (const AuctionTriggerException&) {
                         auctionController.startAuctionSkipBuy(gameContext, cliView, inputHandler);
-                    } catch (const InsufficientFundsException& ex) {
-                        bankruptcyController.handleInsufficientFunds(gameContext, *currentPlayer, nullptr, ex.getRequired(), economyController, cliView);
+                    } catch (const BankruptcyException& ex) {
+                        bankruptcyController.liquidateAssets(gameContext, *currentPlayer, ex.getCreditor(), ex.getRequired(), cliView, economyController, inputHandler, ex.getBankruptTile());
                     }
                     hasRolledDice = true;
                     break;
@@ -413,8 +415,8 @@ void GameEngine::run() {
                                 turnController.resolveTileLanding(&gameContext, targetP, economyController, effectController, auctionController, bankruptcyController, dice, saveLoader, inputHandler, logger, cliView);
                             } catch (const AuctionTriggerException&) {
                                 auctionController.startAuctionSkipBuy(gameContext, cliView, inputHandler);
-                            } catch (const InsufficientFundsException& ex) {
-                                bankruptcyController.handleInsufficientFunds(gameContext, *targetP, nullptr, ex.getRequired(), economyController, cliView);
+                            } catch (const BankruptcyException& ex) {
+                                bankruptcyController.liquidateAssets(gameContext, *targetP, nullptr, ex.getRequired(), cliView, economyController, inputHandler, ex.getBankruptTile());
                             }
 
                             if (targetP == currentPlayer && (currentPlayer->getStatus() == PlayerStatus::JAILED || currentPlayer->getStatus() == PlayerStatus::BANKRUPT)) {
@@ -457,27 +459,36 @@ void GameEngine::run() {
                     }
                     break;
                 }
-
+                case CommandType::HELP:{
+                    cliView.showMenu();
+                    break;
+                }
                 case CommandType::UNKNOWN_COMMAND:
                 default:
                     cliView.renderWarning("Invalid command.");
                     break;
+
+                }
+
+            if (isDoubleRoll && currentPlayer->getStatus() == PlayerStatus::ACTIVE && currentPlayer->getJailTurns() == 0) {
+                hasRolledDice = false;
+                isDoubleRoll = false;
             }
         }
 
-        effectController.decrementDurations();
+        effectController.decrementDurations(&gameContext);
 
-        if (gameContext.getMaxTurns() > 0 && gameContext.getCurrentTurn() >= gameContext.getMaxTurns()) {
+        int activePlayers = count_if(gameContext.getPlayers().begin(), gameContext.getPlayers().end(), [](const Player& p) {
+            return p.getStatus() != PlayerStatus::BANKRUPT;
+        });
+
+        if (gameContext.getMaxTurns() > 0 && gameContext.getCurrentTurn() > gameContext.getMaxTurns() || activePlayers == 1) {
             gameContext.setGameOver(true);
         } 
         else {
-            if (isDoubleRoll && currentPlayer->getStatus() == PlayerStatus::ACTIVE && currentPlayer->getJailTurns() == 0) {
-                cliView.renderInfo("\n*** " + currentPlayer->getName() + " rolled DOUBLES! Gets an extra turn! ***\n");
-            } else {
-                gameContext.nextPlayer();
-                if (gameContext.getCurrentPlayerIndex() == 0) {
-                    gameContext.setCurrentTurn(gameContext.getCurrentTurn() + 1);
-                }
+            gameContext.nextPlayer();
+            if (gameContext.getCurrentPlayerIndex() == 0) {
+                gameContext.setCurrentTurn(gameContext.getCurrentTurn() + 1);
             }
         }
     }

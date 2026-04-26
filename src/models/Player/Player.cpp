@@ -176,7 +176,7 @@ int Player::getSkillCardCount() const {
 }
 
 bool Player::canHoldMoreSkillCards() const {
-    return getSkillCardCount() < MAX_CARDS;
+    return getSkillCardCount() <= MAX_CARDS;
 }
 
 string Player::getName() const {
