@@ -89,14 +89,20 @@ string DisplayView::normalizeTileColorCode(Tile* tile) const {
     }
 
     string color = tile->getColor();
-    if ((int)color.size() > 2) {
-        color = color.substr(0, 2);
-    }
-    if (color.empty() || color == "DE") {
-        color = "DF";
-    }
+
     transform(color.begin(), color.end(), color.begin(), ::toupper);
-    return color;
+    
+    if(color == "COKLAT") return "CK";
+    if(color == "MERAH") return "MR";
+    if(color == "MERAH_MUDA" ) return "PK";
+    if(color == "BIRU_MUDA") return "BM";
+    if(color == "KUNING") return "KN";
+    if(color == "HIJAU") return "HJ";
+    if(color == "ORANGE") return "OR";
+    if(color == "BIRU_TUA") return "BT";
+    if(color == "ABU_ABU") return "AB";
+
+    return "DF";
 }
 
 string DisplayView::getAnsiColorByCode(const string& colorCode) const {
@@ -108,8 +114,8 @@ string DisplayView::getAnsiColorByCode(const string& colorCode) const {
     if (colorCode == "HJ") return "\033[32m";        // hijau
     if (colorCode == "OR") return "\033[38;5;208m";  // oranye
     if (colorCode == "BT") return "\033[34m";        // biru tua
-    if (colorCode == "AB") return "\033[36m";        // utilitas (aqua)
-    return "\033[37m";                                // default/aksi
+    if (colorCode == "AB") return "\033[38;5;250m";  // utilitas (aqua)
+    return "\033[37m";                               // default/aksi
 }
 
 string DisplayView::colorizeText(const string& text, const string& colorCode) const {
@@ -204,42 +210,35 @@ vector<Player*> DisplayView::getPlayersOnTile(int tileIdx, GameContext G) const 
 
 // Build info kepemilikan: P1, rumah ^, hotel *
 string DisplayView::buildOwnershipInfo(Tile* tile, GameContext G) const {
-    string info;
     PropertyTile* property = dynamic_cast<PropertyTile*>(tile);
     
-    if (property != nullptr && property->isOwned() && property->getOwner() != nullptr) {
-        // Cari nomor pemain
-        int playerNum = 0;
-        int counter = 1;
-        for (Player& p : G.getPlayers()) {
-            if (property->getOwner() == &p) {
-                playerNum = counter;
-                break;
-            }
-            counter++;
+    if (!property || property->getOwner() == nullptr) {
+        return "";
+    }
+    Player* owner = property->getOwner();
+    int playerNum = 1;
+    for (const Player& p : G.getPlayers()) {
+        if (p.getName() == owner->getName()) {
+            break;
         }
-        
-        info += "P" + to_string(playerNum);
-        
-        // Cek rumah/hotel jika street
-        StreetTile* street = dynamic_cast<StreetTile*>(property);
-        if (street != nullptr) {
-            if (street->getHasHotel()) {
-                info += " *";
-            } else {
-                int houseCount = street->getHouseCount();
-                if (houseCount > 0) {
-                    info += " " + string(houseCount, '^');
-                }
+        playerNum++;
+    }
+    string info = "P" + to_string(playerNum);
+    StreetTile* street = dynamic_cast<StreetTile*>(property);
+    if (street) {
+        if (street->getHasHotel()) {
+            info += "*"; 
+        } else {
+            for (int i = 0; i < street->getHouseCount(); i++) {
+                info += "^"; // 1 rumah = ^, 2 rumah = ^^, dst.
             }
         }
     }
-    
     return info;
 }
 
 // Build info posisi pemain: (1,3) atau IN:2 V:1
-string DisplayView::buildPlayerPositionInfo(int tileIdx, GameContext G) const {
+string DisplayView::buildPlayerPositionInfo(int tileIdx, GameContext& G) const {
     vector<Player*> onTile = getPlayersOnTile(tileIdx, G);
     string info;
     
@@ -311,8 +310,7 @@ string DisplayView::getTileLine1(Tile* tile) const {
     if ((int)code.size() > 3) {
         code = code.substr(0, 3);
     }
-    
-    return formatCellContent("[" + color + "] " + code);
+    return colorizeText(formatCellContent("[" + color + "] " + code),color);
 }
 
 // Baris kedua tile: ownership + player positions
@@ -326,83 +324,111 @@ string DisplayView::getTileLine2(int tileIdx, Tile* tile, GameContext G) const {
         }
         line += playerInfo;
     }
-    
-    return formatCellContent(line);
+    string color = normalizeTileColorCode(tile);
+    return colorizeText(formatCellContent(line),color);
 }
 
 // Print 11 tile baris atas (index 0-10)
 void DisplayView::printTopRow(GameContext G, int sideLength) {
-    string border = makeBorderLine(sideLength);
-    cout << border << endl;
-    
-    // Baris pertama: [COLOR] CODE
     for (int i = 0; i < sideLength; ++i) {
         Tile* t = G.getBoard().getTile(i);
-        cout << "|" << colorizeText(getTileLine1(t), normalizeTileColorCode(t));
+        string color = normalizeTileColorCode(t);
+        cout << colorizeText("+", color) << colorizeText(string(BOARD_CELL_WIDTH, '-'), color);
+        if (i == sideLength - 1) cout << colorizeText("+", color);
     }
-    cout << "|" << endl;
-    
-    // Baris kedua: ownership + players
+    cout << endl;
+
     for (int i = 0; i < sideLength; ++i) {
         Tile* t = G.getBoard().getTile(i);
-        cout << "|" << getTileLine2(i, t, G);
+        string color = normalizeTileColorCode(t);
+        cout << colorizeText("|", color) << getTileLine1(t);
+        if (i == sideLength - 1) cout << colorizeText("|", color);
     }
-    cout << "|" << endl;
-    cout << border << endl;
+    cout << endl;
+
+    for (int i = 0; i < sideLength; ++i) {
+        Tile* t = G.getBoard().getTile(i);
+        string color = normalizeTileColorCode(t);
+        cout << colorizeText("|", color) << getTileLine2(i, t, G);
+        if (i == sideLength - 1) cout << colorizeText("|", color);
+    }
+    cout << endl;
+
+    for (int i = 0; i < sideLength; ++i) {
+        Tile* t = G.getBoard().getTile(i);
+        string color = normalizeTileColorCode(t);
+        cout << colorizeText("+", color) << colorizeText(string(BOARD_CELL_WIDTH, '-'), color);
+        if (i == sideLength - 1) cout << colorizeText("+", color);
+    }
+    cout << endl;
 }
 
 // Print 11 tile baris bawah (index 30 ke 20)
 void DisplayView::printBottomRow(GameContext G, int sideLength) {
-    string border = makeBorderLine(sideLength);
     int bottomLeft = 3 * (sideLength - 1);
     int bottomRight = 2 * (sideLength - 1);
 
-    cout << border << endl;
+    for (int i = bottomLeft; i >= bottomRight; --i) {
+        Tile* t = G.getBoard().getTile(i);
+        string color = normalizeTileColorCode(t);
+        cout << colorizeText("+", color) << colorizeText(string(BOARD_CELL_WIDTH, '-'), color);
+        if (i == bottomRight) cout << colorizeText("+", color);
+    }
+    cout << endl;
 
     for (int i = bottomLeft; i >= bottomRight; --i) {
         Tile* t = G.getBoard().getTile(i);
-        cout << "|" << colorizeText(getTileLine1(t), normalizeTileColorCode(t));
+        string color = normalizeTileColorCode(t);
+        cout << colorizeText("|", color) << getTileLine1(t);
+        if (i == bottomRight) cout << colorizeText("|", color);
     }
-    cout << "|" << endl;
+    cout << endl;
     
     for (int i = bottomLeft; i >= bottomRight; --i) {
         Tile* t = G.getBoard().getTile(i);
-        cout << "|" << getTileLine2(i, t, G);
+        string color = normalizeTileColorCode(t);
+        cout << colorizeText("|", color) << getTileLine2(i, t, G);
+        if (i == bottomRight) cout << colorizeText("|", color);
     }
-    cout << "|" << endl;
-    cout << border << endl;
+    cout << endl;
+
+    for (int i = bottomLeft; i >= bottomRight; --i) {
+        Tile* t = G.getBoard().getTile(i);
+        string color = normalizeTileColorCode(t);
+        cout << colorizeText("+", color) << colorizeText(string(BOARD_CELL_WIDTH, '-'), color);
+        if (i == bottomRight) cout << colorizeText("+", color);
+    }
+    cout << endl;
 }
 
 // Print 9 baris sisi (kiri dan kanan)
 void DisplayView::printSideRows(GameContext G, int sideLength, int centerWidth) {
     int totalTiles = G.getBoard().getTotalTile();
-    int topRight = sideLength - 1;
     int sideRows = sideLength - 2;
-
     vector<string> centerLines = buildCenterLines(G, centerWidth, sideRows);
-    string sideBorder = makeSideBorderLine(centerWidth);
     
     for (int row = 1; row <= sideRows; ++row) {
         int leftIdx = totalTiles - row;
-        int rightIdx = topRight + row;
+        int rightIdx = (sideLength - 1) + row;
         
-        Tile* leftTile = G.getBoard().getTile(leftIdx);
-        Tile* rightTile = G.getBoard().getTile(rightIdx);
+        Tile* leftT = G.getBoard().getTile(leftIdx);
+        Tile* rightT = G.getBoard().getTile(rightIdx);
         
-        // Baris pertama: [COLOR] CODE
-        string leftCell1 = colorizeText(getTileLine1(leftTile), normalizeTileColorCode(leftTile));
-        string rightCell1 = colorizeText(getTileLine1(rightTile), normalizeTileColorCode(rightTile));
-        int firstCenterIndex = (row - 1) * 2;
-        cout << "|" << leftCell1 << "|" << centerLines[firstCenterIndex] << "|" << rightCell1 << "|" << endl;
-        
-        // Baris kedua: ownership + players
-        string leftCell2 = getTileLine2(leftIdx, leftTile, G);
-        string rightCell2 = getTileLine2(rightIdx, rightTile, G);
-        int secondCenterIndex = firstCenterIndex + 1;
-        cout << "|" << leftCell2 << "|" << centerLines[secondCenterIndex] << "|" << rightCell2 << "|" << endl;
-        
+        string cL = normalizeTileColorCode(leftT);
+        string cR = normalizeTileColorCode(rightT);
+
+        cout << colorizeText("|", cL) << getTileLine1(leftT) << colorizeText("|", cL)
+             << centerLines[(row-1)*2]
+             << colorizeText("|", cR) << getTileLine1(rightT) << colorizeText("|", cR) << endl;
+
+        cout << colorizeText("|", cL) << getTileLine2(leftIdx, leftT, G) << colorizeText("|", cL)
+             << centerLines[(row-1)*2 + 1]
+             << colorizeText("|", cR) << getTileLine2(rightIdx, rightT, G) << colorizeText("|", cR) << endl;
+
         if (row != sideRows) {
-            cout << sideBorder << endl;
+            cout << colorizeText("+", cL) << colorizeText(string(BOARD_CELL_WIDTH, '-'), cL) << colorizeText("+", cL)
+                 << string(centerWidth, ' ') 
+                 << colorizeText("+", cR) << colorizeText(string(BOARD_CELL_WIDTH, '-'), cR) << colorizeText("+", cR) << endl;
         }
     }
 }
@@ -454,7 +480,7 @@ void DisplayView::renderAkta(GameContext G, string code){
 
     cout << "+==============================+" << endl;
 
-    if (prop->isOwned()) {
+    if (prop->getStatus() == OWNED) {
         Player* owner = prop->getOwner();
         printCardLine("Status: OWNED (" + owner->getName() + ")");
     }else if(prop->getStatus() == MORTGAGED) {
@@ -689,9 +715,7 @@ void DisplayView::renderAuctionResult(string winnerName, int winningBid){
 }
 
 // Festival 
-void DisplayView::renderFestivalTile(GameContext G, vector<StreetTile*> streetTiles) {
-    renderTile(G);
-    
+void DisplayView::renderFestivalTile(GameContext G, vector<StreetTile*> streetTiles) {    
     cout << "Your owned properties:" << endl;
     for (const StreetTile* Tile : streetTiles)
     {
@@ -749,7 +773,7 @@ void DisplayView::renderRedeemStart(GameContext G, vector<PropertyTile*> mortgag
     for (const PropertyTile* tile : mortgagedTiles)
     {
         if (tile->getStatus() == MORTGAGED){
-            cout << i << ". " << tile->getName() << " (" << tile->getCode() << ")" << "[ << " << tile->getColor() << " >> ]" << "[M]"  << "Mortgage Value: M" << tile->getPrice() << endl;
+            cout << i << ". " << tile->getName() << " (" << tile->getCode() << ")" << " [" << tile->getColor() << "]" << " [M]"  << "Mortgage Value: M" << tile->getPrice() << endl;
             i++;
         }
     }
@@ -769,7 +793,7 @@ void DisplayView::renderMortgageStart(GameContext G, vector<PropertyTile*> unmor
     for (const PropertyTile* tile : unmortgagedTiles)
     {
         if (tile->getStatus() != MORTGAGED){
-            cout << i << ". " << tile->getName() << " (" << tile->getCode() << ")" << "[ << " << tile->getColor() << " >> ]"  << "Mortgage Value: M" << tile->getMortgageValue() << endl;
+            cout << i << ". " << tile->getName() << " (" << tile->getCode() << ")" << " [" << tile->getColor() << "]"  << " Mortgage Value: M" << tile->getMortgageValue() << endl;
             i++;
         }
     }
@@ -835,14 +859,9 @@ void DisplayView::renderRedeemChoose(GameContext G, vector<PropertyTile*> mortga
     }
 
     PropertyTile* chosenTile = mortgagedTiles[choose - 1];
-    // Jaga - jaga agar tidak terjadi error jika status tile berubah di tengah proses
-    if (chosenTile->getStatus() != MORTGAGED) {
-        cout << "The chosen property is not currently mortgaged." << endl;
-        return; 
-    }
 
     cout << "You chose to unmortgage " << chosenTile->getName() << " (" << chosenTile->getCode() << ")." << endl;
-    cout << "You paying M" << redeemCost << "To the bank" << endl;
+    cout << "You paying M " << redeemCost << " To the bank" << endl;
     cout << "Your Current Balance: M" << G.getCurrentPlayer().getBalance() + redeemCost << " -> M" << G.getCurrentPlayer().getBalance() << endl;
 }
 
@@ -1035,7 +1054,7 @@ void DisplayView::renderPlayerInfo(GameContext G, Player* player){
 
 void DisplayView::renderPlayer(GameContext G){
     for (Player& p : G.getPlayers()) {
-        if (p.getStatus() != PlayerStatus::BANKRUPT) {
+        if (p.getStatus() != PlayerStatus::BANKRUPT && G.getCurrentPlayer().getName() != p.getName()) {
             cout << "- " << p.getName() << " (Currently at tile: " << p.getPosition() << ")\n";
         }
     }

@@ -12,7 +12,7 @@
 #include "GameException.hpp"
 #include <iostream>
 
-void EffectController::handleFestival(GameContext* gameContext, DisplayView* display, InputHandler* inputHandler){
+void EffectController::handleFestival(GameContext* gameContext, DisplayView* display, InputHandler* inputHandler, GameLogger& logger){
     
     Player& currentPlayer = gameContext->getCurrentPlayer();
     vector<StreetTile*> streetTile;
@@ -47,8 +47,10 @@ void EffectController::handleFestival(GameContext* gameContext, DisplayView* dis
     StreetTile* choosed = dynamic_cast<StreetTile*>(gameContext->getBoard().getTileByCode( choice ));
     if (choosed->isFestivalActive()){
         choosed->playerReenterFestival();
+        logger.addLog(gameContext->getCurrentTurn(), currentPlayer.getName(), "FESTIVAL", "Re-entered festival on " + choosed->getName());
     }else{
         choosed->applyFestival();
+        logger.addLog(gameContext->getCurrentTurn(), currentPlayer.getName(), "FESTIVAL", "Activated festival on " + choosed->getName());
     }
 }
 
@@ -60,7 +62,7 @@ void EffectController::decrementDurations(GameContext* context){
     }
 }
 
-void EffectController::execute(ActionCard& card, Player& currentPlayer, GameContext& ctx, BankruptcyController& bank, InputHandler& inputHandler, DisplayView& display, EconomyController& eco) {
+void EffectController::execute(ActionCard& card, Player& currentPlayer, GameContext& ctx, BankruptcyController& bank, InputHandler& inputHandler, DisplayView& display, EconomyController& eco, GameLogger& logger) {
     switch (card.getActionType()) {
         case ActionCardType::MOVE_TO_STATION: {
             int currentPos = currentPlayer.getPosition();
@@ -68,6 +70,7 @@ void EffectController::execute(ActionCard& card, Player& currentPlayer, GameCont
             int stationPos = ctx.getBoard().findNearestStation(currentPos);
             
             currentPlayer.setPosition(stationPos);
+            logger.addLog(ctx.getCurrentTurn(), currentPlayer.getName(), "MOVE_TO_STATION_CARD", "Moved to nearest station");
             break;
         }
         case ActionCardType::MOVE_BACKWARD: {
@@ -78,6 +81,7 @@ void EffectController::execute(ActionCard& card, Player& currentPlayer, GameCont
             int currentPos = currentPlayer.getPosition();
             int newPos = ctx.getBoard().calculateTargetPosition(currentPos, -3);
             currentPlayer.setPosition(newPos);
+            logger.addLog(ctx.getCurrentTurn(), currentPlayer.getName(), "MOVE_BACKWARD_CARD", "Moved backward 3 steps");
             break;
         }
         case ActionCardType::MOVE_TO_JAIL: {
@@ -93,6 +97,7 @@ void EffectController::execute(ActionCard& card, Player& currentPlayer, GameCont
                 currentPlayer.setStatus(PlayerStatus::JAILED);
                 currentPlayer.setJailTurns(0); 
                 currentPlayer.setDoubleCount(0);
+                logger.addLog(ctx.getCurrentTurn(), currentPlayer.getName(), "MOVE_TO_JAIL_CARD", "Moved to jail");
             }
             break;
         }
@@ -102,8 +107,9 @@ void EffectController::execute(ActionCard& card, Player& currentPlayer, GameCont
                     try {
                         p -= 100;
                         currentPlayer += 100;
+                        logger.addLog(ctx.getCurrentTurn(), currentPlayer.getName(), "BIRTHDAY_CARD", "Collected M100 from " + p.getName());
                     } catch (const InsufficientFundsException& ex) {
-                        bank.liquidateAssets(ctx, p, &currentPlayer, ex.getRequired(), display, eco, inputHandler, ctx.getBoard().getTile(p.getPosition()));
+                        bank.liquidateAssets(ctx, p, &currentPlayer, ex.getRequired(), display, eco, inputHandler, ctx.getBoard().getTile(p.getPosition()), logger);
                     }
                 }
             }
@@ -117,6 +123,7 @@ void EffectController::execute(ActionCard& card, Player& currentPlayer, GameCont
 
             try {
                 currentPlayer -= 700;
+                logger.addLog(ctx.getCurrentTurn(), currentPlayer.getName(), "DOCTOR_FEE_CARD", "Paid M700 doctor fee");
             } catch (const InsufficientFundsException& ex) {
                 throw BankruptcyException("You don't have enough money to pay the doctor's fee.", ex.getRequired(), currentPlayer.getBalance(), nullptr,  ctx.getBoard().getTile(currentPlayer.getPosition()));
             }
@@ -132,9 +139,10 @@ void EffectController::execute(ActionCard& card, Player& currentPlayer, GameCont
                     try {
                         currentPlayer -= 200;
                         p += 200;
+                        logger.addLog(ctx.getCurrentTurn(), currentPlayer.getName(), "NYALEG_CARD", "Paid M200 to " + p.getName());
                     }
                     catch (const InsufficientFundsException& ex) {
-                        bank.liquidateAssets(ctx, currentPlayer, &p, ex.getRequired(), display, eco, inputHandler, ctx.getBoard().getTile(currentPlayer.getPosition()));
+                        bank.liquidateAssets(ctx, currentPlayer, &p, ex.getRequired(), display, eco, inputHandler, ctx.getBoard().getTile(currentPlayer.getPosition()), logger);
                     }
                 }
             }
@@ -143,7 +151,7 @@ void EffectController::execute(ActionCard& card, Player& currentPlayer, GameCont
     }
 }
 
-void EffectController::execute(SkillCard& card, Player& currentPlayer, GameContext& ctx, InputHandler& input, DisplayView& display, bool isGUIMode, GameView* guiView) {
+void EffectController::execute(SkillCard& card, Player& currentPlayer, GameContext& ctx, InputHandler& input, DisplayView& display, GameLogger& logger, bool isGUIMode, GameView* guiView) {
     switch (card.getSkillType()) {
         case SkillCardType::MOVE: {
             MoveCard& mCard = dynamic_cast<MoveCard&>(card);
@@ -153,20 +161,25 @@ void EffectController::execute(SkillCard& card, Player& currentPlayer, GameConte
             
             int newPos = ctx.getBoard().calculateTargetPosition(currentPos, steps);
             currentPlayer.setPosition(newPos);
+            logger.addLog(ctx.getCurrentTurn(), currentPlayer.getName(), "USE_SKILL_CARD", "Used Move card to move " + to_string(steps) + " steps");
             break;
         }
         case SkillCardType::DISCOUNT: {
             DiscountCard& dCard = dynamic_cast<DiscountCard&>(card);
             
             currentPlayer.applyDiscount(dCard.getDiscountPercentage());
+            logger.addLog(ctx.getCurrentTurn(), currentPlayer.getName(), "USE_SKILL_CARD", "Used Discount card (" + to_string(dCard.getDiscountPercentage()) + "% off)");
             break;
         }
         case SkillCardType::SHIELD: {
+
             currentPlayer.applyShield(); 
+            logger.addLog(ctx.getCurrentTurn(), currentPlayer.getName(), "USE_SKILL_CARD", "Used Shield card");
             break;
         }
         case SkillCardType::TELEPORT: {
             Tile* targetTile = nullptr;
+            string targetCode;
             while (true) {
                 string targetCode;
                 if (isGUIMode && guiView != nullptr) {
@@ -191,7 +204,8 @@ void EffectController::execute(SkillCard& card, Player& currentPlayer, GameConte
 
             int targetIdx = targetTile->getIdx();
             currentPlayer.setPosition(targetIdx);
-            
+            display.renderInfo("Teleporting to " + targetTile->getName() + "...");
+            logger.addLog(ctx.getCurrentTurn(), currentPlayer.getName(), "USE_SKILL_CARD", "Used Teleport card to " + targetCode);
             break;
         }
         case SkillCardType::LASSO: {
@@ -254,7 +268,7 @@ void EffectController::execute(SkillCard& card, Player& currentPlayer, GameConte
             }
 
             targetPlayer->setPosition(currentPos);    
-            
+            logger.addLog(ctx.getCurrentTurn(), currentPlayer.getName(), "USE_SKILL_CARD", "Used Lasso card to pull " + targetPlayer->getName() + " to position " + to_string(currentPos));
             break;
         }
         case SkillCardType::DEMOLITION: {
@@ -263,6 +277,7 @@ void EffectController::execute(SkillCard& card, Player& currentPlayer, GameConte
 
             while (true) {
                 string targetCode;
+                display.renderInfo("Enter the code of the opponent's street tile you want to demolish: ");
                 if (isGUIMode && guiView != nullptr) {
                     targetCode = guiView->getStringInput("Enter opponent's street tile code to demolish (e.g.: SBY):");
                     if (targetCode.empty()) return;
@@ -270,6 +285,7 @@ void EffectController::execute(SkillCard& card, Player& currentPlayer, GameConte
                     input.getStringInput();
                     targetCode = input.getLastStringInput();
                 }
+                
 
                 targetTile = ctx.getBoard().getTileByCode(targetCode);
 
@@ -310,11 +326,16 @@ void EffectController::execute(SkillCard& card, Player& currentPlayer, GameConte
             }
 
             targetStreet->demolishBuilding();
+            display.renderInfo("Demolishing buildings on " + targetStreet->getName() + "...");
+
+            logger.addLog(ctx.getCurrentTurn(), currentPlayer.getName(), "USE_SKILL_CARD", "Used Demolition card on " + targetStreet->getName());
             break;
         }
         case SkillCardType::JAILFREE: {
+
             currentPlayer.setStatus(PlayerStatus::ACTIVE);
             currentPlayer.setJailTurns(0);
+            logger.addLog(ctx.getCurrentTurn(), currentPlayer.getName(), "USE_SKILL_CARD", "Used Jail Free card");
             break;
         }
     }

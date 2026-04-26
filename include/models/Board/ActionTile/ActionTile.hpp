@@ -22,6 +22,6 @@ protected:
     
 public:
     ActionTile(int idx, string code, string name, ActionType actionType, string color = "DEFAULT"); 
-    virtual LandResult land(GameContext &G) = 0; // override pure virtual function
+    virtual LandResult land(Player &p) = 0; // override pure virtual function
 };
 

@@ -1,6 +1,7 @@
 #pragma once
 #include "Tile.hpp"
 #include "LandResult.hpp"
+#include "Player.hpp"
 #include <vector>
 
 using namespace std;
@@ -32,7 +33,7 @@ protected:
     int price; 
     int mortgageValue;
 public:
-    LandResult land(GameContext &G) = 0; // override pure virtual function
+    LandResult land(Player &p) = 0; // override pure virtual function
     PropertyTile(int idx, string code, string name, int price, int mortgageValue, string color);
     bool isOwned() const;
     void setOwner(Player *newOwner);

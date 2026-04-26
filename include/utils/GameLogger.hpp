@@ -8,12 +8,20 @@
 
 using namespace std;
 
-struct LogEntry
+class LogEntry
 {
     int turn;
     string username;
     string action;
     string details;
+
+public:
+    LogEntry() = default;
+    LogEntry(int turn, const string& username, const string& action, const string& details);
+    int getTurn() const;
+    const string& getUsername() const;
+    const string& getAction() const;
+    const string& getDetails() const;
 };
 
 class GameLogger

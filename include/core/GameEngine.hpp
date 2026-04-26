@@ -23,9 +23,9 @@ public:
     GameEngine(GameView* gui) : guiView(gui), isGUIMode(true) {}
     
     void initGame(GameContext &gameContext,
-                  TurnController &turnController,
                   ConfigReader &configReader,
-                  EconomyController &economyController);
+                  );
+
     void run();
 };
 

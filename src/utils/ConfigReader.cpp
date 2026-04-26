@@ -32,27 +32,27 @@ void ConfigReader::loadAksi(string fileName, GameBoard &gameBoard) {
 
         if (type == "KARTU") {
             if (code == "KSP") {
-                gameBoard.addTile(new CardTile(idx, code, name, CardType::CHANCE, color));
+                gameBoard.addTile(new CardTile(idx - 1, code, name, CardType::CHANCE, color));
             } else if (code == "DNU") {
-                gameBoard.addTile(new CardTile(idx, code, name, CardType::COMMUNITY_CHEST, color));
+                gameBoard.addTile(new CardTile(idx - 1, code, name, CardType::COMMUNITY_CHEST, color));
             }
         } 
         else if (type == "FESTIVAL") {
-            gameBoard.addTile(new FestivalTile(idx, code, name, color));
+            gameBoard.addTile(new FestivalTile(idx - 1, code, name, color));
         } 
         else if (type == "PAJAK") {
             bool isPPH = (code == "PPH");
-            gameBoard.addTile(new TaxTile(idx, code, name, isPPH, color));
+            gameBoard.addTile(new TaxTile(idx - 1, code, name, isPPH, color));
         } 
         else if (type == "SPESIAL") {
             if (code == "GO") {
-                gameBoard.addTile(new StartTile(idx, code, name, color));
+                gameBoard.addTile(new StartTile(idx - 1, code, name, color));
             } else if (code == "PEN") {
-                gameBoard.addTile(new JailTile(idx, code, name, color));
+                gameBoard.addTile(new JailTile(idx - 1, code, name, color));
             } else if (code == "BBP") {
-                gameBoard.addTile(new FreeParkTile(idx, code, name, color));
+                gameBoard.addTile(new FreeParkTile(idx - 1, code, name, color));
             } else if (code == "PPJ") {
-                gameBoard.addTile(new GoToJailTile(idx, code, name, color));
+                gameBoard.addTile(new GoToJailTile(idx - 1, code, name, color));
             }
         }
     }
@@ -76,11 +76,11 @@ void ConfigReader::loadProperty(string fileName, GameBoard &gameBoard){
             ss >> houseCost >> hotelCost;
             for(int i = 0; i < 6; i++) ss >> rent[i];
 
-            gameBoard.addTile(new StreetTile(idx, code, name, price, morgageValue, rent,houseCost, hotelCost,  color));
+            gameBoard.addTile(new StreetTile(idx - 1, code, name, price, morgageValue, rent,houseCost, hotelCost,  color));
         }else if(type == "RAILROAD"){
-            gameBoard.addTile(new RailroadTile(idx, code, name, price, morgageValue, color));
+            gameBoard.addTile(new RailroadTile(idx - 1, code, name, price, morgageValue, color));
         }else if(type == "UTILITY"){
-            gameBoard.addTile(new UtilityTile(idx, code, name, price, morgageValue, color));
+            gameBoard.addTile(new UtilityTile(idx - 1, code, name, price, morgageValue, color));
         }
     }
 

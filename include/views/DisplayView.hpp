@@ -169,7 +169,7 @@ private:
     
     vector<Player*> getPlayersOnTile(int tileIdx, GameContext G) const;
     string buildOwnershipInfo(Tile* tile, GameContext G) const;
-    string buildPlayerPositionInfo(int tileIdx, GameContext G) const;
+    string buildPlayerPositionInfo(int tileIdx, GameContext& G) const;
 
     std::function<void(const std::string&)> logSink;
     class LogStreamBuf* customLogBuf = nullptr;

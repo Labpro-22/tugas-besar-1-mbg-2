@@ -9,5 +9,5 @@ class JailTile : public ActionTile
 {
 public:
     JailTile(int idx, std::string code, std::string name, string color = "DEFAULT");
-    LandResult land(GameContext &G) override;
+    LandResult land(Player &p) override;
 };
