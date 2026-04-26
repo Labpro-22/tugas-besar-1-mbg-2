@@ -1,5 +1,5 @@
 #pragma once
-#include <list>
+#include "GameView.hpp"
 #include "Player.hpp"
 #include "GameContext.hpp"
 #include "EffectController.hpp"
@@ -18,8 +18,8 @@ class TurnController
 {
 public:
     bool checkWinCondition();
-    void distributeSkillCards(GameContext& ctx, InputHandler& input, DisplayView& display);
-    void resolveTileLanding(GameContext* context, Player* player, EconomyController& eco, EffectController& eff, AuctionController& auc, BankruptcyController& bank, Dice& dice, SaveLoader& sl, InputHandler& input, GameLogger& logger, DisplayView& display);
-    void handleDiceRollMovement(GameContext* context, EconomyController& eco, EffectController& eff, AuctionController& auc, BankruptcyController& bank, Dice& dice, SaveLoader& sl, InputHandler& input, GameLogger& logger, DisplayView& display);
-    void handleBuildHouse(GameContext* context, Player* player, EconomyController& eco, InputHandler& input, GameLogger& logger, DisplayView& display);
+    void distributeSkillCards(GameContext& ctx, InputHandler& input, DisplayView& display, bool isGUIMode = false, GameView* guiView = nullptr);
+    void resolveTileLanding(GameContext* context, Player* player, EconomyController& eco, EffectController& eff, AuctionController& auc, BankruptcyController& bank, Dice& dice, SaveLoader& sl, InputHandler& input, GameLogger& logger, DisplayView& display, bool isGUIMode = false, GameView* guiView = nullptr);
+    void handleDiceRollMovement(GameContext* context, EconomyController& eco, EffectController& eff, AuctionController& auc, BankruptcyController& bank, Dice& dice, SaveLoader& sl, InputHandler& input, GameLogger& logger, DisplayView& display, bool isGUIMode = false, GameView* guiView = nullptr);
+    void handleBuildHouse(GameContext* context, Player* player, EconomyController& eco, InputHandler& input, GameLogger& logger, DisplayView& display, bool isGUIMode = false, GameView* guiView = nullptr);
 };

@@ -18,6 +18,9 @@ void FestivalState::resetDuration(){
 void FestivalState::decrementTurn(){
     if (turnsLeft > 0 ){
         turnsLeft--;
+        if (turnsLeft == 0) {
+            stacks = 0;
+        }
     }
 }
 bool FestivalState::isExpired() const{

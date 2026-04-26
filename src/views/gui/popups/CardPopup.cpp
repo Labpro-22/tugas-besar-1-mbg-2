@@ -1,0 +1,41 @@
+#include "gui/popups/CardPopup.hpp"
+
+CardPopup::CardPopup(std::string type, std::string desc, std::string buttonText) 
+    : cardType(type), description(desc), btnText(buttonText) {
+    
+    popupRect = sf::FloatRect(310.f, 220.f, 500.f, 300.f); 
+    
+    if (cardType == "Community Chest") {
+        bgColor = sf::Color(255, 235, 59); // Yellow = Community Chest
+    } else {
+        bgColor = sf::Color(255, 152, 0); // Orange = Chance
+    }
+
+    okBtnRect = sf::FloatRect(popupRect.left + 200.f, popupRect.top + 230.f, 100.f, 40.f);
+}
+
+void CardPopup::render(sf::RenderWindow& window) {
+    draw3DPanel(window, popupRect, sf::Color(192, 192, 192), false);
+    
+    sf::FloatRect innerRect(popupRect.left + 10.f, popupRect.top + 10.f, popupRect.width - 20.f, 200.f);
+    draw3DPanel(window, innerRect, bgColor, true); 
+
+    sf::Text titleText = createText(cardType, innerRect.left + 15.f, innerRect.top + 10.f, 24, sf::Color::Black);
+    titleText.setStyle(sf::Text::Italic); 
+    window.draw(titleText);
+
+    std::vector<std::string> wrapped = wrapTextToWidth(mainFont, 18, description, innerRect.width - 30.f);
+    float textY = innerRect.top + 60.f;
+    for (const auto& line : wrapped) {
+        window.draw(createText(line, innerRect.left + 20.f, textY, 18, sf::Color::Black));
+        textY += 22.f;
+    }
+
+    draw3DPanel(window, okBtnRect, sf::Color(200, 200, 200), false);
+    window.draw(createText(btnText, okBtnRect.left + (okBtnRect.width/2.f) - 15.f, okBtnRect.top + 8.f, 18, sf::Color::Black));
+}
+
+PopupResult CardPopup::handleMouseClick(float mouseX, float mouseY) {
+    if (containsPoint(okBtnRect, mouseX, mouseY)) return PopupResult::OK_CLOSE;
+    return PopupResult::NONE;
+}

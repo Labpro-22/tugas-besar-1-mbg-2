@@ -1,7 +1,7 @@
 #include "AuctionController.hpp"
 #include "GameLogger.hpp"
 
-void AuctionController::startAuctionSkipBuy(GameContext &gameContext, DisplayView &dv, InputHandler &inputHandler, GameLogger &logger) {
+void AuctionController::startAuctionSkipBuy(GameContext &gameContext, DisplayView &dv, InputHandler &inputHandler, GameLogger &logger, bool isGUIMode, GameView* guiView) {
     PropertyTile* property = dynamic_cast<PropertyTile*>(gameContext.getBoard().getTile(gameContext.getCurrentPlayer().getPosition()));
     
     vector<Player*> participants;
@@ -14,7 +14,7 @@ void AuctionController::startAuctionSkipBuy(GameContext &gameContext, DisplayVie
     int startIndexInGlobal = (gameContext.getCurrentPlayerIndex() + 1) % gameContext.getPlayers().size();
     
     int startIdx = 0;
-    for(int i = 0; i < participants.size(); i++) {
+    for(size_t i = 0; i < participants.size(); i++) {
         if (participants[i]->getName() == gameContext.getPlayers()[startIndexInGlobal].getName()) {
             startIdx = i;
             break;
@@ -22,10 +22,11 @@ void AuctionController::startAuctionSkipBuy(GameContext &gameContext, DisplayVie
     }
 
     dv.renderAuctionStart(gameContext, property);
-    runAuctionLogic(gameContext, dv, inputHandler, participants, startIdx, property, logger);
+    runAuctionLogic(gameContext, dv, inputHandler, participants, startIdx, property, logger, isGUIMode, guiView);
+
 }
 
-void AuctionController::startAuctionBankrupt(GameContext &gameContext, DisplayView &dv, InputHandler &inputHandler, PropertyTile* property, GameLogger &logger) {
+void AuctionController::startAuctionBankrupt(GameContext &gameContext, DisplayView &dv, InputHandler &inputHandler, PropertyTile* property, GameLogger &logger, bool isGUIMode, GameView* guiView) {
     Player &bankruptPlayer = gameContext.getCurrentPlayer();
     
     vector<Player*> participants;
@@ -38,10 +39,10 @@ void AuctionController::startAuctionBankrupt(GameContext &gameContext, DisplayVi
     if (participants.size() <= 1) return;
 
     dv.renderAuctionStart(gameContext, property);
-    runAuctionLogic(gameContext, dv, inputHandler, participants, 0, property, logger);
+    runAuctionLogic(gameContext, dv, inputHandler, participants, 0, property, logger, isGUIMode, guiView);
 }
 
-void AuctionController::runAuctionLogic(GameContext &gameContext, DisplayView &dv, InputHandler &inputHandler, vector<Player*> participants, int startIndex, PropertyTile* property, GameLogger &logger) {
+void AuctionController::runAuctionLogic(GameContext &gameContext, DisplayView &dv, InputHandler &inputHandler, vector<Player*> participants, int startIndex, PropertyTile* property, GameLogger &logger, bool isGUIMode, GameView* guiView) {
     int maxBid = -1; 
     int passCount = 0;
     int currentIndex = startIndex;
@@ -55,7 +56,7 @@ void AuctionController::runAuctionLogic(GameContext &gameContext, DisplayView &d
         Player* lastBidder = bidHistory.empty() ? nullptr : bidHistory.back().first;
         bool forceBidMode = (lastBidder == nullptr && passCount == numParticipants - 1);
 
-        placeBid(gameContext, *currentBidder, bidHistory, dv, inputHandler, maxBid, currentBidSuccess, passCount, forceBidMode, property, logger);
+        placeBid(gameContext, *currentBidder, bidHistory, dv, inputHandler, maxBid, currentBidSuccess, passCount, forceBidMode, property, logger, isGUIMode, guiView);
 
         if (maxBid != -1 && passCount == numParticipants - 1) {
             break;
@@ -69,13 +70,45 @@ void AuctionController::runAuctionLogic(GameContext &gameContext, DisplayView &d
     }
 }
 
-void AuctionController::placeBid(GameContext &gameContext, Player &bidder, vector<pair<Player *, int>> &bidHistory, DisplayView &dv, InputHandler &inputHandler, int &maxBid, bool &currentBidSuccess, int &passCount, bool forceBidMode, PropertyTile* property, GameLogger &logger) {
+void AuctionController::placeBid(GameContext &gameContext, Player &bidder, vector<pair<Player *, int>> &bidHistory, DisplayView &dv, InputHandler &inputHandler, int &maxBid, bool &currentBidSuccess, int &passCount, bool forceBidMode, PropertyTile* property, GameLogger &logger, bool isGUIMode, GameView* guiView) {
     int bidAmount = 0;
     bool hasAmount = false;
     currentBidSuccess = false;
     while (true) {
         dv.renderAuctionLine(bidder.getName());
-        CommandType cmd = inputHandler.getCommand();
+        
+        CommandType cmd;
+        if (isGUIMode && guiView != nullptr) {
+            int bidderIdx = 0;
+            for (int i = 0; i < 4; ++i) {
+                if ("Pemain " + std::to_string(i+1) == bidder.getName()) {
+                    bidderIdx = i; break;
+                }
+            }
+            int highBidderIdx = -1;
+            if (!bidHistory.empty()) {
+                for (int i = 0; i < 4; ++i) {
+                    if ("Pemain " + std::to_string(i+1) == bidHistory.back().first->getName()) {
+                        highBidderIdx = i; break;
+                    }
+                }
+            }
+            
+            int bidValue = guiView->getAuctionBid(0, bidderIdx, property->getName(), maxBid == -1 ? 0 : maxBid, highBidderIdx);
+            
+            if (bidValue == -1) {
+                cmd = CommandType::PASS;
+            } else {
+                bidAmount = bidValue;
+                hasAmount = true;
+                cmd = CommandType::BID;
+            }
+        } else {
+            cmd = inputHandler.getCommand();
+            if (cmd == CommandType::BID) {
+                inputHandler.getMoneyRemaining(bidAmount, hasAmount);
+            }
+        }
 
         if (cmd == CommandType::PASS) {
             if (forceBidMode) {
@@ -86,11 +119,11 @@ void AuctionController::placeBid(GameContext &gameContext, Player &bidder, vecto
             return;
         }
         if (cmd == CommandType::BID) {
-            inputHandler.getMoneyRemaining(bidAmount, hasAmount);
-
-            if (!hasAmount) {
-                dv.renderPrompt("Please enter a valid bid amount.");
-                continue;
+            if (!isGUIMode) {
+                if (!hasAmount) {
+                    dv.renderPrompt("Please enter a valid bid amount.");
+                    continue;
+                }
             }
             if (bidder.getBalance() < bidAmount) {
                 dv.renderPrompt("You don't have enough balance to place that bid.");
@@ -116,8 +149,7 @@ void AuctionController::placeBid(GameContext &gameContext, Player &bidder, vecto
         }
     }
 }
-
-void AuctionController::resolveAuction(GameContext &gameContext, vector<pair<Player *, int>> &bid, DisplayView &dv, PropertyTile* property, GameLogger &logger) {
+void AuctionController::resolveAuction(GameContext &gameContext, vector<pair<Player *, int>> &bid, DisplayView &dv, PropertyTile* property, GameLogger &logger, bool isGUIMode, GameView* guiView) {
     if (bid.empty()) {
         return;
     }

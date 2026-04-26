@@ -6,12 +6,24 @@
 #include "TurnController.hpp"
 #include <string>
 #include "AllCards.hpp"
+#include "DisplayView.hpp" 
+#include "GameView.hpp"
 
 using namespace std;
 class GameEngine
 {
+private: 
+    DisplayView cliView;    // Tampilan Terminal 
+    GameView* guiView;      // Tampilan Window SFML 
+    bool isGUIMode;         // Penanda apakah GUI diaktifkan
+
 public:
+    GameEngine() : guiView(nullptr), isGUIMode(false) {}
+
+    GameEngine(GameView* gui) : guiView(gui), isGUIMode(true) {}
+    
     void initGame(GameContext &gameContext, ConfigReader &configReader);
+
     void run();
 };
 

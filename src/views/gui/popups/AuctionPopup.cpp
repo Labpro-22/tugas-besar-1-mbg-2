@@ -1,0 +1,65 @@
+#include "gui/popups/AuctionPopup.hpp"
+
+AuctionPopup::AuctionPopup(std::string propName, int startBid, int starterIdx)
+    : propertyName(propName), currentBid(startBid), highBidderIdx(-1), activeBidderIdx(starterIdx), inputString("") {
+    
+    popupRect = sf::FloatRect(310.f, 200.f, 500.f, 350.f);
+    inputRect = sf::FloatRect(popupRect.left + 50.f, popupRect.top + 210.f, 400.f, 35.f);
+    bidBtnRect = sf::FloatRect(popupRect.left + 120.f, popupRect.top + 260.f, 100.f, 50.f);
+    passBtnRect = sf::FloatRect(popupRect.left + 280.f, popupRect.top + 260.f, 100.f, 50.f);
+}
+
+void AuctionPopup::render(sf::RenderWindow& window) {
+    draw3DPanel(window, popupRect, sf::Color(192, 192, 192), false);
+    
+    draw3DPanel(window, sf::FloatRect(popupRect.left, popupRect.top, popupRect.width, 32.f), sf::Color(34, 139, 34), false);
+    window.draw(createText("Property Auction: " + propertyName, popupRect.left + 20.f, popupRect.top + 4.f, 18, sf::Color::White));
+
+    std::string bidderName = (highBidderIdx == -1) ? "None" : "Player " + std::to_string(highBidderIdx + 1);
+    window.draw(createText("Highest Bid: $" + std::to_string(currentBid), popupRect.left + 50.f, popupRect.top + 60.f, 22, sf::Color::Black));
+    window.draw(createText("By: " + bidderName, popupRect.left + 50.f, popupRect.top + 90.f, 18, sf::Color(80, 80, 80)));
+
+    draw3DPanel(window, sf::FloatRect(popupRect.left + 50.f, popupRect.top + 140.f, 400.f, 80.f), sf::Color(210, 210, 210), true);
+    window.draw(createText("Turn: Player " + std::to_string(activeBidderIdx + 1), popupRect.left + 70.f, popupRect.top + 155.f, 20, sf::Color::Red));
+    
+    int nextBid = (currentBid == 0) ? 0 : currentBid + 10;
+    window.draw(createText("Minimum Bid: M" + std::to_string(nextBid), popupRect.left + 70.f, popupRect.top + 185.f, 16, sf::Color::Black));
+
+    draw3DPanel(window, inputRect, sf::Color::White, true);
+    window.draw(createText(inputString + "_", inputRect.left + 10.f, inputRect.top + 5.f, 18, sf::Color::Black));
+
+    draw3DPanel(window, bidBtnRect, sf::Color(200, 200, 200), false);
+    window.draw(createText("BID", bidBtnRect.left + 35.f, bidBtnRect.top + 12.f, 18, sf::Color::Black));
+
+    draw3DPanel(window, passBtnRect, sf::Color(200, 200, 200), false);
+    window.draw(createText("PASS", passBtnRect.left + 25.f, passBtnRect.top + 12.f, 18, sf::Color::Black));
+}
+
+PopupResult AuctionPopup::handleMouseClick(float mouseX, float mouseY) {
+    if (containsPoint(bidBtnRect, mouseX, mouseY)) return PopupResult::AUCTION_BID;
+    if (containsPoint(passBtnRect, mouseX, mouseY)) return PopupResult::AUCTION_PASS;
+    return PopupResult::NONE;
+}
+
+void AuctionPopup::updateBid(int amount, int playerIdx) {
+    currentBid = amount;
+    highBidderIdx = playerIdx;
+}
+
+void AuctionPopup::nextTurn(const std::array<bool, 4>& activePlayers) {
+    do {
+        activeBidderIdx = (activeBidderIdx + 1) % 4;
+    } while (!activePlayers[activeBidderIdx]);
+}
+
+void AuctionPopup::handleTextInput(unsigned int unicode) {
+    if (unicode == 8) { // Backspace
+        if (!inputString.empty()) inputString.pop_back();
+    } else if (unicode >= '0' && unicode <= '9' && inputString.size() < 10) {
+        inputString += static_cast<char>(unicode);
+    }
+}
+
+std::string AuctionPopup::getPopupInputData() {
+    return inputString.empty() ? "0" : inputString;
+}

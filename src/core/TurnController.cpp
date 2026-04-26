@@ -4,7 +4,7 @@
 
 using namespace std;
 
-void TurnController::distributeSkillCards(GameContext& ctx, InputHandler& input, DisplayView& display) {
+void TurnController::distributeSkillCards(GameContext& ctx, InputHandler& input, DisplayView& display, bool isGUIMode, GameView* guiView) {
     for (Player& p : ctx.getPlayers()) {
         if (p.getStatus() == PlayerStatus::BANKRUPT) continue; 
 
@@ -18,13 +18,20 @@ void TurnController::distributeSkillCards(GameContext& ctx, InputHandler& input,
 
             int maxChoice = p.getSkillCardCount();
             int choice = -1;
-            while (true) {
-                input.getIntInput();
-                choice = input.getIntValue1();
-                display.renderDiscardSkillCard(p, choice);
+            
+            if (isGUIMode && guiView != nullptr) {
+                choice = guiView->getSkillCardChoice(p.getSkillCard(), true);
+                if (choice == -1) choice = 1; 
+                else choice += 1; 
+            } else {
+                while (true) {
+                    input.getIntInput();
+                    choice = input.getIntValue1();
+                    display.renderDiscardSkillCard(p, choice);
 
-                if (choice >= 1 && choice <= maxChoice) {
-                    break;
+                    if (choice >= 1 && choice <= maxChoice) {
+                        break;
+                    }
                 }
             }
 
@@ -35,17 +42,39 @@ void TurnController::distributeSkillCards(GameContext& ctx, InputHandler& input,
     }
 }
 
-void TurnController::resolveTileLanding(GameContext* context, Player* player, EconomyController& eco, EffectController& eff, AuctionController& auc, BankruptcyController& bank, Dice& dice, SaveLoader& sl, InputHandler& input, GameLogger& logger, DisplayView& display) {
+void TurnController::resolveTileLanding(GameContext* context, Player* player, EconomyController& eco, EffectController& eff, AuctionController& auc, BankruptcyController& bank, Dice& dice, SaveLoader& sl, InputHandler& input, GameLogger& logger, DisplayView& display, bool isGUIMode, GameView* guiView) {
     
     Tile* currentTile = context->getBoard().getTile(player->getPosition());
     display.renderTile(*context);
     LandResult result = currentTile->land(*player);
 
+    if (isGUIMode && guiView != nullptr &&
+        result.getType() != LandEventType::OFFERBUYPROPERTY &&
+        result.getType() != LandEventType::PAYTAX &&
+        result.getType() != LandEventType::DOFESTIVAL &&
+        result.getType() != LandEventType::DRAWCHANCE &&
+        result.getType() != LandEventType::DRAWCOMMUNITYCHEST &&
+        result.getType() != LandEventType::GOTOJAIL) {
+        guiView->triggerPopup("LANDING", currentTile);
+        guiView->getPopupResponse();
+    }
+
     switch (result.getType()) {
         case LandEventType::OFFERBUYPROPERTY:{
             display.renderBuyStreet(*context, dynamic_cast<StreetTile*>(currentTile));
-            input.getStringInput();
-            string choice = input.getLastStringInput();
+
+            std::string choice = "n";
+            if (isGUIMode && guiView != nullptr) {
+                guiView->triggerPopup("PROPERTY", currentTile); 
+                int res = guiView->getPopupResponse();          
+                
+                if (res == 1) choice = "y";      
+                else choice = "n";               
+            } else {
+                input.getStringInput();
+                choice = input.getLastStringInput();
+            }
+
             if (choice == "Y" || choice == "y") {
                 try {
                     PropertyTile* property = dynamic_cast<PropertyTile*>(currentTile);
@@ -53,9 +82,17 @@ void TurnController::resolveTileLanding(GameContext* context, Player* player, Ec
                     display.renderBoughtStreet(*context, dynamic_cast<StreetTile*>(currentTile));
                     logger.addLog(context->getCurrentTurn(), player->getName(), "BUY_PROPERTY", property->getName() + " bought for M" + to_string(property->getPrice()));
                 } catch (const InsufficientFundsException& ex) {
+                    if (isGUIMode && guiView != nullptr) {
+                        guiView->triggerPopup("AUCTION", currentTile);
+                        guiView->getPopupResponse();
+                    }
                     throw AuctionTriggerException();
                 }
             } else {
+                if (isGUIMode && guiView != nullptr) {
+                    guiView->triggerPopup("AUCTION", currentTile);
+                    guiView->getPopupResponse();
+                }
                 throw AuctionTriggerException();
             }
             break;
@@ -64,17 +101,20 @@ void TurnController::resolveTileLanding(GameContext* context, Player* player, Ec
         case LandEventType::GIVEPROPERTY:{
             PropertyTile* propTile = dynamic_cast<PropertyTile*>(currentTile);
             eco.acquirePropertyFree(*player, propTile);
+
             logger.addLog(context->getCurrentTurn(), player->getName(), "ACQUIRE_PROPERTY", propTile->getName() + " acquired for free");
-            if (currentTile->getType() == "Railroad"){
-                display.renderGetRailroad(*context, dynamic_cast<RailroadTile*>(currentTile));
-            } else if (currentTile->getType() == "Utility"){
-                display.renderGetUtility(*context, dynamic_cast<UtilityTile*>(currentTile));
-            } 
+            if (RailroadTile* railroadTile = dynamic_cast<RailroadTile*>(currentTile)) {
+                display.renderGetRailroad(*context, railroadTile);
+            } else if (UtilityTile* utilityTile = dynamic_cast<UtilityTile*>(currentTile)) {
+                display.renderGetUtility(*context, utilityTile);
+            } else {
+                display.renderInfo("You received " + currentTile->getName() + " for free.");
+            }
             break;
         }
 
 
-        case LandEventType::PAYRENT:
+        case LandEventType::PAYRENT: {
             try {
                 display.renderRent(*context, dynamic_cast<PropertyTile*>(currentTile));
                 int rentAmount = eco.calculateRent(context, dynamic_cast<PropertyTile*>(currentTile), dice.getTotal());
@@ -93,8 +133,9 @@ void TurnController::resolveTileLanding(GameContext* context, Player* player, Ec
                 throw BankruptcyException("Player cannot afford to pay rent.", ex.getRequired(), player->getBalance(), dynamic_cast<PropertyTile*>(currentTile)->getOwner(), currentTile);
             }
             break;
+        }
 
-        case LandEventType::PAYTAX:
+        case LandEventType::PAYTAX: {
             display.renderTax(*context, dynamic_cast<TaxTile*>(currentTile));
             if(player->hasShield()){
                 display.renderInfo("Your shield protected you from paying the tax!");
@@ -102,8 +143,17 @@ void TurnController::resolveTileLanding(GameContext* context, Player* player, Ec
             }
             if (auto* taxTile = dynamic_cast<TaxTile*>(currentTile)) {
                 if (taxTile->getIsPPH()) {
-                    input.getIntInput();
-                    int choice = input.getIntValue1();
+                    int choice = 1;
+
+                    if (isGUIMode && guiView != nullptr) {
+                        guiView->triggerPopup("TAX_PPH", currentTile);
+                        int res = guiView->getPopupResponse();
+                        choice = (res == 2) ? 2 : 1;
+                    } else {
+                        input.getIntInput();
+                        choice = input.getIntValue1();
+                    }
+
                     try {
                         int balanceBeforeTax = player->getBalance();
                         display.renderPayTax(*context, choice);
@@ -118,6 +168,10 @@ void TurnController::resolveTileLanding(GameContext* context, Player* player, Ec
                     }
                 } else {
                     try {
+                        if (isGUIMode && guiView != nullptr) {
+                            guiView->triggerPopup("TAX_PPBM", currentTile);
+                            guiView->getPopupResponse();
+                        }
                         eco.processLuxuryTax(context, *player);
                         display.renderCurrentBalancePayed(*context, context->getPbm());
                         logger.addLog(context->getCurrentTurn(), player->getName(), "PAY_TAX", "Luxury tax paid M" + to_string(context->getPbm()));
@@ -129,9 +183,40 @@ void TurnController::resolveTileLanding(GameContext* context, Player* player, Ec
                 }
             }
             break;
+        }
 
         case LandEventType::DOFESTIVAL:{
-            eff.handleFestival(context, &display, &input, logger);
+            if (isGUIMode && guiView != nullptr) {
+                guiView->triggerPopup("FESTIVAL", currentTile);
+                int popupRes = guiView->getPopupResponse();
+
+                if (popupRes == 1) {
+                    int selectedTileIndex = guiView->getLastPopupTileIndex();
+                    if (selectedTileIndex < 0) {
+                        display.renderWarning("Festival target is invalid. No festival effect applied.");
+                        break;
+                    }
+
+                    Tile* chosenTile = context->getBoard().getTile(selectedTileIndex);
+                    StreetTile* selectedStreet = dynamic_cast<StreetTile*>(chosenTile);
+
+                    if (selectedStreet != nullptr) {
+                        if (selectedStreet->isFestivalActive()) {
+                            selectedStreet->playerReenterFestival();
+                        } else {
+                            selectedStreet->applyFestival();
+                        }
+                        display.renderFestivalResult(*context, selectedStreet);
+                    } else {
+                        display.renderWarning("Festival target is invalid. No festival effect applied.");
+                    }
+                } else {
+                    display.renderInfo("Festival action canceled.");
+                }
+            } else {
+                eff.handleFestival(context, &display, &input, logger);
+            }
+            
             break;
         }
 
@@ -139,16 +224,20 @@ void TurnController::resolveTileLanding(GameContext* context, Player* player, Ec
             ActionCard* drawnCard = context->getChanceDeck().draw();
             display.renderCardTile(*context, drawnCard);
             if (drawnCard != nullptr) {
-                logger.addLog(context->getCurrentTurn(), player->getName(), "DRAW_CHANCE_CARD", drawnCard->getName());
+                if (isGUIMode && guiView != nullptr) {
+                    guiView->triggerPopup("CHANCE", currentTile, drawnCard->getName() + ": " + drawnCard->getDescription());
+                    guiView->getPopupResponse();
+                }
                 
                 int posisiAwal = player->getPosition(); 
                 
                 eff.execute(*drawnCard, *player, *context, bank, input, display, eco, logger);
+                logger.addLog(context->getCurrentTurn(), player->getName(), "DRAW_CHANCE_CARD", drawnCard->getName());
                 context->getChanceDeck().returnAndShuffle(drawnCard);
 
                 if (player->getPosition() != posisiAwal) {
                     display.renderInfo("\n[CARD EFFECT] " + player->getName() + " landed on a new tile!");
-                    resolveTileLanding(context, player, eco, eff, auc, bank, dice, sl, input, logger, display);
+                    resolveTileLanding(context, player, eco, eff, auc, bank, dice, sl, input, logger, display, isGUIMode, guiView);
                 }
             }
             break;
@@ -159,16 +248,20 @@ void TurnController::resolveTileLanding(GameContext* context, Player* player, Ec
                 ActionCard* drawnCard = context->getCommunityChestDeck().draw();
                 display.renderCardTile(*context, drawnCard);
                 if (drawnCard != nullptr) {
-                    logger.addLog(context->getCurrentTurn(), player->getName(), "DRAW_COMMUNITY_CHEST_CARD", drawnCard->getName());
+                    if (isGUIMode && guiView != nullptr) {
+                        guiView->triggerPopup("COMMUNITY", currentTile, drawnCard->getName() + ": " + drawnCard->getDescription());
+                        guiView->getPopupResponse();
+                    }
                     
                     int posisiAwal = player->getPosition(); 
 
                     eff.execute(*drawnCard, *player, *context, bank, input, display, eco, logger);
+                    logger.addLog(context->getCurrentTurn(), player->getName(), "DRAW_COMMUNITY_CHEST_CARD", drawnCard->getName());
                     context->getCommunityChestDeck().returnAndShuffle(drawnCard);
 
                     if (player->getPosition() != posisiAwal) {
                         display.renderInfo("\n[CARD EFFECT] " + player->getName() + " landed on a new tile!");
-                        resolveTileLanding(context, player, eco, eff, auc, bank, dice, sl, input, logger, display);
+                        resolveTileLanding(context, player, eco, eff, auc, bank, dice, sl, input, logger, display, isGUIMode, guiView);
                     }
                 }
             } catch (const InsufficientFundsException& ex) {
@@ -180,6 +273,10 @@ void TurnController::resolveTileLanding(GameContext* context, Player* player, Ec
 
         case LandEventType::GOTOJAIL:
             display.renderInfo("[" + player->getName() + "] landed on 'Go To Jail' tile!");
+            if (isGUIMode && guiView != nullptr) {
+                guiView->triggerPopup("JAIL", currentTile);
+                guiView->getPopupResponse();
+            }
             player->setStatus(PlayerStatus::JAILED);
             player->setPosition(context->getBoard().getIndexOfTile(context->getBoard().getTileByCode("PEN"))); // indeks penjara
             player->setJailTurns(0);
@@ -192,7 +289,7 @@ void TurnController::resolveTileLanding(GameContext* context, Player* player, Ec
     }
 }
 
-void TurnController::handleDiceRollMovement(GameContext* context, EconomyController& eco, EffectController& eff, AuctionController& auc, BankruptcyController& bank, Dice& dice, SaveLoader& sl, InputHandler& input, GameLogger& logger, DisplayView& display) {
+void TurnController::handleDiceRollMovement(GameContext* context, EconomyController& eco, EffectController& eff, AuctionController& auc, BankruptcyController& bank, Dice& dice, SaveLoader& sl, InputHandler& input, GameLogger& logger, DisplayView& display, bool isGUIMode, GameView* guiView) {
     
     Player* currentPlayer = &context->getCurrentPlayer(); 
     
@@ -210,29 +307,56 @@ void TurnController::handleDiceRollMovement(GameContext* context, EconomyControl
         logger.addLog(context->getCurrentTurn(), currentPlayer->getName(), "PASS_GO", "Collected M" + to_string(context->getGoSalary()));
     }
 
-    resolveTileLanding(context, currentPlayer, eco, eff, auc, bank, dice, sl, input, logger, display);
+    if (isGUIMode && guiView != nullptr) {
+        guiView->updateBoardState(*context);
+    }
+
+    resolveTileLanding(context, currentPlayer, eco, eff, auc, bank, dice, sl, input, logger, display, isGUIMode, guiView);
 }
 
-void TurnController::handleBuildHouse(GameContext* context, Player* player, EconomyController& eco, InputHandler& input, GameLogger& logger, DisplayView& display) {
+void TurnController::handleBuildHouse(GameContext* context, Player* player, EconomyController& eco, InputHandler& input, GameLogger& logger, DisplayView& display, bool isGUIMode, GameView* guiView) {
     map<string, vector<StreetTile*>> groupColor = player->getColorOwnedStreetTile();
     map<string, vector<StreetTile*>> buildableStreet = eco.buildableStreet(groupColor, context, *player);
 
     if (buildableStreet.empty()) {
         display.renderInfo("You don't have any properties eligible for building houses!");
+        if (isGUIMode && guiView != nullptr) {
+            guiView->showInfoPopup("Build", "You don't have any properties eligible for building!\nRequirement: own all tiles in a color group.");
+        }
         return;
     }
 
     display.renderBuildStart(*context, buildableStreet);
 
-    input.getIntInput();
-    int choice = input.getIntValue1();
+    int choice = -1;
+    if (isGUIMode && guiView != nullptr) {
+        std::vector<std::string> groupOptions;
+        for (const auto& entry : buildableStreet) {
+            std::string info = "[" + entry.first + "]";
+            for (StreetTile* t : entry.second) {
+                if (!t->getHasHotel()) {
+                    info += " " + t->getName() + "(" + std::to_string(t->getHouseCount()) + "H)";
+                }
+            }
+            groupOptions.push_back(info);
+        }
+        int idx = guiView->getIntChoiceFromList("Select Color Group to build in:", groupOptions);
+        if (idx == -1) {
+            display.renderBuildCancel(*context);
+            return;
+        }
+        choice = idx + 1;
+    } else {
+        input.getIntInput();
+        choice = input.getIntValue1();
+    }
     
-    if (choice == 0){
+    if (choice == 0) {
         display.renderBuildCancel(*context);
         return;
     }
 
-    if (choice < 0 || choice > buildableStreet.size()) {
+    if (choice < 0 || choice > (int)buildableStreet.size()) {
         display.renderBuildInvalid(*context);
         return;
     }
@@ -245,23 +369,39 @@ void TurnController::handleBuildHouse(GameContext* context, Player* player, Econ
 
     display.renderBuildMid(*context, allBuildableStreet);
     
-    input.getIntInput();
-    int propertyChoice = input.getIntValue1();
+    int propertyChoice = -1;
+    if (isGUIMode && guiView != nullptr) {
+        std::vector<std::string> tileOptions;
+        for (StreetTile* t : allBuildableStreet) {
+            std::string info = t->getName() + " (" + t->getCode() + ")";
+            if (t->getHasHotel()) info += " [Hotel - can't build]";
+            else info += " [" + std::to_string(t->getHouseCount()) + " Houses] Cost: M" + std::to_string(t->getHouseCost());
+            tileOptions.push_back(info);
+        }
+        int idx = guiView->getIntChoiceFromList("Select property to build in [" + color + "]:", tileOptions);
+        if (idx == -1) {
+            display.renderBuildCancel(*context);
+            return;
+        }
+        propertyChoice = idx + 1;
+    } else {
+        input.getIntInput();
+        propertyChoice = input.getIntValue1();
+    }
 
     if (propertyChoice == 0) {
         display.renderBuildCancel(*context);
         return;
     }
 
-    if (propertyChoice < 0 || propertyChoice > allBuildableStreet.size()) {
+    if (propertyChoice < 0 || propertyChoice > (int)allBuildableStreet.size()) {
         display.renderBuildInvalid(*context);
         return;
     }
 
     StreetTile* chosenTile = allBuildableStreet[propertyChoice - 1];
     
-    try
-    {
+    try {
         if (eco.canBuildOnTile(context, chosenTile)) {
             eco.buildHouse(context, *player, chosenTile);
             logger.addLog(context->getCurrentTurn(), player->getName(), "BUILD_HOUSE", "Built house on " + chosenTile->getName());
@@ -274,8 +414,7 @@ void TurnController::handleBuildHouse(GameContext* context, Player* player, Econ
         }
         display.renderbuildHouses(*context, chosenTile, allBuildableStreet);
     }
-    catch(const InsufficientFundsException& ex)
-    {
+    catch(const InsufficientFundsException& ex) {
         display.renderInfo("You don't have enough funds to build on this property. Required: " + to_string(ex.getRequired()) + ", Your Balance: " + to_string(ex.getCurrentBalance()));
     }
 }

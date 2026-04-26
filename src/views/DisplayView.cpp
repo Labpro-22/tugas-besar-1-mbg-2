@@ -7,6 +7,36 @@
 #include <algorithm>
 
 using namespace std;
+
+class LogStreamBuf : public std::streambuf {
+private:
+    std::string buffer;
+    std::function<void(const std::string&)> logSink;
+    std::streambuf* oldBuf;
+public:
+    LogStreamBuf(std::function<void(const std::string&)> sink) : logSink(sink), oldBuf(std::cout.rdbuf()) {
+        std::cout.rdbuf(this);
+    }
+    ~LogStreamBuf() {
+        std::cout.rdbuf(oldBuf);
+        if (!buffer.empty() && logSink) {
+            logSink(buffer);
+        }
+    }
+protected:
+    virtual int overflow(int c) override {
+        if (c == '\n') {
+            if (logSink) logSink(buffer);
+            oldBuf->sputn(buffer.c_str(), buffer.length());
+            oldBuf->sputc('\n');
+            buffer.clear();
+        } else if (c != EOF) {
+            buffer += static_cast<char>(c);
+        }
+        return c;
+    }
+};
+
 // Start
 void DisplayView::renderStart() {
     cout << "==================================" << endl;
@@ -538,6 +568,22 @@ void DisplayView::showMenu(){
     cout << "11. [SIMPAN] Save game" << endl;
     cout << "12. [CETAK_LOG] View game log" << endl;
     cout << "13. [HELP] Show this menu again" << endl;
+}
+
+void DisplayView::setLogSink(const std::function<void(const std::string&)>& sink) {
+    logSink = sink;
+    if (customLogBuf != nullptr) {
+        delete customLogBuf;
+    }
+    customLogBuf = new LogStreamBuf(sink);
+}
+
+void DisplayView::clearLogSink() {
+    logSink = nullptr;
+    if (customLogBuf != nullptr) {
+        delete customLogBuf;
+        customLogBuf = nullptr;
+    }
 }
 
 void DisplayView::renderInfo(const string& message) {

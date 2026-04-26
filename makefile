@@ -1,7 +1,7 @@
 # Makefile for C++ OOP Project (Optimized & Recursive)
 
 # Compiler settings
-CXX      := g++
+CXX         := g++
 
 # Directories
 SRC_DIR     := src
@@ -19,6 +19,8 @@ ifeq ($(MODE), debug)
 else
     CXXFLAGS := -O3 -Wall -Wextra -std=c++17 $(addprefix -I,$(INCLUDE_DIRS))
 endif
+
+LDFLAGS := -lsfml-graphics -lsfml-window -lsfml-system
 
 # Target executable
 TARGET := $(BIN_DIR)/game
@@ -38,9 +40,8 @@ all: directories $(TARGET)
 directories:
 	@mkdir -p $(OBJ_DIR) $(BIN_DIR) $(DATA_DIR) $(CONFIG_DIR)
 
-# Link object files to create executable
 $(TARGET): $(OBJS)
-	$(CXX) $(CXXFLAGS) $^ -o $@
+	$(CXX) $(CXXFLAGS) $^ -o $@ $(LDFLAGS)
 	@echo "Build successful! Executable is at $(TARGET)"
 
 # Compile source files into object files
