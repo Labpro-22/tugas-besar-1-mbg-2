@@ -63,7 +63,7 @@ public:
     
     // Redeem Mortgage
     void renderRedeemStart(GameContext G, vector<PropertyTile*> mortgagedTiles);
-    void renderRedeemChoose(GameContext G, vector<PropertyTile*> mortgagedTiles, int choose);
+    void renderRedeemChoose(GameContext G, vector<PropertyTile*> mortgagedTiles, int choose, int redeemCost);
     
     // Build
     void renderBuildStart(GameContext G, map<string, vector<StreetTile*>> tiles);
