@@ -46,9 +46,6 @@ vector<string> RailroadTile::getRentDetailLines(GameContext& G) const {
     
     lines.push_back("Rent : M" + to_string(calculateRent(G)));
 
-    lines.push_back("Your Balance: M" + to_string(G.getCurrentPlayer().getBalance()) + "-> M" + to_string(G.getCurrentPlayer().getBalance() - calculateRent(G)));
-    lines.push_back(owner->getName() + "'s Balance: M" + to_string(owner->getBalance()) + "-> M" + to_string(owner->getBalance() + calculateRent(G)));
-
     return lines;
 }
 
