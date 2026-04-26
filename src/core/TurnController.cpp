@@ -116,7 +116,7 @@ void TurnController::resolveTileLanding(GameContext* context, Player* player, Ec
             break;
 
         case LandEventType::DOFESTIVAL:{
-            eff.handleFestival(currentTile);
+           eff.handleFestival(context, &display, &input );
             break;
         }
 
