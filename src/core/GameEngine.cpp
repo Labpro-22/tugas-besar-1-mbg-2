@@ -458,7 +458,7 @@ void GameEngine::run() {
             }
         }
 
-        effectController.decrementDurations();
+        effectController.decrementDurations(&gameContext);
 
         int activePlayers = count_if(gameContext.getPlayers().begin(), gameContext.getPlayers().end(), [](const Player& p) {
             return p.getStatus() != PlayerStatus::BANKRUPT;

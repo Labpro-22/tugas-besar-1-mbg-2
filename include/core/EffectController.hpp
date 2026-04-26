@@ -14,9 +14,9 @@ using namespace std;
 class EffectController
 {
 public:
-    void applyFestival(PropertyTile* tile);
-    void decrementDurations();
-    
+    void  handleFestival(Tile* tile);
+    void decrementDurations(GameContext* context);
+
     void execute(ActionCard& card, Player& currentPlayer, GameContext& ctx);
     void execute(SkillCard& card, Player& currentPlayer, GameContext& ctx, InputHandler& input, DisplayView& display);
 };
