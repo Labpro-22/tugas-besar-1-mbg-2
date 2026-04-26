@@ -1157,7 +1157,7 @@ void DisplayView::renderBankruptSecondScene(GameContext G, Player* bankruptPlaye
     
     cout << creditorPlayer->getName() << " Acquires all assets of " << bankruptPlayer->getName() << "." << endl;
     cout << bankruptPlayer->getName() << " is removed from the game." << endl;
-    cout << "Game continues with " << G.getPlayers().size() - 1 << " players." << endl;
+    cout << "Game continues with " << G.countActivePlayers() - 1 << " players." << endl;
 }
 
 void DisplayView::renderBankruptThirdScene(GameContext G, Player* bankruptPlayer, TaxTile* Tile, int amountToPay){

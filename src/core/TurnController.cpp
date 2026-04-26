@@ -124,7 +124,7 @@ void TurnController::resolveTileLanding(GameContext* context, Player* player, Ec
             ActionCard* drawnCard = context->getChanceDeck().draw();
             display.renderCardTile(*context, drawnCard);
             if (drawnCard != nullptr) {
-                eff.execute(*drawnCard, *player, *context);
+                eff.execute(*drawnCard, *player, *context, bank, input, display, eco);
                 context->getChanceDeck().returnAndShuffle(drawnCard);
             }
             break;
@@ -135,7 +135,7 @@ void TurnController::resolveTileLanding(GameContext* context, Player* player, Ec
                 ActionCard* drawnCard = context->getCommunityChestDeck().draw();
                 display.renderCardTile(*context, drawnCard);
                 if (drawnCard != nullptr) {
-                    eff.execute(*drawnCard, *player, *context);
+                    eff.execute(*drawnCard, *player, *context, bank, input, display, eco);
                     context->getCommunityChestDeck().returnAndShuffle(drawnCard);
                 }
             } catch (const InsufficientFundsException& ex) {
