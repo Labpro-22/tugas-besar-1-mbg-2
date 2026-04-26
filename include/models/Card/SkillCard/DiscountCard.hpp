@@ -1,13 +1,15 @@
 #pragma once
-#include "SelfSkillCard.hpp"
+#include "SkillCard.hpp"
 
-class DiscountCard : public SelfSkillCard
-{
+class DiscountCard : public SkillCard {
 private:
-    int discountPercentage;
+    int discountPercentage; 
 public:
-    DiscountCard(string name, string desc, int discountPercentage);
-    void useSkill(Player* user, GameBoard* board) override;
-    ~DiscountCard() override;
+    DiscountCard();
+    DiscountCard(int disc);
+    ~DiscountCard() override = default;
+    
+    SkillCardType getSkillType() const override;
+    int getDiscountPercentage() const;
+    int getDuration() const;
 };
-

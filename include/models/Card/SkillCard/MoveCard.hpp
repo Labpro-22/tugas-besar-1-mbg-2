@@ -1,12 +1,14 @@
 #pragma once
-#include "SelfSkillCard.hpp"
+#include "SkillCard.hpp"
 
-class MoveCard : public SelfSkillCard
-{
+class MoveCard : public SkillCard {
 private:
     int steps;
 public:
-    MoveCard(string name, string desc, int steps);
-    void useSkill(Player* user, GameBoard* board) override;
-    ~MoveCard() override;
+    MoveCard();
+    MoveCard(int steps);
+    ~MoveCard() override = default;
+    
+    SkillCardType getSkillType() const override;
+    int getSteps() const;
 };

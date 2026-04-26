@@ -1,11 +1,14 @@
 #pragma once
 #include "ActionTile.hpp"
+#include "GameContext.hpp"
+using namespace std;
 
 class TaxTile : public ActionTile
 {
 private:
     bool isPPH; // true for PPh, false for PBM
 public:
-    TaxTile(int idx, string code, string name, bool isPPH);
-    void land(Player &p) override;
+    TaxTile(int idx, string code, string name, bool isPPH, string color = "DEFAULT");
+    LandResult land(GameContext &G) override;
+    bool getIsPPH() const;
 };

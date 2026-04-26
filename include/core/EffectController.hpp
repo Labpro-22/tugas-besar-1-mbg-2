@@ -1,7 +1,11 @@
 #pragma once
 #include "PropertyTile.hpp"
-#include "Card.hpp"
+#include "GameContext.hpp"
 #include "Player.hpp"
+#include "ActionCard.hpp"
+#include "SkillCard.hpp"
+#include "InputHandler.hpp"
+#include "DisplayView.hpp"
 #include <map>
 #include "CardDeck.hpp"
 
@@ -10,8 +14,10 @@ using namespace std;
 class EffectController
 {
 public:
-    void applyFestival(PropertyTile* tile);
-    void decrementDurations();
-    void executeCard(Player* player, CardType card);
+    void  handleFestival(Tile* tile);
+    void decrementDurations(GameContext* context);
+
+    void execute(ActionCard& card, Player& currentPlayer, GameContext& ctx);
+    void execute(SkillCard& card, Player& currentPlayer, GameContext& ctx, InputHandler& input, DisplayView& display);
 };
 

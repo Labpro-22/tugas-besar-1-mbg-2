@@ -1,10 +1,9 @@
 #pragma once
-#include "SelfSkillCard.hpp"
+#include "SkillCard.hpp"
 
-class ShieldCard : public SelfSkillCard
-{
+class ShieldCard : public SkillCard {
 public:
-    ShieldCard(string name, string desc);
-    void useSkill(Player* user, GameBoard* board) override;
-    ~ShieldCard() override;
+    ShieldCard();
+    ~ShieldCard() override = default;
+    SkillCardType getSkillType() const override;
 };

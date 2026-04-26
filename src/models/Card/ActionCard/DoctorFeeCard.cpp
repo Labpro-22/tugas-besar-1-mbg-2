@@ -1,0 +1,8 @@
+#include "DoctorFeeCard.hpp"
+
+DoctorFeeCard::DoctorFeeCard() 
+: ActionCard("DoctorFeeCard", "Doctor's fee. Pay M700.") {}
+
+ActionCardType DoctorFeeCard::getActionType() const {
+    return ActionCardType::DOCTOR_FEE;
+}

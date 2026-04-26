@@ -5,12 +5,12 @@ using namespace std;
 class FestivalState
 {
 private:
-    int stacks;
-    int turnsLeft;
+    int stacks = 0;
+    int turnsLeft = 0;
 
 public:
-    FestivalState(int stacks = 1, int turnsLeft = 3);
-
+    FestivalState();
+    void activateFestival();
     void increaseStack();
     void resetDuration();
     void decrementTurn();
@@ -18,4 +18,6 @@ public:
     bool isExpired() const;
     int getStacks() const;
     int getTurnsLeft() const;
+    void setStacks(int newStacks);
+    void setTurnsLeft(int newTurnsLeft);
 };

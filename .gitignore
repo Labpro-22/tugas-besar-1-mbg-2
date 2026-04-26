@@ -9,7 +9,7 @@
 build/
 obj/
 bin/
-
+.vscode
 # Precompiled Headers
 *.gch
 *.pch

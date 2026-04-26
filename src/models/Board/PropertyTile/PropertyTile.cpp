@@ -1,7 +1,8 @@
 #include "PropertyTile.hpp"
 
 PropertyTile::PropertyTile(int idx, string code, string name, 
-    int price, int morgageValue, vector<int> rentPrices) : Tile(idx, code, name, PROPERTY), price(price), morgageValue(morgageValue), rentPrices(rentPrices) {
+    int price, int mortgageValue, string color) 
+    : Tile(idx, code, name, PROPERTY, color), price(price), mortgageValue(mortgageValue){
     owner = nullptr;
     type = PROPERTY;
     status = BANK;
@@ -18,3 +19,33 @@ void PropertyTile::setOwner(Player *newOwner){
 void PropertyTile::setStatus(PropertyStatus newStatus){
     this->status = newStatus;
 };
+
+int PropertyTile::getBuildingValue() const {return 0;}
+
+Player* PropertyTile::getOwner() const {
+    return owner;
+}
+
+PropertyStatus PropertyTile::getStatus() const {
+    return status;
+}
+
+PropertyType PropertyTile::getPropertyType() const {
+    return propertyType;
+}
+
+
+string PropertyTile::getTypeLabel() const {
+    return "PR";
+}
+
+int PropertyTile::getPrice() const {
+    return price;
+}
+
+int PropertyTile::getMortgageValue() const {
+    return mortgageValue;
+}
+
+
+

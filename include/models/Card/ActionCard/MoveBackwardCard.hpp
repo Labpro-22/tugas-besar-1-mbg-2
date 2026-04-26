@@ -1,12 +1,9 @@
 #pragma once
 #include "ActionCard.hpp"
 
-class MoveBackwardCard : public ActionCard
-{
-private:
-    int steps;
+class MoveBackwardCard : public ActionCard {
 public:
-    MoveBackwardCard(string name, string desc, int steps);
-    void execute(Player &p) override;
-    ~MoveBackwardCard() override;
+    MoveBackwardCard();
+    ~MoveBackwardCard() override = default;
+    ActionCardType getActionType() const override;
 };
