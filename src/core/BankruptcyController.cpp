@@ -253,7 +253,7 @@ void BankruptcyController::liquidateAssets(GameContext& ctx,Player& debitor,Play
         } 
         else if (choice == 0) {
             cart.clear();
-            view.renderInfo("Keranjang likuidasi dikosongkan.\n"); =
+            view.renderInfo("Keranjang likuidasi dikosongkan.\n");
         } 
         else if (choice >= 1 && choice <= static_cast<int>(options.size())) {
             LiquidationOption selected = options[choice - 1];
