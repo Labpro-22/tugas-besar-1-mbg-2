@@ -8,9 +8,12 @@ namespace {
     const int kTotalTiles = 40;
 }
 
+// --- Board ---
 Board::Board() : boardDrawArea(0.f, 0.f, 0.f, 0.f), boardTextureLoaded(false) {
     tileCenters.resize(kTotalTiles);
     showDebugIndices = true;
+
+    playerColorNames = {"Brown", "Green", "Red", "Blue"};
 }
 
 void Board::loadAssets() {
@@ -21,7 +24,6 @@ void Board::loadAssets() {
     }
 
     boardTexture.setSmooth(true);
-    boardSprite.setTexture(boardTexture);
     boardTextureLoaded = true;
 
     for (int i = 0; i < 4; ++i) {
@@ -52,13 +54,15 @@ void Board::loadAssets() {
         // Load Hotel
         std::string hotelKey = color + "Hotel";
         buildingTextures[hotelKey].loadFromFile("assets/property/" + hotelKey + ".png");
+        buildingTextures[hotelKey].setSmooth(true);
     }
 
     if (!debugFont.loadFromFile("assets/Roboto-Black.ttf")) { 
-        std::cerr << "[ERROR] Gagal memuat font! Pastikan file assets/fonts/Arial.ttf ada!\n";
+        std::cerr << "[ERROR] Failed to load font!\n";
     }
 }
 
+// --- Layout ---
 void Board::fitToLayout(sf::FloatRect containerArea) {
     if (!boardTextureLoaded) return;
 
@@ -77,22 +81,41 @@ void Board::fitToLayout(sf::FloatRect containerArea) {
 
     const float drawLeft = containerArea.left + (containerArea.width - drawWidth) / 2.f;
     const float drawTop = containerArea.top + (containerArea.height - drawHeight) / 2.f;
-
-    boardSprite.setScale(uniformScale, uniformScale);
-    boardSprite.setPosition(drawLeft, drawTop);
     
-    boardDrawArea = boardSprite.getGlobalBounds();
+    boardDrawArea = sf::FloatRect(drawLeft, drawTop, drawWidth, drawHeight);
 
     recalculateTileCenters();
 }
 
-void Board::render(sf::RenderWindow& window, const std::array<int, 4>& playerPositions, const std::array<bool, 4>& isPlayerActive, const std::array<PropertyStatus, 40>& propertyData, int animatingPlayerIdx, sf::Vector2f animatingPlayerPos, const std::array<PlayerDirection, 4>& playerDirs) {    
-    if (boardTextureLoaded) window.draw(boardSprite);
+// --- Render ---
+void Board::render( sf::RenderWindow& window, 
+                    const std::array<int, 4>& playerPositions, 
+                    const std::array<bool, 4>& isPlayerActive, 
+                    const std::array<StatusProperty, 40>& propertyData, 
+                    int animatingPlayerIdx, 
+                    sf::Vector2f animatingPlayerPos, 
+                    const std::array<PlayerDirection, 4>& playerDirs) {   
 
-    for (int i = 0; i < 40; ++i) {
-        if (propertyData[i].ownerIndex != -1 && propertyData[i].level > 0) {
-            std::string color = playerColorNames[propertyData[i].ownerIndex];
-            std::string key = (propertyData[i].level == 5) ? color + "Hotel" : color + std::to_string(propertyData[i].level);
+    // Board
+    if (boardTextureLoaded) {
+        sf::Sprite boardSprite(boardTexture);
+        boardSprite.setPosition(boardDrawArea.left, boardDrawArea.top);
+        
+        float scaleX = boardDrawArea.width / boardTexture.getSize().x;
+        float scaleY = boardDrawArea.height / boardTexture.getSize().y;
+        boardSprite.setScale(scaleX, scaleY);
+        
+        window.draw(boardSprite);
+    }
+
+    // Rumah, Hotel
+    for (int i = 0; i < kTotalTiles; ++i) {
+        int pOwner = propertyData[i].getOwnerIndex();
+        int pLevel = propertyData[i].getLevel();
+
+        if (pOwner != -1 && pLevel > 0 && pOwner < 4) {
+            std::string color = playerColorNames[pOwner];
+            std::string key = (pLevel == 5) ? color + "Hotel" : color + std::to_string(pLevel);
             
             if (buildingTextures.count(key)) {
                 sf::Sprite bSprite(buildingTextures[key]);
@@ -104,6 +127,7 @@ void Board::render(sf::RenderWindow& window, const std::array<int, 4>& playerPos
         }
     }
 
+    // Karakter
     for (int i = 0; i < 4; ++i) {
         if (!isPlayerActive[i]) continue;
 
@@ -137,6 +161,7 @@ void Board::render(sf::RenderWindow& window, const std::array<int, 4>& playerPos
         }
     }
 
+    // Debug
     if (showDebugIndices) {
         for (int i = 0; i < 40; ++i) {
             sf::Text indexText;
@@ -159,6 +184,7 @@ void Board::render(sf::RenderWindow& window, const std::array<int, 4>& playerPos
     }
 }
 
+// --- Koordinat --- 
 void Board::recalculateTileCenters() {
     const sf::FloatRect board = boardDrawArea;
     const float totalUnits = 9.0f + (2.0f * kCornerRatio);
@@ -188,7 +214,7 @@ void Board::recalculateTileCenters() {
     tileCenters.resize(kTotalTiles);
     trueTileCenters.resize(kTotalTiles);
 
-    // Mapping 40 Petak
+    // Mapping 40 Tiles  
     tileCenters[0] = tileCenter(10, 10);
     for (int i = 1; i <= 9; ++i) tileCenters[i] = tileCenter(10 - i, 10);
 
@@ -248,7 +274,7 @@ sf::Vector2f Board::getBuildingPosition(int tileIndex) const {
     return center;
 }
 
-sf::Vector2f Board::computeTokenOffsetForStackIndex(int stackIndex) const {
+sf::Vector2f Board::computeTokenOffsetForStackIndex(int stackIndex) const { // Supaya ga saling tumpuk menumpuk karakternya
     const float spacing = std::min(boardDrawArea.width, boardDrawArea.height) / 80.0f;
     
     static const std::array<sf::Vector2f, 8> offsets = {

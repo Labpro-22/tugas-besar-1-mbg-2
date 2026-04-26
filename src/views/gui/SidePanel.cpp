@@ -1,4 +1,4 @@
-#include "../../include/views/gui/SidePanel.hpp"
+#include "SidePanel.hpp"
 #include <iostream>
 #include <algorithm>
 
@@ -11,6 +11,8 @@ SidePanel::SidePanel() {
     isDiceRolling = false;
     flagStartClicked = false;
     flagRollFinished = false;
+    flagRollClicked = false;
+
     diceValues = {1, 1};
     cardInfoText = "No cards played yet.";
 
@@ -19,7 +21,9 @@ SidePanel::SidePanel() {
     isPlayerEnabled.fill(false); 
     // isPlayerEnabled[0] = true;
     isNameEdited.fill(false);
-    flagRollClicked = false;
+
+    currentCommandInput = "";
+    flagCommandReady = false;
 
     for (int i = 0; i < 4; ++i) {
         playerNames[i] = "Player " + std::to_string(i + 1);
@@ -58,24 +62,146 @@ void SidePanel::fitToLayout(sf::FloatRect containerArea) {
     panelArea = containerArea;
 }
 
+// --- Method Utama ---
 void SidePanel::update() {
-    if (isDiceRolling) {
-        // Ganti gambar dadu acak setiap 0.07 detik
-        if (diceTickClock.getElapsedTime().asSeconds() > 0.07f) {
-            diceValues[0] = (rand() % 6) + 1;
-            diceValues[1] = (rand() % 6) + 1;
-            diceTickClock.restart();
-        }
+    // if (isDiceRolling) {
+    //     // Ganti gambar dadu acak setiap 0.07 detik
+    //     if (diceTickClock.getElapsedTime().asSeconds() > 0.07f) {
+    //         diceValues[0] = (rand() % 6) + 1;
+    //         diceValues[1] = (rand() % 6) + 1;
+    //         diceTickClock.restart();
+    //     }
         
-        // Hentikan animasi setelah 0.95 detik
-        if (diceRollClock.getElapsedTime().asSeconds() > 0.95f) {
-            isDiceRolling = false;
-            flagRollFinished = true; 
-            addHistoryEntry(playerNames[activePlayerIndex] + " rolled " + std::to_string(diceValues[0] + diceValues[1]));
+    //     // Hentikan animasi setelah 0.95 detik
+    //     if (diceRollClock.getElapsedTime().asSeconds() > 0.95f) {
+    //         isDiceRolling = false;
+    //         flagRollFinished = true; 
+    //         addHistoryEntry(playerNames[activePlayerIndex] + " rolled " + std::to_string(diceValues[0] + diceValues[1]));
+    //     }
+    // }
+}
+
+void SidePanel::render(sf::RenderWindow& window) {
+    draw3DPanel(window, panelArea, sf::Color(192, 192, 192), false);
+    if (currentState == PanelState::PLAYER_SETUP) renderSetupState(window);
+    else renderInGameState(window);
+}
+
+// --- Input Handler
+void SidePanel::handleMouseClick(float mouseX, float mouseY) {
+    if (currentState == PanelState::PLAYER_SETUP) {
+        for (int i = 0; i < 4; ++i) {
+            if (containsPoint(avatarSelectRects[i], mouseX, mouseY)) {
+                selectedSetupCharacter = i;
+                isPlayerEnabled[i] = true;
+                return;
+            }
+        }
+        if (containsPoint(takeMoneyButtonRect, mouseX, mouseY)) {
+            isPlayerEnabled[selectedSetupCharacter] = false;
+        }
+        if (containsPoint(giveDiceButtonRect, mouseX, mouseY)) {
+            firstTurnPlayerIndex = selectedSetupCharacter;
+            isPlayerEnabled[selectedSetupCharacter] = true;
+        }
+        if (containsPoint(startGameButtonRect, mouseX, mouseY)) {
+            bool hasPlayer = false;
+            for(bool en : isPlayerEnabled) if(en) hasPlayer = true;
+            
+            if (hasPlayer) {
+                currentState = PanelState::IN_GAME;
+                flagStartClicked = true;
+                addHistoryEntry("Game Started!");
+            }
+        }
+
+    } else if (currentState == PanelState::IN_GAME) {
+        if (containsPoint(rollDiceButtonRect, mouseX, mouseY)) {
+            flagRollClicked = true;
+            addHistoryEntry("Throwing Dice...");
         }
     }
 }
 
+void SidePanel::handleTextInput(unsigned int unicode) {
+    if (currentState != PanelState::PLAYER_SETUP) return;
+    std::string& name = playerNames[selectedSetupCharacter];
+
+    if (unicode == 8) {
+        if (!isNameEdited[selectedSetupCharacter]) {
+            name = ""; 
+            isNameEdited[selectedSetupCharacter] = true;
+        } else if (!name.empty()) {
+            name.pop_back();
+        }
+        return;
+    } else if (unicode >= 32 && unicode <= 126 && name.size() < 12) {
+        if (!isNameEdited[selectedSetupCharacter]) {
+            name = ""; 
+            isNameEdited[selectedSetupCharacter] = true;
+        }
+        name += static_cast<char>(unicode);
+    } else if (currentState == PanelState::IN_GAME) {
+        if (unicode == 8) { // Tombol Backspace
+            if (!currentCommandInput.empty()) currentCommandInput.pop_back();
+        } else if (unicode == 13) { // Tombol Enter
+            lastReadyCommand = currentCommandInput;
+            currentCommandInput = ""; // Kosongkan kolom setelah di-enter
+            flagCommandReady = true;  
+        } else if (unicode >= 32 && unicode <= 126 && currentCommandInput.size() < 22) {
+            currentCommandInput += static_cast<char>(unicode);
+        }
+    }
+}
+
+// --- Getter & Signals ---
+bool SidePanel::pollRollButtonClicked() {
+    if (flagRollClicked) { 
+        flagRollClicked = false; 
+        return true; 
+    } 
+    return false;
+}
+
+bool SidePanel::pollStartGameClicked() {
+    if (flagStartClicked) { 
+        flagStartClicked = false; 
+        return true; 
+    } 
+    return false;
+}
+
+bool SidePanel::pollRollDiceFinished(int& outDice1, int& outDice2) {
+    if (flagRollFinished) { 
+        flagRollFinished = false; 
+        outDice1 = diceValues[0]; 
+        outDice2 = diceValues[1]; 
+        return true; 
+    } 
+    return false;
+}
+
+void SidePanel::addHistoryEntry(const std::string& entry) { gameHistory.push_back(entry); }
+void SidePanel::setPanelState(PanelState state) { currentState = state; }
+void SidePanel::setActivePlayerTurn(int index) { activePlayerIndex = index; }
+void SidePanel::setPlayerData(int index, const std::string& name, bool isActive) {
+    if (index >= 0 && index < 4) {
+        playerNames[index] = name;
+        isPlayerEnabled[index] = isActive;
+    }
+}
+std::array<bool, 4> SidePanel::getActivePlayers() const { return isPlayerEnabled; }
+
+int SidePanel::getFirstTurnPlayerIndex() const {
+    return firstTurnPlayerIndex;
+}
+
+std::string SidePanel::getPlayerName(int index) const {
+    if (index >= 0 && index < 4) return playerNames[index];
+    return "Unknown";
+}
+
+// --- Helper ---
 bool SidePanel::containsPoint(const sf::FloatRect& rect, float x, float y) const {
     return x >= rect.left && x <= rect.left + rect.width && y >= rect.top && y <= rect.top + rect.height;
 }
@@ -99,12 +225,6 @@ void SidePanel::draw3DPanel(sf::RenderWindow& window, sf::FloatRect rect, sf::Co
     sf::RectangleShape shRight(sf::Vector2f(2.f, rect.height)); shRight.setPosition(rect.left + rect.width - 2.f, rect.top); shRight.setFillColor(colorBottomRight);
     
     window.draw(hlTop); window.draw(hlLeft); window.draw(shBottom); window.draw(shRight);
-}
-
-void SidePanel::render(sf::RenderWindow& window) {
-    draw3DPanel(window, panelArea, sf::Color(192, 192, 192), false);
-    if (currentState == PanelState::PLAYER_SETUP) renderSetupState(window);
-    else renderInGameState(window);
 }
 
 void SidePanel::renderSetupState(sf::RenderWindow& window) {
@@ -267,7 +387,6 @@ void SidePanel::renderInGameState(sf::RenderWindow& window) {
         window.draw(bigAvatar);
     }
 
-    // Info Uang (Sunken Box)
     sf::FloatRect cashRect(tabX + 15.f, tabY + 65.f, 150.f, 35.f);
     draw3DPanel(window, cashRect, sf::Color(240, 240, 240), true);
     window.draw(createText("Cash", cashRect.left + 50.f, cashRect.top + 2.f, 14, sf::Color::Black));
@@ -275,7 +394,7 @@ void SidePanel::renderInGameState(sf::RenderWindow& window) {
     
     currentY += 170.f;
 
-// --- KOTAK AKSI & DADU ---
+    // Dadu
     sf::FloatRect actionRect(startX + 10.f, currentY, innerW - 20.f, 80.f);
     draw3DPanel(window, actionRect, sf::Color(210, 210, 210), false);
 
@@ -307,100 +426,42 @@ void SidePanel::renderInGameState(sf::RenderWindow& window) {
     
     currentY += 95.f;
 
-    // --- GAME HISTORY ---
+    //  Game History 
     draw3DPanel(window, sf::FloatRect(startX + 10.f, currentY, innerW - 20.f, 25.f), sf::Color(100, 140, 210), false);
     window.draw(createText("Game History", startX + 20.f, currentY + 3.f, 15, sf::Color::White));
     currentY += 25.f;
 
-    sf::FloatRect histRect(startX + 10.f, currentY, innerW - 20.f, panelArea.height - (currentY - panelArea.top) - 16.f);
+    sf::FloatRect histRect(startX + 10.f, currentY, innerW - 20.f, panelArea.height - (currentY - panelArea.top) - 50.f);
     draw3DPanel(window, histRect, sf::Color::White, true);
     
     float textY = currentY + 5.f;
-    int startIdx = std::max(0, (int)gameHistory.size() - 11);
+    int startIdx = std::max(0, (int)gameHistory.size() - 7); 
     for (int i = startIdx; i < (int)gameHistory.size(); ++i) {
         window.draw(createText("> " + gameHistory[i], startX + 18.f, textY, 13, sf::Color(40, 40, 40)));
         textY += 18.f;
     }
+
+    currentY += histRect.height + 8.f;
+
+    // Input Command
+    window.draw(createText("Cmd:", startX + 10.f, currentY + 6.f, 16, sf::Color::Black));
+    sf::FloatRect inputRect(startX + 50.f, currentY, innerW - 60.f, 30.f);
+    draw3DPanel(window, inputRect, sf::Color::White, true);
+    
+    std::string displayCmd = currentCommandInput;
+    if (static_cast<int>(diceTickClock.getElapsedTime().asSeconds() * 2) % 2 == 0) displayCmd += "_";
+    window.draw(createText(displayCmd, inputRect.left + 8.f, inputRect.top + 6.f, 15, sf::Color::Black));
 }
 
-// --- INPUT HANDLING ---
-void SidePanel::handleMouseClick(float mouseX, float mouseY) {
-    if (currentState == PanelState::PLAYER_SETUP) {
-        for (int i = 0; i < 4; ++i) {
-            if (containsPoint(avatarSelectRects[i], mouseX, mouseY)) {
-                selectedSetupCharacter = i;
-                isPlayerEnabled[i] = true;
-                return;
-            }
-        }
-        if (containsPoint(takeMoneyButtonRect, mouseX, mouseY)) {
-            isPlayerEnabled[selectedSetupCharacter] = false;
-        }
-        if (containsPoint(giveDiceButtonRect, mouseX, mouseY)) {
-            firstTurnPlayerIndex = selectedSetupCharacter;
-            isPlayerEnabled[selectedSetupCharacter] = true;
-        }
-        if (containsPoint(startGameButtonRect, mouseX, mouseY)) {
-            bool hasPlayer = false;
-            for(bool en : isPlayerEnabled) if(en) hasPlayer = true;
-            
-            if (hasPlayer) {
-                currentState = PanelState::IN_GAME;
-                flagStartClicked = true;
-                addHistoryEntry("Game Started!");
-            }
-        }
+void SidePanel::setDiceResult(int d1, int d2) {
+    diceValues[0] = d1;
+    diceValues[1] = d2;
+}
 
-    }   else if (currentState == PanelState::IN_GAME) {
-            if (containsPoint(rollDiceButtonRect, mouseX, mouseY) && !isDiceRolling) {
-                isDiceRolling = true; 
-                diceRollClock.restart();
-                diceTickClock.restart();
-                addHistoryEntry("Rolling dice...");
-            }
+std::string SidePanel::pollCommandString() {
+    if (flagCommandReady) {
+        flagCommandReady = false;
+        return lastReadyCommand;
     }
-}
-
-void SidePanel::handleTextInput(unsigned int unicode) {
-    if (currentState != PanelState::PLAYER_SETUP) return;
-    std::string& name = playerNames[selectedSetupCharacter];
-
-    if (unicode == 8) {
-        if (!isNameEdited[selectedSetupCharacter]) {
-            name = ""; 
-            isNameEdited[selectedSetupCharacter] = true;
-        } else if (!name.empty()) {
-            name.pop_back();
-        }
-        return;
-    }
-
-    if (unicode >= 32 && unicode <= 126 && name.size() < 12) {
-        if (!isNameEdited[selectedSetupCharacter]) {
-            name = ""; 
-            isNameEdited[selectedSetupCharacter] = true;
-        }
-        name += static_cast<char>(unicode);
-    }
-}
-
-void SidePanel::addHistoryEntry(const std::string& entry) { gameHistory.push_back(entry); }
-void SidePanel::setPanelState(PanelState state) { currentState = state; }
-void SidePanel::setActivePlayerTurn(int index) { activePlayerIndex = index; }
-
-bool SidePanel::pollStartGameClicked() {
-    if (flagStartClicked) { flagStartClicked = false; return true; } return false;
-}
-bool SidePanel::pollRollDiceFinished(int& outDice1, int& outDice2) {
-    if (flagRollFinished) { flagRollFinished = false; outDice1 = diceValues[0]; outDice2 = diceValues[1]; return true; } return false;
-}
-std::array<bool, 4> SidePanel::getActivePlayers() const { return isPlayerEnabled; }
-
-int SidePanel::getFirstTurnPlayerIndex() const {
-    return firstTurnPlayerIndex;
-}
-
-std::string SidePanel::getPlayerName(int index) const {
-    if (index >= 0 && index < 4) return playerNames[index];
-    return "Unknown";
+    return "";
 }

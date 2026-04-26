@@ -9,10 +9,9 @@ enum class PanelState { PLAYER_SETUP, IN_GAME };
 class SidePanel {
 private:
     sf::FloatRect panelArea;
-    sf::Font mainFont;
     PanelState currentState;
     
-    // --- UI Areas ---
+    // --- Tampilan UI ---
     std::array<sf::FloatRect, 4> avatarSelectRects; // Grid untuk pilih karakter
     sf::FloatRect takeMoneyButtonRect;              // Tombol Take Money
     sf::FloatRect giveDiceButtonRect;
@@ -20,6 +19,7 @@ private:
     sf::FloatRect rollDiceButtonRect;
 
     // --- Assets ---
+    sf::Font mainFont;
     std::array<sf::Texture, 4> playerTextures;
     std::array<bool, 4> isPlayerTextureLoaded;
     std::array<sf::Texture, 6> diceTextures;
@@ -29,14 +29,16 @@ private:
     int selectedSetupCharacter;
     int activePlayerIndex; 
     int firstTurnPlayerIndex;
+
     std::array<std::string, 4> playerNames;
     std::array<bool, 4> isPlayerEnabled;
     std::array<bool, 4> isNameEdited;
     std::array<int, 2> diceValues;
+
     std::vector<std::string> gameHistory;
     std::string cardInfoText;
     
-    // --- Animation & Signals ---
+    // --- Animation dan Signals ---
     bool isDiceRolling;
     sf::Clock diceRollClock;
     sf::Clock diceTickClock;
@@ -44,6 +46,12 @@ private:
     bool flagRollFinished;
     bool flagRollClicked; 
 
+    // --- Command ---
+    std::string currentCommandInput;
+    bool flagCommandReady;
+    std::string lastReadyCommand;
+
+    // --- Helper ---
     void renderSetupState(sf::RenderWindow& window);
     void renderInGameState(sf::RenderWindow& window);
     void draw3DPanel(sf::RenderWindow& window, sf::FloatRect rect, sf::Color baseColor, bool isSunken = false) const;
@@ -52,26 +60,33 @@ private:
 
 public:
     SidePanel();
-
     void loadAssets();
     void fitToLayout(sf::FloatRect containerArea);
     
+    // --- Method Utama ---
     void update(); 
     void render(sf::RenderWindow& window);
+
+    // --- Input Handler ---
     void handleMouseClick(float mouseX, float mouseY);
     void handleTextInput(unsigned int unicode);
 
+    // --- Setter --- 
     void addHistoryEntry(const std::string& entry);
     void setPanelState(PanelState state);
     void resetSetup();
-    void setActivePlayerTurn(int index); // Memberitahu UI giliran siapa
+    void setActivePlayerTurn(int index);
+    void setPlayerData(int index, const std::string& name, bool isActive);
 
-    // Getter & Signals
-    bool pollStartGameClicked();
-    bool pollRollDiceFinished(int& outDice1, int& outDice2); // Sinyal dadu fix
-    std::array<bool, 4> getActivePlayers() const; // Siapa aja yang ikut main
+    // --- Getter & Signals ---
+    std::array<bool, 4> getActivePlayers() const; 
+    std::string getPlayerName(int index) const;
     int getFirstTurnPlayerIndex() const;
 
-    std::string getPlayerName(int index) const;
+    bool pollStartGameClicked();
+    bool pollRollDiceFinished(int& outDice1, int& outDice2);
     bool pollRollButtonClicked();
+
+    void setDiceResult(int d1, int d2);
+    std::string pollCommandString();
 };

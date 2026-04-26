@@ -5,9 +5,19 @@
 #include <map>
 #include <string>
 
-struct PropertyStatus {
-    int ownerIndex = -1; // -1 jika belum dimiliki, 0-3 jika sudah
-    int level = 0;       // 0: kosong, 1-4: rumah, 5: hotel
+class StatusProperty{
+    private:
+        int ownerIndex; //-1 jika belum dimiliki, 0-3 jika sudah
+        int level; //0 = kosong, 1-4 = rumah, 5 = hotel
+    public:
+        StatusProperty() : ownerIndex(-1), level(0) {}
+        StatusProperty(int owner, int lvl) : ownerIndex(owner), level(lvl) {}
+
+        int getOwnerIndex() const { return ownerIndex; }
+        void setOwnerIndex(int owner) { ownerIndex = owner; }
+
+        int getLevel() const { return level; }
+        void setLevel(int lvl) { level = lvl; }
 };
 
 enum class PlayerDirection {
@@ -15,44 +25,51 @@ enum class PlayerDirection {
     Back,
     Left,
     Right
-};
+}; 
 
 class Board {
-private:
-    sf::Texture boardTexture;
-    sf::Sprite boardSprite;
-    sf::FloatRect boardDrawArea;
-    std::vector<sf::Vector2f> tileCenters;
-    std::vector<sf::Vector2f> trueTileCenters;
-    bool boardTextureLoaded;
+    private:
+        // --- Board ---
+        sf::FloatRect boardDrawArea;
+        std::vector<sf::Vector2f> tileCenters;
+        std::vector<sf::Vector2f> trueTileCenters;
 
-    void recalculateTileCenters();
-    sf::Vector2f applyTileInset(int tileIndex, const sf::Vector2f& center) const;
+        // --- Texture, Font
+        sf::Texture boardTexture;
+        bool boardTextureLoaded;
 
-    // --- PLAYER TEXTURES ---
-    std::array<std::map<PlayerDirection, sf::Texture>, 4> playerTextures;
-    std::array<bool, 4> isPlayerTexLoaded;
+        std::array<std::map<PlayerDirection, sf::Texture>, 4> playerTextures;
+        std::array<bool, 4> isPlayerTexLoaded;
 
-    // --- BUILDING TEXTURES ---
-    std::map<std::string, sf::Texture> buildingTextures;
-    std::array<PropertyStatus, 40> properties; 
-    std::array<std::string, 4> playerColorNames = {"Brown", "Green", "Red", "Blue"};
+        std::map<std::string, sf::Texture> buildingTextures;
+        sf::Font debugFont;
 
-    // --- DEBUG ---
-    sf::Font debugFont;
-    bool showDebugIndices;
+        // --- Debug ---
+        std::array<StatusProperty, 40> properties; 
+        std::array<std::string, 4> playerColorNames = {"Brown", "Green", "Red", "Blue"};
+        bool showDebugIndices;
 
-public:
-    Board();
-    void loadAssets();
-    void fitToLayout(sf::FloatRect containerArea);
+        // --- Helper ---
+        void recalculateTileCenters();
+        sf::Vector2f applyTileInset(int tileIndex, const sf::Vector2f& center) const;
     
-    // Fungsi Render dengan Animasi
-    void render(sf::RenderWindow& window, const std::array<int, 4>& playerPositions, const std::array<bool, 4>& isPlayerActive, const std::array<PropertyStatus, 40>& propertyData, int animatingPlayerIdx, sf::Vector2f animatingPlayerPos, const std::array<PlayerDirection, 4>& playerDirs);
+    public:
+        Board();
+        void loadAssets();
+        void fitToLayout(sf::FloatRect containerArea);
+        
+        // --- Render ---
+        void render(sf::RenderWindow& window, 
+                    const std::array<int, 4>& playerPositions, 
+                    const std::array<bool, 4>& isPlayerActive, 
+                    const std::array<StatusProperty, 40>& propertyData, 
+                    int animatingPlayerIdx, 
+                    sf::Vector2f animatingPlayerPos, 
+                    const std::array<PlayerDirection, 4>& playerDirs);
 
-    // Fungsi Pengambil Koordinat
-    sf::Vector2f getTileCenter(int tileIndex) const;
-    sf::Vector2f getBuildingPosition(int tileIndex) const;
-    sf::Vector2f getTokenPosition(int tileIndex) const; 
-    sf::Vector2f computeTokenOffsetForStackIndex(int stackIndex) const;
+        // --- Getter --- 
+        sf::Vector2f getTileCenter(int tileIndex) const;
+        sf::Vector2f getBuildingPosition(int tileIndex) const;
+        sf::Vector2f getTokenPosition(int tileIndex) const; 
+        sf::Vector2f computeTokenOffsetForStackIndex(int stackIndex) const;        
 };

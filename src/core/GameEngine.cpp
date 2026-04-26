@@ -158,6 +158,9 @@ void GameEngine::run() {
 
         cliView.renderInfo("============================================");
         cliView.renderInfo("Turn: " + currentPlayer->getName() + " (Round " + to_string(gameContext.getCurrentTurn()) + ")");
+        if (isGUIMode && guiView != nullptr) {
+            guiView->updateBoardState(gameContext);
+        }
         
         bool turnEnded = false;
         bool isDoubleRoll = false;
