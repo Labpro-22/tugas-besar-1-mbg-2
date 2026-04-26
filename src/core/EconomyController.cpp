@@ -89,7 +89,7 @@ void EconomyController::redeemProperty(Player &player, PropertyTile *tile) {
         return;
     }
 
-    int redeemCost = (tile->getMortgageValue() * 11 + 9) / 10;
+    int redeemCost = (tile->getPrice());
     if (!player.canAfford(redeemCost)) {
         throw InsufficientFundsException(redeemCost, player.getBalance());
     }
@@ -115,6 +115,7 @@ void EconomyController::upgradeToHotel(GameContext *gameContext, Player &player,
     if (tile == nullptr || tile->getOwner() != &player || !canUpgradeToHotel(gameContext, tile->getColor())) {
         return;
     }
+
     if (tile->getHasHotel() || tile->getHouseCount() < 4) {
         return;
     }
@@ -302,15 +303,34 @@ vector<StreetTile *> EconomyController::getColorGroupTiles(GameContext *gameCont
 }
 
 bool EconomyController::canBuildOnTile(GameContext *gameContext, StreetTile *tile)  {
-    if (tile == nullptr || tile->getOwner() == nullptr) {
+    if (tile == nullptr || tile->getOwner() == nullptr || tile->getStatus() != OWNED) return false;
+    if (tile->getHasHotel()) return false;
+
+    if (!isMonopoly(gameContext, tile)) return false;
+
+    if (tile->getHouseCount() >= 4) return false;
+
+    string colorGroup = tile->getColor();
+    int minHouse = getMinBuildingsInColorGroup(gameContext, colorGroup);
+    
+    if (tile->getHouseCount() > minHouse) {
         return false;
     }
 
-    if (tile->getStatus() != OWNED || tile->getHasHotel()) {
-        return false;
-    }
+    return true;
+}
 
-    return tile->getHouseCount() < 4 && isMonopoly(gameContext, tile);
+int EconomyController::getMinBuildingsInColorGroup(GameContext *ctx, string &colorGroup) {
+    vector<StreetTile*> tiles = getColorGroupTiles(ctx, colorGroup);
+    if (tiles.empty()) return 0;
+
+    int minHouse = tiles[0]->getHouseCount();
+    for (StreetTile* tile : tiles) {
+        if (tile != nullptr) {
+            minHouse = min(minHouse, tile->getHouseCount());
+        }
+    }
+    return minHouse;
 }
 
 bool EconomyController::canUpgradeToHotel(GameContext *gameContext, const std::string &colorGroup)  {
@@ -393,5 +413,40 @@ int EconomyController::calculateUtilityRent(GameContext *gameContext, UtilityTil
     }
 
     return diceTotal * it->second;
+}
+
+void EconomyController::payRent(Player &payer, Player &receiver, PropertyTile *tile, int diceTotal) {
+    if (tile == nullptr || tile->getOwner() == nullptr || tile->getOwner() != &receiver) {
+        return;
+    }
+
+    int rentAmount = calculateRent(nullptr, tile, diceTotal);
+    if (rentAmount <= 0) {
+        return;
+    }
+
+    if (!payer.canAfford(rentAmount)) {
+        throw InsufficientFundsException(rentAmount, payer.getBalance());
+    }
+
+    payer -= rentAmount;
+    receiver += rentAmount;
+}
+
+map<string, vector<StreetTile*>> EconomyController::buildableStreet(map<string, vector<StreetTile*>> colorGroupMap, GameContext *gameContext, Player &player) {
+    map<string, vector<StreetTile*>> buildableGroups;
+    map<string, vector<StreetTile*>> properties = gameContext->getBoard().getMapColorProperty();
+
+    for (const auto& entry : colorGroupMap) {
+        const vector<StreetTile*>& streets = entry.second;
+
+        if (properties[entry.first].size() != streets.size()) {
+            continue; // Skip color groups that are not fully owned
+        }
+
+        buildableGroups[entry.first] = streets;
+    }
+
+    return buildableGroups;
 }
 

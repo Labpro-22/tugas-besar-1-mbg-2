@@ -63,7 +63,7 @@ public:
     
     // Redeem Mortgage
     void renderRedeemStart(GameContext G, vector<PropertyTile*> mortgagedTiles);
-    void renderRedeemChoose(GameContext G, vector<PropertyTile*> mortgagedTiles, int choose);
+    void renderRedeemChoose(GameContext G, vector<PropertyTile*> mortgagedTiles, int choose, int redeemCost);
     
     // Build
     void renderBuildStart(GameContext G, map<string, vector<StreetTile*>> tiles);
@@ -104,7 +104,8 @@ public:
     void renderLoadFailure(GameContext G, string filename, bool fileExists);
     
     //Finish Game
-    void renderGameOverMaxTurn(GameContext G);
+    void DisplayView::renderGameOverMaxTurn(const vector<Player*>& survivors, const vector<Player*>& winners);
+    void DisplayView::renderGameOverBankruptcy(Player* winner);
 
     // Bankruptcy / liquidation
     void renderBankruptFirstSceneRent(GameContext G, Player* bankruptPlayer, Player* creditorPlayer, int amountToPay, vector<string> best, int total);

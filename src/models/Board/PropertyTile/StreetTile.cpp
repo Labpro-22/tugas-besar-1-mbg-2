@@ -40,7 +40,7 @@ void StreetTile::setFestivalState(FestivalState newState) {
 }
 
 bool StreetTile::isFestivalActive() const {
-    return festivalState.getTurnsLeft() > 0 && festivalState.getStacks() > 1;
+    return festivalState.getTurnsLeft() > 0 && festivalState.getStacks() > 0;
 }
 
 void StreetTile::applyFestival() {

@@ -82,4 +82,5 @@ public:
     void clearAllFestivalStates();
     Player& getCurrentPlayer();
     void nextPlayer();
+    int countActivePlayers() const;
 };

@@ -50,7 +50,7 @@ void SaveLoader::saveGame(string fileName, GameContext &gameContext, GameLogger&
     // Player Turn Order
     for (Player &player : players)
     {
-        out << player.getName();
+        out << player.getName() << " ";
     }
 
     out << "\n";
@@ -124,7 +124,7 @@ void SaveLoader::loadGame(string fileName, GameContext &gameContext, GameLogger&
     gameContext.setCurrentTurn(turn);
     gameContext.setMaxTurns(maxTurns);
 
-    vector<Player> players = gameContext.getPlayers();
+    vector<Player>& players = gameContext.getPlayers();
     for (int i = 0; i < playerCount && i < players.size(); ++i) {
         string username;
         int balance = 0;
@@ -172,6 +172,23 @@ void SaveLoader::loadGame(string fileName, GameContext &gameContext, GameLogger&
         }
     }
 
+    for (int i = 0; i < playerCount; ++i) {
+        string turnName;
+        in >> turnName; 
+    }
+
+    string activePlayerName;
+    in >> activePlayerName;
+
+    int activeIndex = 0;
+    for (int i = 0; i < players.size(); ++i) {
+        if (players[i].getName() == activePlayerName) {
+            activeIndex = i;
+            break;
+        }
+    }
+    
+    gameContext.setCurrentPlayerIndex(activeIndex);
 
     int totalProperties;
     in >> totalProperties;

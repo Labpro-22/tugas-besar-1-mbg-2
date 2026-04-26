@@ -187,6 +187,10 @@ int Player::getBalance() const {
     return balance;
 }
 
+int Player::getDoubleCount() const {
+    return doubleCount;
+}
+
 int Player::getPosition() const {
     return currentPosition;
 }
@@ -277,6 +281,15 @@ vector<PropertyTile*> Player::getMortgagedProperties() {
     return mortgagedProperties;
 }
 
+vector<PropertyTile*> Player::getUnmortgagedProperties() {
+    vector<PropertyTile*> unmortgagedProperties;
+    for (PropertyTile* property : ownedProperties) {
+        if (property != nullptr && property->getStatus() != MORTGAGED) {
+            unmortgagedProperties.push_back(property);
+        }
+    }
+    return unmortgagedProperties;
+}
 map<string, vector<PropertyTile*>> Player::getMapColorOwnedProperty() {
     map<string, vector<PropertyTile*>> colorMap;
     for (PropertyTile* property : ownedProperties) {

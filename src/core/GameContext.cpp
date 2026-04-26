@@ -47,3 +47,9 @@ void GameContext::nextPlayer(){
     if (players.empty()) return;
     currentPlayerIndex = (currentPlayerIndex + 1) % int(players.size());
 }
+
+int GameContext::countActivePlayers() const {
+    return count_if(players.begin(), players.end(), [](const Player& p) {
+        return p.getStatus() != PlayerStatus::BANKRUPT;
+    });
+}
