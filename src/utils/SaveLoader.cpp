@@ -3,11 +3,10 @@
 #include "DiscountCard.hpp"
 #include "MoveCard.hpp"
 #include "ShieldCard.hpp"
-#include "MoveCard.hpp"
-#include "DiscountCard.hpp"
 #include "TeleportCard.hpp"
 #include "LassoCard.hpp"
 #include "DemolitionCard.hpp"
+#include "JailFreeCard.hpp"
 #include "GameContext.hpp"
 #include <fstream>
 #include <iostream>
@@ -31,16 +30,19 @@ void SaveLoader::saveGame(string fileName, GameContext &gameContext, GameLogger&
         string status = player.getStatus() == PlayerStatus::ACTIVE ? "ACTIVE" :
                         player.getStatus() == PlayerStatus::JAILED ? "JAILED" : "BANKRUPT";
             
-        out << player.getName() << " " << player.getBalance() << " " << player.getPosition() << " "
+        string kodePetak = gameContext.getBoard().getTile(player.getPosition())->getCode();
+
+        out << player.getName() << " " << player.getBalance() << " " << kodePetak << " "
             << status << " " << player.getJailTurns() << "\n";
         
         out << player.getSkillCardCount() << "\n";
         for (SkillCard* card : player.getSkillCard())
         {
             out << card->getName();
+            
             if (card->getSkillType() == SkillCardType::DISCOUNT) {
                 out << " " << static_cast<DiscountCard*>(card)->getDiscountPercentage();
-            }else if(card->getSkillType() == SkillCardType::MOVE) {
+            } else if(card->getSkillType() == SkillCardType::MOVE) {
                 out << " " << static_cast<MoveCard*>(card)->getSteps();
             }
             out << "\n";
@@ -77,7 +79,7 @@ void SaveLoader::saveGame(string fileName, GameContext &gameContext, GameLogger&
             fmult = to_string(street->getFestivalStack());
             fdur = to_string(street->getFestivalTurn());
             if (street->getHasHotel()) {
-                nBuilding = "H"; // 5 untuk hotel
+                nBuilding = "H"; // H untuk hotel
             } else {
                 nBuilding = to_string(street->getHouseCount());
             }
@@ -115,7 +117,6 @@ void SaveLoader::loadGame(string fileName, GameContext &gameContext, GameLogger&
 
     int turn = 1;
     int maxTurns = 0;
-    int currentIndex = 0;
     int playerCount = 0;
 
     in >> turn >> maxTurns;
@@ -125,20 +126,30 @@ void SaveLoader::loadGame(string fileName, GameContext &gameContext, GameLogger&
     gameContext.setMaxTurns(maxTurns);
 
     vector<Player>& players = gameContext.getPlayers();
-    for (int i = 0; i < playerCount && i < players.size(); ++i) {
+    players.clear();
+
+    // --- BACA STATE PEMAIN ---
+    for (int i = 0; i < playerCount; ++i) {
         string username;
         int balance = 0;
-        int position = 0;
-        int statusInt = 0;
+        string positionCode;
+        string statusStr;
         int jailTurns = 0;
 
-        in >> username >> balance >> position >> statusInt >> jailTurns;
+        in >> username >> balance >> positionCode >> statusStr >> jailTurns;
 
-        players[i].setName(username);
-        players[i].setBalance(balance);
-        players[i].setPosition(position);
-        players[i].setStatus(static_cast<PlayerStatus>(statusInt));
-        players[i].setJailTurns(jailTurns);
+        Player p(username); 
+        p.setBalance(balance);
+        p.setJailTurns(jailTurns);
+
+        Tile* tile = gameContext.getBoard().getTileByCode(positionCode);
+        if (tile != nullptr) {
+            p.setPosition(tile->getIdx());
+        }
+
+        if (statusStr == "ACTIVE") p.setStatus(PlayerStatus::ACTIVE);
+        else if (statusStr == "JAILED") p.setStatus(PlayerStatus::JAILED);
+        else p.setStatus(PlayerStatus::BANKRUPT);
 
         int skillCardCount = 0;
         in >> skillCardCount;
@@ -164,14 +175,18 @@ void SaveLoader::loadGame(string fileName, GameContext &gameContext, GameLogger&
                 card = new LassoCard();
             } else if (cardName == "DemolitionCard") {
                 card = new DemolitionCard();
+            } else if (cardName == "JailFreeCard") {
+                card = new JailFreeCard();
             }
 
             if (card != nullptr) {
-                players[i].addCardToHand(card);
+                p.addCardToHand(card);
             }
         }
+        players.push_back(p);
     }
 
+    // --- BACA URUTAN GILIRAN ---
     for (int i = 0; i < playerCount; ++i) {
         string turnName;
         in >> turnName; 
@@ -190,6 +205,7 @@ void SaveLoader::loadGame(string fileName, GameContext &gameContext, GameLogger&
     
     gameContext.setCurrentPlayerIndex(activeIndex);
 
+    // --- BACA STATE PROPERTI ---
     int totalProperties;
     in >> totalProperties;
     for (int i = 0; i < totalProperties; ++i) {
@@ -234,24 +250,23 @@ void SaveLoader::loadGame(string fileName, GameContext &gameContext, GameLogger&
         }
     }
 
-    // Load Deck State
+    // --- BACA STATE DECK ---
+    CardDeck<SkillCard>& skillDeck = gameContext.getSkillDeck();
+    skillDeck.clear();
+
     int mainDeckCount = 0;
     in >> mainDeckCount;
 
-    CardDeck<SkillCard>& skillDeck = gameContext.getSkillDeck();
     for (int i = 0; i < mainDeckCount; ++i) {
         string cardName;
         in >> cardName;
 
         SkillCard* card = nullptr;
+        
         if (cardName == "DiscountCard") {
-            int discountPercentage;
-            in >> discountPercentage;
-            card = new DiscountCard(discountPercentage);
+            card = new DiscountCard();
         } else if (cardName == "MoveCard") {
-            int steps;
-            in >> steps;
-            card = new MoveCard(steps);
+            card = new MoveCard();
         } else if (cardName == "ShieldCard") {
             card = new ShieldCard();
         } else if (cardName == "TeleportCard") {
@@ -260,6 +275,8 @@ void SaveLoader::loadGame(string fileName, GameContext &gameContext, GameLogger&
             card = new LassoCard();
         } else if (cardName == "DemolitionCard") {
             card = new DemolitionCard();
+        } else if (cardName == "JailFreeCard") {
+            card = new JailFreeCard();
         }
 
         if (card != nullptr) {
@@ -270,20 +287,15 @@ void SaveLoader::loadGame(string fileName, GameContext &gameContext, GameLogger&
     int discardDeckCount = 0;
     in >> discardDeckCount;
 
-    CardDeck<SkillCard>& skillDeckDiscard = gameContext.getSkillDeck();
     for(int i = 0; i < discardDeckCount; i++){
         string cardName;
         in >> cardName;
 
         SkillCard* card = nullptr;
         if (cardName == "DiscountCard") {
-            int discountPercentage;
-            in >> discountPercentage;
-            card = new DiscountCard(discountPercentage);
+            card = new DiscountCard(); 
         } else if (cardName == "MoveCard") {
-            int steps;
-            in >> steps;
-            card = new MoveCard(steps);
+            card = new MoveCard();
         } else if (cardName == "ShieldCard") {
             card = new ShieldCard();
         } else if (cardName == "TeleportCard") {
@@ -292,10 +304,12 @@ void SaveLoader::loadGame(string fileName, GameContext &gameContext, GameLogger&
             card = new LassoCard();
         } else if (cardName == "DemolitionCard") {
             card = new DemolitionCard();
+        } else if (cardName == "JailFreeCard") {
+            card = new JailFreeCard();
         }
 
         if (card != nullptr) {
-            skillDeckDiscard.discard(card);
+            skillDeck.discard(card);
         }
     }
 
