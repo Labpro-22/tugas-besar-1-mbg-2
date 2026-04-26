@@ -6,27 +6,12 @@
 #include "EconomyController.hpp"
 #include "GameContext.hpp"
 #include "InputHandler.hpp"
+#include "Liquidation.hpp"
 #include <numeric>
 #include <algorithm>
 #include <vector>
 #include <map>
 
-
-enum class LiquidationType{
-    SELL,
-    MORTGAGE
-};
-
-struct LiquidationTile{
-    PropertyTile* tile;
-    LiquidationType type;
-};
-
-struct LiquidationOption {
-    PropertyTile* tile;
-    LiquidationType type;
-    int value;
-};
 
 class BankruptcyController
 {
@@ -38,9 +23,9 @@ public:
     
     void applyAction(GameContext& ctx,Player& player, LiquidationOption& opt, EconomyController& eco);
     vector<LiquidationOption> generateOptions(Player& player, const vector<LiquidationOption>& cart, int& initBalance);
-    void liquidateAssets(GameContext& ctx, Player& debitor, Player* creditor, int amount, DisplayView& view, EconomyController& eco, InputHandler& input, PropertyTile* bankruptTile, TaxTile* taxTile); 
+    void liquidateAssets(GameContext& ctx, Player& debitor, Player* creditor, int amount, DisplayView& view, EconomyController& eco, InputHandler& input, Tile* bankruptTile); 
     void declareBankruptcy(GameContext& ctx, Player& player, Player& creditor, int amount, DisplayView& view, PropertyTile* tile);
-    void declareBankruptcy(GameContext& ctx, Player& player, int amount, DisplayView& view, EconomyController& eco, TaxTile* tile); // Ini kalau bangkrut nya ke bank
-    void declareBankruptcy(GameContext& ctx, Player& player, int amount, DisplayView& view, EconomyController& eco);
-    void handleInsufficientFunds(GameContext& ctx, Player& debitor, Player* creditor, int amount, EconomyController& eco, DisplayView& view);
+    void declareBankruptcy(GameContext& ctx, Player& player, int amount, DisplayView& view, EconomyController& eco, TaxTile* tile, InputHandler& input); // Ini kalau bangkrut nya ke bank
+    void declareBankruptcy(GameContext& ctx, Player& player, int amount, DisplayView& view, EconomyController& eco, InputHandler& input);
+    void handleInsufficientFunds(GameContext& ctx, Player& debitor, Player* creditor, int amount, EconomyController& eco, DisplayView& view, InputHandler& input);
 };

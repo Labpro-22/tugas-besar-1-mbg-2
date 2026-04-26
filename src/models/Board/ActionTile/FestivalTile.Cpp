@@ -5,5 +5,5 @@ FestivalTile::FestivalTile(int idx, string code, string name, string color)
 }
 
 LandResult FestivalTile::land(GameContext &G){
-    return LandResult{LandEventType::DOFESTIVAL, this, nullptr, &G.getCurrentPlayer(), nullptr, 0, false};
+    return LandResult(LandEventType::DOFESTIVAL, this, nullptr, &G.getCurrentPlayer(), nullptr, 0, false);
 }

@@ -1,168 +1,135 @@
 #include "AuctionController.hpp"
 
 void AuctionController::startAuctionSkipBuy(GameContext &gameContext, DisplayView &dv, InputHandler &inputHandler) {
-    Player &skipPlayer = gameContext.getCurrentPlayer();
-    int position = gameContext.getCurrentPlayer().getPosition();
-    Tile *currentTile = gameContext.getBoard().getTile(position);
-    dv.renderAuctionStart(gameContext, dynamic_cast<PropertyTile *>(currentTile));
+    PropertyTile* property = dynamic_cast<PropertyTile*>(gameContext.getBoard().getTile(gameContext.getCurrentPlayer().getPosition()));
     
-    bool isBid = false;
-    vector<pair<Player *, int>> bid;
-    int maxBid = 0;
-    bool auctionActive = true;
-    
-    while (auctionActive) {
-        auctionActive = false;
-        for (auto &i : gameContext.getPlayers()) {
-            if (i == skipPlayer) {
-                continue;
-            } else {
-                bool currentBid = false;
-                placeBid(i, bid, dv, inputHandler, maxBid);
-                if (currentBid) {
-                    isBid = true;
-                    auctionActive = true;
-                }
-            }
-        }
-    }
-
-    if (!isBid) {
-        cout << "Tidak ada player yang melakukan Bid" << endl;
-        cout << "Anda wajib melakukan Bid" << endl;
-        while (true) {
-            dv.renderAuctionLine(skipPlayer.getName());
-            CommandType cmd = inputHandler.getCommand();
-            int bidAmount = 0;
-            bool hasAmount = false;
-
-            if (cmd == CommandType::BID) {
-                inputHandler.getMoneyRemaining(bidAmount, hasAmount);
-                if (!hasAmount || bidAmount <= 0) {
-                    cout << "Format BID salah. Masukkan jumlah M > 0, contoh: BID M100" << endl;
-                } else {
-                    dv.renderAuctionResult(skipPlayer.getName(), bidAmount);
-                    skipPlayer -= bidAmount;
-                    return;
-                }
-            } else {
-                cout << "Hanya bisa melakukan Bid" << endl;
-            }
-        }
-    } else {
-        resolveAuction(bid, dv);
-    }
-}
-
-void AuctionController::startAuctionBankrupt(GameContext &gameContext, DisplayView &dv, InputHandler &inputHandler) {
-    Player &bankruptPlayer = gameContext.getCurrentPlayer();
-    int position = bankruptPlayer.getPosition();
-    Tile *currentTile = gameContext.getBoard().getTile(position);
-    dv.renderAuctionStart(gameContext, dynamic_cast<PropertyTile *>(currentTile));
-    
-    bool isBid = false;
-    vector<pair<Player *, int>> bid;
-    int maxBid = 0;
-    Player *lastEligiblePlayer = nullptr;
-
+    vector<Player*> participants;
     for (auto &p : gameContext.getPlayers()) {
-        if (p == bankruptPlayer) {
-            continue;
-        }
-        lastEligiblePlayer = &p;
-    }
-
-    if (lastEligiblePlayer == nullptr) {
-        return;
-    }
-
-    bool auctionActive = true;
-    while (auctionActive) {
-        auctionActive = false;
-        for (auto &i : gameContext.getPlayers()) {
-            if (i == bankruptPlayer) {
-                continue;
-            } else {
-                bool currentBid = false;
-                placeBid(i, bid, dv, inputHandler, maxBid);
-                if (currentBid) {
-                    isBid = true;
-                    auctionActive = true;
-                }
-            }
+        if (p.getStatus() != PlayerStatus::BANKRUPT) {
+            participants.push_back(&p);
         }
     }
 
-    if (!isBid) {
-        cout << "Tidak ada player yang melakukan Bid" << endl;
-        cout << "Anda wajib melakukan Bid, Player : " << lastEligiblePlayer->getName() << endl;
-        while (true) {
-            dv.renderAuctionLine(lastEligiblePlayer->getName());
-            CommandType cmd = inputHandler.getCommand();
-            int bidAmount = 0;
-            bool hasAmount = false;
-
-            if (cmd == CommandType::BID) {
-                inputHandler.getMoneyRemaining(bidAmount, hasAmount);
-                if (!hasAmount || bidAmount <= 0) {
-                    cout << "Format BID salah. Masukkan jumlah M > 0, contoh: BID M100" << endl;
-                } else {
-                    dv.renderAuctionResult(lastEligiblePlayer->getName(), bidAmount);
-                    *lastEligiblePlayer -= bidAmount;
-                    return;
-                }
-            } else {
-                cout << "Hanya bisa melakukan Bid" << endl;
-            }
+    int startIndexInGlobal = (gameContext.getCurrentPlayerIndex() + 1) % gameContext.getPlayers().size();
+    
+    int startIdx = 0;
+    for(int i = 0; i < participants.size(); i++) {
+        if (participants[i]->getName() == gameContext.getPlayers()[startIndexInGlobal].getName()) {
+            startIdx = i;
+            break;
         }
-    } else {
-        resolveAuction(bid, dv);
+    }
+
+    dv.renderAuctionStart(gameContext, property);
+    runAuctionLogic(gameContext, dv, inputHandler, participants, startIdx, property);
+}
+
+void AuctionController::startAuctionBankrupt(GameContext &gameContext, DisplayView &dv, InputHandler &inputHandler, PropertyTile* property) {
+    Player &bankruptPlayer = gameContext.getCurrentPlayer();
+    
+    vector<Player*> participants;
+    for (auto &p : gameContext.getPlayers()) {
+        if (p.getName() != bankruptPlayer.getName() && p.getStatus() != PlayerStatus::BANKRUPT) {
+            participants.push_back(&p);
+        }
+    }
+
+    if (participants.size() <= 1) return;
+
+    dv.renderAuctionStart(gameContext, property);
+    runAuctionLogic(gameContext, dv, inputHandler, participants, 0, property);
+}
+
+void AuctionController::runAuctionLogic(GameContext &gameContext, DisplayView &dv, InputHandler &inputHandler, vector<Player*> participants, int startIndex, PropertyTile* property) {
+    int maxBid = -1; 
+    int passCount = 0;
+    int currentIndex = startIndex;
+    int numParticipants = participants.size();
+    vector<pair<Player*, int>> bidHistory;
+
+    while (true) {
+        Player* currentBidder = participants[currentIndex];
+        bool currentBidSuccess = false;
+
+        Player* lastBidder = bidHistory.empty() ? nullptr : bidHistory.back().first;
+        bool forceBidMode = (lastBidder == nullptr && passCount == numParticipants - 1);
+
+        placeBid(*currentBidder, bidHistory, dv, inputHandler, maxBid, currentBidSuccess, passCount, forceBidMode);
+
+        if (maxBid != -1 && passCount == numParticipants - 1) {
+            break;
+        }
+
+        currentIndex = (currentIndex + 1) % numParticipants;
+    }
+
+    if (!bidHistory.empty()) {
+        resolveAuction(bidHistory, dv, property);
     }
 }
 
-void AuctionController::placeBid(Player &bidder, vector<pair<Player *, int>> &bid, DisplayView &dv, InputHandler &inputHandler, int maxBid) {
-    dv.renderAuctionLine(bidder.getName());
+void AuctionController::placeBid(Player &bidder, vector<pair<Player *, int>> &bidHistory, DisplayView &dv, InputHandler &inputHandler, int &maxBid, bool &currentBidSuccess, int &passCount, bool forceBidMode) {
     int bidAmount = 0;
     bool hasAmount = false;
-    
+    currentBidSuccess = false;
     while (true) {
         dv.renderAuctionLine(bidder.getName());
         CommandType cmd = inputHandler.getCommand();
+
         if (cmd == CommandType::PASS) {
+            if (forceBidMode) {
+                dv.renderPrompt("You must place a bid since everyone else has passed.\n") ;
+                continue;
+            }
+            passCount++;
             return;
-        } else if (cmd == CommandType::BID) {
+        }
+        if (cmd == CommandType::BID) {
             inputHandler.getMoneyRemaining(bidAmount, hasAmount);
+
+            if (!hasAmount) {
+                dv.renderPrompt("Please enter a valid bid amount.");
+                continue;
+            }
             if (bidder.getBalance() < bidAmount) {
-                cout << "BID anda lebih besar dari balance" << endl;
-            } else if (!hasAmount || bidAmount <= maxBid) {
-                cout << "Format BID salah atau bid tidak lebih besar dari " << maxBid << endl;
-            } else {
-                dv.HighestBidder(bidder.getName(), bidAmount);
+                dv.renderPrompt("You don't have enough balance to place that bid.");
+                continue;
+            }
+
+            bool isFirstBidValid = (maxBid == -1 && bidAmount >= 0);
+            bool isHigherBidValid = (maxBid != -1 && bidAmount > maxBid);
+
+            if (isFirstBidValid || isHigherBidValid) {
                 maxBid = bidAmount;
-                bid.push_back(make_pair(&bidder, bidAmount));
+                bidHistory.push_back({&bidder, bidAmount});
+                currentBidSuccess = true;
+                passCount = 0; 
+                dv.HighestBidder(bidder.getName(), bidAmount);
                 return;
+            } else {
+                dv.renderPrompt("Bid must be higher than the current maximum bid of M" + to_string(maxBid == -1 ? 0 : maxBid));
             }
         } else {
-            cout << "Perintah tidak dikenali. Silakan lakukan BID." << endl;
+            dv.renderPrompt("Only BID or PASS commands are accepted.");
         }
     }
 }
 
-void AuctionController::resolveAuction(vector<pair<Player *, int>> &bid, DisplayView &dv) {
+void AuctionController::resolveAuction(vector<pair<Player *, int>> &bid, DisplayView &dv, PropertyTile* property) {
     if (bid.empty()) {
         return;
     }
     
-    Player *maxBidder = bid.at(0).first;
-    int maxNow = bid.at(0).second;
+    Player* winner = bid.back().first;
+    int finalPrice = bid.back().second;
 
-    for (auto &i : bid) {
-        if (i.second > maxNow) {
-            maxBidder = i.first;
-            maxNow = i.second;
-        }
+    dv.renderAuctionResult(winner->getName(), finalPrice);
+    *winner -= finalPrice;
+    property->setOwner(winner);
+
+    if (property->getStatus() == BANK) {
+        property->setStatus(OWNED);
     }
-    
-    dv.renderAuctionResult(maxBidder->getName(), maxNow);
-    *maxBidder -= maxNow;
+
+    winner->addProperty(property);
 }
