@@ -944,19 +944,35 @@ void DisplayView::renderLoadFailure(GameContext G, string filename, bool fileExi
     }
 }
 
-void DisplayView::renderGameOverMaxTurn(GameContext G){
-    cout << "Game Over! " << endl;  
-    cout << "Final Standings:" << endl;
-    vector<Player> players = G.getPlayers();
-    for (size_t i = 0; i < players.size(); ++i) {
-        renderPlayerInfo(G, &players[i]);
-    }
-    
-    sort(players.begin(), players.end(), [](const Player& a, const Player& b) {
-        return a.totalWealth() > b.totalWealth();
-    });
+void DisplayView::renderGameOverMaxTurn(const vector<Player*>& survivors, const vector<Player*>& winners) {
+    cout << "Game Over! (Maximum turns reached)\n\n";
+    cout << "Player Recap:\n\n";
 
-    cout << "Winner: " << players[0].getName() << " with total wealth of M" << players[0].totalWealth() << "!" << endl;
+    for (Player* p : survivors) {
+        cout << p->getName() << "\n";
+        cout << "Money      : M" << p->getBalance() << "\n";
+        cout << "Properties : " << p->getOwnedProperties().size() << "\n";
+        cout << "Cards      : " << p->getSkillCardCount() << "\n\n";
+    }
+
+    cout << "Winner(s): ";
+    for (size_t i = 0; i < winners.size(); ++i) {
+        cout << winners[i]->getName();
+        // Beri koma jika pemenangnya lebih dari satu (seri)
+        if (i < winners.size() - 1) {
+            cout << ", ";
+        }
+    }
+}
+
+void DisplayView::renderGameOverBankruptcy(Player* winner) {
+    cout << "Game Over! (All players except one are bankrupt)\n\n";
+    
+    cout << "Remaining player:\n";
+    if (winner != nullptr) {
+        cout << "- " << winner->getName() << "\n\n";
+        cout << "Winner: " << winner->getName() << "\n";
+    }
 }
 
 void DisplayView::renderPlayerInfo(GameContext G, Player* player){
