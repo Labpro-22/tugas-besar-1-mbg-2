@@ -48,11 +48,13 @@ void TurnController::resolveTileLanding(GameContext* context, Player* player, Ec
             string choice = input.getLastStringInput();
             if (choice == "Y" || choice == "y") {
                 try {
-                    eco.purchaseProperty(*player, dynamic_cast<PropertyTile*>(currentTile));
+                    PropertyTile* property = dynamic_cast<PropertyTile*>(currentTile);
+                    eco.purchaseProperty(*player, property);
                     display.renderBoughtStreet(*context, dynamic_cast<StreetTile*>(currentTile));
+                    logger.addLog(context->getCurrentTurn(), player->getName(), "BUY_PROPERTY", property->getName() + " bought for M" + to_string(property->getPrice()));
                 } catch (const InsufficientFundsException& ex) {
                     throw AuctionTriggerException();
-                }   
+                }
             } else {
                 throw AuctionTriggerException();
             }
@@ -62,6 +64,7 @@ void TurnController::resolveTileLanding(GameContext* context, Player* player, Ec
         case LandEventType::GIVEPROPERTY:{
             PropertyTile* propTile = dynamic_cast<PropertyTile*>(currentTile);
             eco.acquirePropertyFree(*player, propTile);
+            logger.addLog(context->getCurrentTurn(), player->getName(), "ACQUIRE_PROPERTY", propTile->getName() + " acquired for free");
             if (currentTile->getType() == "Railroad"){
                 display.renderGetRailroad(*context, dynamic_cast<RailroadTile*>(currentTile));
             } else if (currentTile->getType() == "Utility"){
@@ -78,6 +81,7 @@ void TurnController::resolveTileLanding(GameContext* context, Player* player, Ec
                 Player* owner = dynamic_cast<PropertyTile*>(currentTile)->getOwner();
                 eco.payRent(*player, *owner, dynamic_cast<PropertyTile*>(currentTile), dice.getTotal());
                 display.renderCurrentBalancePayed(*context, rentAmount);
+                logger.addLog(context->getCurrentTurn(), player->getName(), "PAY_RENT", "Paid M" + to_string(rentAmount) + " to " + owner->getName() + " for " + currentTile->getName());
             } catch (const InsufficientFundsException& ex) {
                 display.renderCantPay(*context, ex.getRequired());
                 throw BankruptcyException("Player cannot afford to pay rent.", ex.getRequired(), player->getBalance(), dynamic_cast<PropertyTile*>(currentTile)->getOwner(), currentTile);
@@ -98,6 +102,7 @@ void TurnController::resolveTileLanding(GameContext* context, Player* player, Ec
                         int balanceAfterTax = player->getBalance();
                         int taxPaid = balanceBeforeTax - balanceAfterTax;
                         display.renderCurrentBalancePayed(*context, taxPaid);
+                        logger.addLog(context->getCurrentTurn(), player->getName(), "PAY_TAX", "Income tax paid M" + to_string(taxPaid));
                     } catch (const InsufficientFundsException& ex) {
                         display.renderCantPayTax(*context, ex.getRequired());
                         throw BankruptcyException("Player cannot afford to pay income tax.", ex.getRequired(), player->getBalance(), nullptr, taxTile);
@@ -106,6 +111,7 @@ void TurnController::resolveTileLanding(GameContext* context, Player* player, Ec
                     try {
                         eco.processLuxuryTax(context, *player);
                         display.renderCurrentBalancePayed(*context, context->getPbm());
+                        logger.addLog(context->getCurrentTurn(), player->getName(), "PAY_TAX", "Luxury tax paid M" + to_string(context->getPbm()));
                     } catch (const InsufficientFundsException& ex) {
                         display.renderCantPayTax(*context, ex.getRequired());
                         display.renderCurrentBalance(*context);
@@ -116,7 +122,7 @@ void TurnController::resolveTileLanding(GameContext* context, Player* player, Ec
             break;
 
         case LandEventType::DOFESTIVAL:{
-            eff.handleFestival(context, &display, &input );
+            eff.handleFestival(context, &display, &input, logger);
             break;
         }
 
@@ -124,7 +130,8 @@ void TurnController::resolveTileLanding(GameContext* context, Player* player, Ec
             ActionCard* drawnCard = context->getChanceDeck().draw();
             display.renderCardTile(*context, drawnCard);
             if (drawnCard != nullptr) {
-                eff.execute(*drawnCard, *player, *context, bank, input, display, eco);
+                logger.addLog(context->getCurrentTurn(), player->getName(), "DRAW_CHANCE_CARD", drawnCard->getName());
+                eff.execute(*drawnCard, *player, *context, bank, input, display, eco, logger);
                 context->getChanceDeck().returnAndShuffle(drawnCard);
             }
             break;
@@ -135,7 +142,8 @@ void TurnController::resolveTileLanding(GameContext* context, Player* player, Ec
                 ActionCard* drawnCard = context->getCommunityChestDeck().draw();
                 display.renderCardTile(*context, drawnCard);
                 if (drawnCard != nullptr) {
-                    eff.execute(*drawnCard, *player, *context, bank, input, display, eco);
+                    logger.addLog(context->getCurrentTurn(), player->getName(), "DRAW_COMMUNITY_CHEST_CARD", drawnCard->getName());
+                    eff.execute(*drawnCard, *player, *context, bank, input, display, eco, logger);
                     context->getCommunityChestDeck().returnAndShuffle(drawnCard);
                 }
             } catch (const InsufficientFundsException& ex) {
@@ -164,20 +172,23 @@ void TurnController::handleDiceRollMovement(GameContext* context, EconomyControl
     Player* currentPlayer = &context->getCurrentPlayer(); 
     
     int diceTotal = dice.getTotal(); 
+    logger.addLog(context->getCurrentTurn(), currentPlayer->getName(), "ROLL_DICE", "Rolled " + to_string(diceTotal));
     
     int oldPos = currentPlayer->getPosition();
     int newPos = context->getBoard().calculateTargetPosition(oldPos, diceTotal);
     currentPlayer->setPosition(newPos);
+    logger.addLog(context->getCurrentTurn(), currentPlayer->getName(), "MOVE", "Moved from " + to_string(oldPos) + " to " + to_string(newPos));
     
     if (currentPlayer->getPosition() < oldPos) {
         *currentPlayer += context->getGoSalary();
         display.renderInfo("You passed GO! Collected " + to_string(context->getGoSalary()) + " coins.");
+        logger.addLog(context->getCurrentTurn(), currentPlayer->getName(), "PASS_GO", "Collected M" + to_string(context->getGoSalary()));
     }
 
     resolveTileLanding(context, currentPlayer, eco, eff, auc, bank, dice, sl, input, logger, display);
 }
 
-void TurnController::handleBuildHouse(GameContext* context, Player* player, EconomyController& eco, InputHandler& input, DisplayView& display) {
+void TurnController::handleBuildHouse(GameContext* context, Player* player, EconomyController& eco, InputHandler& input, GameLogger& logger, DisplayView& display) {
     map<string, vector<StreetTile*>> groupColor = player->getColorOwnedStreetTile();
     map<string, vector<StreetTile*>> buildableStreet = eco.buildableStreet(groupColor, context, *player);
 
@@ -228,8 +239,10 @@ void TurnController::handleBuildHouse(GameContext* context, Player* player, Econ
     {
         if (eco.canBuildOnTile(context, chosenTile)) {
             eco.buildHouse(context, *player, chosenTile);
+            logger.addLog(context->getCurrentTurn(), player->getName(), "BUILD_HOUSE", "Built house on " + chosenTile->getName());
         } else if (eco.canUpgradeToHotel(context, color)) {
             eco.upgradeToHotel(context, *player, chosenTile);
+            logger.addLog(context->getCurrentTurn(), player->getName(), "UPGRADE_HOTEL", "Upgraded " + chosenTile->getName() + " to hotel");
         } else {
             display.renderInfo("This property cannot be built on anymore.");
             return;
