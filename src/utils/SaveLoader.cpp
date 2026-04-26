@@ -124,12 +124,12 @@ void SaveLoader::loadGame(string fileName, GameContext &gameContext, GameLogger&
     gameContext.setCurrentTurn(turn);
     gameContext.setMaxTurns(maxTurns);
 
-    vector<Player> players = gameContext.getPlayers();
+    vector<Player>& players = gameContext.getPlayers();
     for (int i = 0; i < playerCount && i < players.size(); ++i) {
         string username;
         int balance = 0;
         int position = 0;
-        int statusInt = 0;
+        string statusInt = 0;
         int jailTurns = 0;
 
         in >> username >> balance >> position >> statusInt >> jailTurns;
