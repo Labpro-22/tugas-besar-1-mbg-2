@@ -208,7 +208,7 @@ string DisplayView::buildOwnershipInfo(Tile* tile, GameContext G) const {
 }
 
 // Build info posisi pemain: (1,3) atau IN:2 V:1
-string DisplayView::buildPlayerPositionInfo(int tileIdx, GameContext G) const {
+string DisplayView::buildPlayerPositionInfo(int tileIdx, GameContext& G) const {
     vector<Player*> onTile = getPlayersOnTile(tileIdx, G);
     string info;
     
