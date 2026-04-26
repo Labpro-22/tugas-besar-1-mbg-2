@@ -443,7 +443,7 @@ void GameEngine::run() {
             }
         }
 
-        effectController.decrementDurations();
+        effectController.decrementDurations(&gameContext);
 
         if (gameContext.getMaxTurns() > 0 && gameContext.getCurrentTurn() >= gameContext.getMaxTurns()) {
             gameContext.setGameOver(true);

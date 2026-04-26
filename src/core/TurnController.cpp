@@ -113,11 +113,9 @@ void TurnController::resolveTileLanding(GameContext* context, Player* player, Ec
             break;
 
         case LandEventType::DOFESTIVAL:{
+            eff.handleFestival(currentTile);
             break;
-
         }
-            
-            // eff.handleFestival(result, context);
 
         case LandEventType::DRAWCHANCE: {
             ActionCard* drawnCard = context->getChanceDeck().draw();
