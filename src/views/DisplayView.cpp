@@ -450,7 +450,7 @@ void DisplayView::renderAkta(GameContext G, string code){
 
     cout << "+==============================+" << endl;
 
-    if (prop->isOwned()) {
+    if (prop->getStatus() == OWNED) {
         Player* owner = prop->getOwner();
         printCardLine("Status: OWNED (" + owner->getName() + ")");
     }else if(prop->getStatus() == MORTGAGED) {
@@ -813,11 +813,6 @@ void DisplayView::renderRedeemChoose(GameContext G, vector<PropertyTile*> mortga
     }
 
     PropertyTile* chosenTile = mortgagedTiles[choose - 1];
-    // Jaga - jaga agar tidak terjadi error jika status tile berubah di tengah proses
-    if (chosenTile->getStatus() != MORTGAGED) {
-        cout << "The chosen property is not currently mortgaged." << endl;
-        return; 
-    }
 
     cout << "You chose to unmortgage " << chosenTile->getName() << " (" << chosenTile->getCode() << ")." << endl;
     cout << "You paying M " << redeemCost << " To the bank" << endl;
