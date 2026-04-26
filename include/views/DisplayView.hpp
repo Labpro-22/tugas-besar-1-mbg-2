@@ -107,8 +107,8 @@ public:
     void renderGameOverMaxTurn(GameContext G);
 
     // Bankruptcy / liquidation
-    void renderBankruptFirstSceneRent(GameContext G, Player* bankruptPlayer, Player* creditorPlayer, int amountToPay);
-    void renderBankruptFirstSceneTax(GameContext G, Player* bankruptPlayer, TaxTile* bankruptTile, int amountToPay);
+    void renderBankruptFirstSceneRent(GameContext G, Player* bankruptPlayer, Player* creditorPlayer, int amountToPay, vector<string> best, int total);
+    void renderBankruptFirstSceneTax(GameContext G, Player* bankruptPlayer, TaxTile* bankruptTile, int amountToPay, vector<string> best, int total);
     void renderBankruptSecondScene(GameContext G, Player* bankruptPlayer, Player* creditorPlayer, PropertyTile* bankruptTile, int amountToPay);
     void renderBankruptThirdScene(GameContext G, Player* bankruptPlayer, TaxTile* Tile, int amountToPay);
     void liquidatePanel(GameContext G, Player* bankruptPlayer, Player* creditorPlayer, int amountToPay, vector<LiquidationOption> options, int initBalance);

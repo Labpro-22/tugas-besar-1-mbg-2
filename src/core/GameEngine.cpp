@@ -268,6 +268,7 @@ void GameEngine::run() {
                         break;
                     }
                     dice.roll();
+                    gameContext.getDice().setRoll(dice.getDice1(), dice.getDice2());
                     if (dice.isDouble()) {
                         isDoubleRoll = true;
                         displayView.renderInfo("\n " + currentPlayer->getName() + " rolled DOUBLES! Gets an extra turn! \n");
@@ -292,6 +293,7 @@ void GameEngine::run() {
                     int x = inputHandler.getIntValue1();
                     int y = inputHandler.getIntValue2();
                     dice.setRoll(x, y);
+                    gameContext.getDice().setRoll(dice.getDice1(), dice.getDice2());
                     if (dice.isDouble()) {
                         isDoubleRoll = true;
                         displayView.renderInfo("\n" + currentPlayer->getName() + " set DOUBLES! Gets an extra turn! \n");
