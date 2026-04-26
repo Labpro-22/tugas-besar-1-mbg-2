@@ -20,10 +20,15 @@ void EffectController::handleFestival(GameContext* gameContext, DisplayView* dis
             streetTile.push_back(tile);
         }
     }
+    if (streetTile.empty()){
+        // gada
+        break;
+    }
     // display->renderFestivalTile(&gameContext);
-    inputHandler->getStringInput();
-    string choice = inputHandler->getLastStringInput();
+    string choice;
     while(true){
+        inputHandler->getStringInput();
+        choice = inputHandler->getLastStringInput();
         if (codeInOwned(choice, streetTile)){
             break;
         }
@@ -44,9 +49,12 @@ void EffectController::handleFestival(GameContext* gameContext, DisplayView* dis
 }
 
 void EffectController::decrementDurations(GameContext* context){
+    
     Tile* tile = context->getBoard().getTile(context->getCurrentPlayer().getPosition());
     StreetTile* s = dynamic_cast<StreetTile*>(tile);
-    s->decreaseFestivalTurn();
+    if (s != nullptr) {
+        s->decreaseFestivalTurn();
+    }
     // minimal kosong dulu
 }
 

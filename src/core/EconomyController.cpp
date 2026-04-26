@@ -89,7 +89,7 @@ void EconomyController::redeemProperty(Player &player, PropertyTile *tile) {
         return;
     }
 
-    int redeemCost = (tile->getMortgageValue() * 11 + 9) / 10;
+    int redeemCost = (tile->getPrice());
     if (!player.canAfford(redeemCost)) {
         throw InsufficientFundsException(redeemCost, player.getBalance());
     }
