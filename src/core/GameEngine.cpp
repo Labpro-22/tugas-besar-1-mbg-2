@@ -289,6 +289,7 @@ void GameEngine::run() {
                         break;
                     }
                     dice.roll();
+                    gameContext.getDice().setRoll(dice.getDice1(), dice.getDice2());
                     if (dice.isDouble()) {
                         int currentDoubleCount = currentPlayer->getDoubleCount() + 1;
                         currentPlayer->setDoubleCount(currentDoubleCount);
@@ -343,6 +344,7 @@ void GameEngine::run() {
                     int x = inputHandler.getIntValue1();
                     int y = inputHandler.getIntValue2();
                     dice.setRoll(x, y);
+                    gameContext.getDice().setRoll(dice.getDice1(), dice.getDice2());
                     if (dice.isDouble()) {
                         int currentDoubleCount = currentPlayer->getDoubleCount() + 1;
                         currentPlayer->setDoubleCount(currentDoubleCount);

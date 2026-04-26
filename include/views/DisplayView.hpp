@@ -91,9 +91,9 @@ public:
     void renderPrompt(const string& message);
 
     // Festival
-    void renderFestivalTile(GameContext G, FestivalTile *tile);
+    void renderFestivalTile(GameContext G, vector<StreetTile*> festivalTiles);
     void renderFestivalResult(GameContext G, StreetTile* tile);
-    void InputUnvalidFestivalProperty(GameContext G);
+    void InputUnvalidFestivalProperty(GameContext G, vector<StreetTile*> streetTiles, bool notOwner);
 
     //SaveLoad
     void renderSaveSuccess(GameContext G, string filename);
@@ -104,16 +104,16 @@ public:
     void renderLoadFailure(GameContext G, string filename, bool fileExists);
     
     //Finish Game
-    void DisplayView::renderGameOverMaxTurn(const vector<Player*>& survivors, const vector<Player*>& winners);
-    void DisplayView::renderGameOverBankruptcy(Player* winner);
+    void renderGameOverMaxTurn(const vector<Player*>& survivors, const vector<Player*>& winners);
+    void renderGameOverBankruptcy(Player* winner);
 
     // Bankruptcy / liquidation
-    void renderBankruptFirstSceneRent(GameContext G, Player* bankruptPlayer, Player* creditorPlayer, int amountToPay);
-    void renderBankruptFirstSceneTax(GameContext G, Player* bankruptPlayer, TaxTile* bankruptTile, int amountToPay);
+    void renderBankruptFirstSceneRent(GameContext G, Player* bankruptPlayer, Player* creditorPlayer, int amountToPay, vector<string> best, int total);
+    void renderBankruptFirstSceneTax(GameContext G, Player* bankruptPlayer, TaxTile* bankruptTile, int amountToPay, vector<string> best, int total);
     void renderBankruptSecondScene(GameContext G, Player* bankruptPlayer, Player* creditorPlayer, PropertyTile* bankruptTile, int amountToPay);
     void renderBankruptThirdScene(GameContext G, Player* bankruptPlayer, TaxTile* Tile, int amountToPay);
-    void liquidatePanel(GameContext G, Player* bankruptPlayer, Player* creditorPlayer, int amountToPay, vector<LiquidationOption> options);
-    void renderLiquidateChoose(GameContext G, Player* bankruptPlayer, PropertyTile* chosenTile);
+    void liquidatePanel(GameContext G, Player* bankruptPlayer, Player* creditorPlayer, int amountToPay, vector<LiquidationOption> options, int initBalance);
+    void renderLiquidateChoose(GameContext G, Player* bankruptPlayer, LiquidationOption selected, int initBalance);
     void renderNotEnoughLiquidate(GameContext G, Player* bankruptPlayer, int amountToPay);
     void renderEnoughLiquidate(GameContext G, Player* bankruptPlayer, Player* creditorPlayer, int amountToPay);
 

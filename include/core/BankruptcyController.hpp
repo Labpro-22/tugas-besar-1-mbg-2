@@ -28,4 +28,6 @@ public:
     void declareBankruptcy(GameContext& ctx, Player& player, int amount, DisplayView& view, EconomyController& eco, TaxTile* tile, InputHandler& input); // Ini kalau bangkrut nya ke bank
     void declareBankruptcy(GameContext& ctx, Player& player, int amount, DisplayView& view, EconomyController& eco, InputHandler& input);
     void handleInsufficientFunds(GameContext& ctx, Player& debitor, Player* creditor, int amount, EconomyController& eco, DisplayView& view, InputHandler& input);
+    int calculateTotal(Player& player, const vector<LiquidationTile>& best);
+    vector<string> bestLiquidation(Player& player, const vector<LiquidationTile>& best);
 };
