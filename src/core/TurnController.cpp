@@ -176,3 +176,68 @@ void TurnController::handleDiceRollMovement(GameContext* context, EconomyControl
 
     resolveTileLanding(context, currentPlayer, eco, eff, auc, bank, dice, sl, input, logger, display);
 }
+
+void TurnController::handleBuildHouse(GameContext* context, Player* player, EconomyController& eco, InputHandler& input, DisplayView& display) {
+    map<string, vector<StreetTile*>> groupColor = player->getColorOwnedStreetTile();
+    map<string, vector<StreetTile*>> buildableStreet = eco.buildableStreet(groupColor, context, *player);
+
+    if (buildableStreet.empty()) {
+        display.renderInfo("You don't have any properties eligible for building houses!");
+        return;
+    }
+
+    display.renderBuildStart(*context, buildableStreet);
+
+    input.getIntInput();
+    int choice = input.getIntValue1();
+    
+    if (choice == 0){
+        display.renderBuildCancel(*context);
+        return;
+    }
+
+    if (choice < 0 || choice > buildableStreet.size()) {
+        display.renderBuildInvalid(*context);
+        return;
+    }
+
+    auto itMap = buildableStreet.begin();
+    advance(itMap, choice - 1);
+
+    string color = itMap->first;
+    vector<StreetTile*> allBuildableStreet = itMap->second;
+
+    display.renderBuildMid(*context, allBuildableStreet);
+    
+    input.getIntInput();
+    int propertyChoice = input.getIntValue1();
+
+    if (propertyChoice == 0) {
+        display.renderBuildCancel(*context);
+        return;
+    }
+
+    if (propertyChoice < 0 || propertyChoice > allBuildableStreet.size()) {
+        display.renderBuildInvalid(*context);
+        return;
+    }
+
+    StreetTile* chosenTile = allBuildableStreet[propertyChoice - 1];
+    
+    try
+    {
+        if (eco.canBuildOnTile(context, chosenTile)) {
+            eco.buildHouse(context, *player, chosenTile);
+        } else if (eco.canUpgradeToHotel(context, color)) {
+            eco.upgradeToHotel(context, *player, chosenTile);
+        } else {
+            display.renderInfo("This property cannot be built on anymore.");
+            return;
+        }
+        display.renderbuildHouses(*context, chosenTile, allBuildableStreet);
+    }
+    catch(const InsufficientFundsException& ex)
+    {
+        display.renderInfo("You don't have enough funds to build on this property. Required: " + to_string(ex.getRequired()) + ", Your Balance: " + to_string(ex.getCurrentBalance()));
+    }
+}

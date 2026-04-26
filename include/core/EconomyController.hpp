@@ -13,8 +13,8 @@ private:
     int calculateStreetRent(GameContext *gameContext, StreetTile *tile);
     int calculateRailroadRent(GameContext *gameContext, RailroadTile *tile);
     int calculateUtilityRent(GameContext *gameContext, UtilityTile *tile, int diceTotal);
-    int getMinBuildingsInColorGroup(string &colorGroup) ;
-    int getMaxBuildingsInColorGroup(string &colorGroup) ;
+    int getMinBuildingsInColorGroup(string &colorGroup);
+    int getMaxBuildingsInColorGroup(string &colorGroup);
 
 public:
     EconomyController() = default;
@@ -30,6 +30,7 @@ public:
     void redeemProperty(Player &player, PropertyTile *tile);    
     int sellBuilding(Player& player, StreetTile* tile);
 
+    map<string, vector<StreetTile*>> buildableStreet(map<string, vector<StreetTile*>> colorGroupMap, GameContext *gameContext, Player &player);
     void buildHouse(GameContext *gameContext, Player &player, StreetTile *tile);
     void upgradeToHotel(GameContext *gameContext, Player &player, StreetTile *tile);
     int sellAllBuildingsInColorGroup(GameContext *gameContext, Player &player, const std::string &colorGroup);

@@ -115,6 +115,7 @@ void EconomyController::upgradeToHotel(GameContext *gameContext, Player &player,
     if (tile == nullptr || tile->getOwner() != &player || !canUpgradeToHotel(gameContext, tile->getColor())) {
         return;
     }
+
     if (tile->getHasHotel() || tile->getHouseCount() < 4) {
         return;
     }
@@ -310,7 +311,23 @@ bool EconomyController::canBuildOnTile(GameContext *gameContext, StreetTile *til
         return false;
     }
 
+    string colorGroup = tile->getColor();
+    int minHouseOnColorGroup = getMinBuildingsInColorGroup(colorGroup);
+    if (tile->getHouseCount() > minHouseOnColorGroup) {
+        return false;
+    }
+
     return tile->getHouseCount() < 4 && isMonopoly(gameContext, tile);
+}
+
+int EconomyController::getMinBuildingsInColorGroup(string &colorGroup) {
+    int minHouse = 99;
+    for (StreetTile* tile : getColorGroupTiles(nullptr, colorGroup)) {
+        if (tile != nullptr) {
+            minHouse = min(minHouse, tile->getHouseCount());
+        }
+    }
+    return minHouse == 99 ? 0 : minHouse;
 }
 
 bool EconomyController::canUpgradeToHotel(GameContext *gameContext, const std::string &colorGroup)  {
@@ -411,5 +428,23 @@ void EconomyController::payRent(Player &payer, Player &receiver, PropertyTile *t
 
     payer -= rentAmount;
     receiver += rentAmount;
+}
+
+map<string, vector<StreetTile*>> EconomyController::buildableStreet(map<string, vector<StreetTile*>> colorGroupMap, GameContext *gameContext, Player &player) {
+    map<string, vector<StreetTile*>> buildableGroups;
+    map<string, vector<StreetTile*>> properties = gameContext->getBoard().getMapColorProperty();
+
+
+    for (const auto& entry : colorGroupMap) {
+        const vector<StreetTile*>& streets = entry.second;
+
+        if (properties[entry.first].size() != streets.size()) {
+            continue; // Skip color groups that are not fully owned
+        }
+
+        buildableGroups[entry.first] = streets;
+    }
+
+    return buildableGroups;
 }
 
