@@ -75,6 +75,7 @@ void GameEngine::run() {
 
     int startingIndex = 0;
     bool gameReady = false;
+    bool isLoad = false;
 
     while (!gameReady) {
         displayView.renderStart();
@@ -126,7 +127,6 @@ void GameEngine::run() {
             }
             
             std::shuffle(gameContext.getPlayers().begin(), gameContext.getPlayers().end(), std::default_random_engine(std::random_device{}()));
-            startingIndex = 0;
 
             gameContext.setCurrentPlayerIndex(startingIndex);
             
@@ -148,6 +148,7 @@ void GameEngine::run() {
             } else {
                 displayView.renderInfo("\n[ERROR] Failed to load save file or data is empty. Please try again.\n");
             }
+            isLoad = true;
         } else {
             displayView.renderInfo("\n[ERROR] Invalid choice!\n");
             inputHandler.clearInputBuffer();
@@ -163,11 +164,13 @@ void GameEngine::run() {
     bool hasUsedSkillThisTurn = false;
 
     while (!gameContext.isGameOver()) {
-        
         if (gameContext.getCurrentPlayerIndex() == startingIndex) {
-            turnController.distributeSkillCards(gameContext, inputHandler, displayView);
+            if (isLoad){
+                isLoad = false;
+            }else{
+                turnController.distributeSkillCards(gameContext, inputHandler, displayView);
+            }
         }
-
         Player* currentPlayer = &gameContext.getCurrentPlayer();
         
         if (currentPlayer->getStatus() == PlayerStatus::BANKRUPT) {
