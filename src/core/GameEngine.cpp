@@ -288,10 +288,15 @@ void GameEngine::run() {
                             guiView->showDiceAnimation(dice.getDice1(), dice.getDice2());
                         }
                         turnController.handleDiceRollMovement(&gameContext, economyController, effectController, auctionController, bankruptcyController, dice, saveLoader, inputHandler, logger, cliView);
+                        if (isGUIMode && guiView != nullptr) {
+                            guiView->updateBoardState(gameContext);
+                        }
                     } catch (const AuctionTriggerException&) {
                         auctionController.startAuctionSkipBuy(gameContext, cliView, inputHandler);
+                        if (isGUIMode && guiView != nullptr) guiView->updateBoardState(gameContext);
                     } catch (const BankruptcyException& ex) {
                         bankruptcyController.liquidateAssets(gameContext, *currentPlayer, nullptr, ex.getRequired(), cliView, economyController, inputHandler, ex.getBankruptTile());
+                        if (isGUIMode && guiView != nullptr) guiView->updateBoardState(gameContext);
                     }
                     hasRolledDice = true;
                     break;

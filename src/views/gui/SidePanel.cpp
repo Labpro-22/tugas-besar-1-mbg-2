@@ -64,21 +64,17 @@ void SidePanel::fitToLayout(sf::FloatRect containerArea) {
 
 // --- Method Utama ---
 void SidePanel::update() {
-    // if (isDiceRolling) {
-    //     // Ganti gambar dadu acak setiap 0.07 detik
-    //     if (diceTickClock.getElapsedTime().asSeconds() > 0.07f) {
-    //         diceValues[0] = (rand() % 6) + 1;
-    //         diceValues[1] = (rand() % 6) + 1;
-    //         diceTickClock.restart();
-    //     }
+    if (isDiceRolling) {
+        if (diceTickClock.getElapsedTime().asSeconds() > 0.07f) {
+            diceValues[0] = (rand() % 6) + 1;
+            diceValues[1] = (rand() % 6) + 1;
+            diceTickClock.restart();
+        }
         
-    //     // Hentikan animasi setelah 0.95 detik
-    //     if (diceRollClock.getElapsedTime().asSeconds() > 0.95f) {
-    //         isDiceRolling = false;
-    //         flagRollFinished = true; 
-    //         addHistoryEntry(playerNames[activePlayerIndex] + " rolled " + std::to_string(diceValues[0] + diceValues[1]));
-    //     }
-    // }
+        if (diceRollClock.getElapsedTime().asSeconds() > 0.95f) {
+            isDiceRolling = false;
+        }
+    }
 }
 
 void SidePanel::render(sf::RenderWindow& window) {
@@ -124,24 +120,20 @@ void SidePanel::handleMouseClick(float mouseX, float mouseY) {
 }
 
 void SidePanel::handleTextInput(unsigned int unicode) {
-    if (currentState != PanelState::PLAYER_SETUP) return;
-    std::string& name = playerNames[selectedSetupCharacter];
-
-    if (unicode == 8) {
-        if (!isNameEdited[selectedSetupCharacter]) {
-            name = ""; 
-            isNameEdited[selectedSetupCharacter] = true;
-        } else if (!name.empty()) {
-            name.pop_back();
+    if (currentState == PanelState::PLAYER_SETUP) {
+        std::string& name = playerNames[selectedSetupCharacter];
+        if (unicode == 8) { // Backspace
+            if (!isNameEdited[selectedSetupCharacter]) {
+                name = ""; isNameEdited[selectedSetupCharacter] = true;
+            } else if (!name.empty()) name.pop_back();
+        } else if (unicode >= 32 && unicode <= 126 && name.size() < 12) {
+            if (!isNameEdited[selectedSetupCharacter]) {
+                name = ""; isNameEdited[selectedSetupCharacter] = true;
+            }
+            name += static_cast<char>(unicode);
         }
-        return;
-    } else if (unicode >= 32 && unicode <= 126 && name.size() < 12) {
-        if (!isNameEdited[selectedSetupCharacter]) {
-            name = ""; 
-            isNameEdited[selectedSetupCharacter] = true;
-        }
-        name += static_cast<char>(unicode);
-    } else if (currentState == PanelState::IN_GAME) {
+    }
+    else if (currentState == PanelState::IN_GAME) {
         if (unicode == 8) { // Tombol Backspace
             if (!currentCommandInput.empty()) currentCommandInput.pop_back();
         } else if (unicode == 13) { // Tombol Enter
@@ -456,6 +448,10 @@ void SidePanel::renderInGameState(sf::RenderWindow& window) {
 void SidePanel::setDiceResult(int d1, int d2) {
     diceValues[0] = d1;
     diceValues[1] = d2;
+
+    isDiceRolling = true;
+    diceRollClock.restart();
+    diceTickClock.restart();
 }
 
 std::string SidePanel::pollCommandString() {

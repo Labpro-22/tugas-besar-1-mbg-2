@@ -85,4 +85,5 @@ public:
     bool isAnimationPlaying() const override;
     int getPopupResponse() override;
     CommandType getGUICommand() override;
+    void addLog(const std::string& msg) override;
 };

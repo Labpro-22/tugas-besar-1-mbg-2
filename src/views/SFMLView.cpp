@@ -180,6 +180,11 @@ void SFMLView::updateBoardState(GameContext& G) {
         } else {
             rightSide.setPlayerData(i, players[i].getName(), false);
         }
+
+        if (isAnimatingToken && (int)i == animatingPlayerIdx) {
+            continue; 
+        }
+
     }
 }
 
@@ -292,23 +297,27 @@ CommandType SFMLView::getGUICommand() {
                 }
             }
 
-            // Shortcut Hotkeys
-            if (event.type == sf::Event::KeyPressed) {
-                switch (event.key.code) {
-                    case sf::Keyboard::Space: return CommandType::LEMPAR_DADU;
-                    case sf::Keyboard::E:     return CommandType::AKHIRI_GILIRAN;
-                    case sf::Keyboard::B:     return CommandType::BANGUN;
-                    case sf::Keyboard::P:     return CommandType::CETAK_PROPERTI;
-                    case sf::Keyboard::A:     return CommandType::CETAK_AKTA;
-                    case sf::Keyboard::K:     return CommandType::GUNAKAN_KEMAMPUAN;
-                    case sf::Keyboard::S:     return CommandType::SIMPAN;
-                    default: break;
-                }
-            }
+            // // Shortcut Hotkeys
+            // if (event.type == sf::Event::KeyPressed) {
+            //     switch (event.key.code) {
+            //         case sf::Keyboard::Space: return CommandType::LEMPAR_DADU;
+            //         case sf::Keyboard::E:     return CommandType::AKHIRI_GILIRAN;
+            //         case sf::Keyboard::B:     return CommandType::BANGUN;
+            //         case sf::Keyboard::P:     return CommandType::CETAK_PROPERTI;
+            //         case sf::Keyboard::A:     return CommandType::CETAK_AKTA;
+            //         case sf::Keyboard::K:     return CommandType::GUNAKAN_KEMAMPUAN;
+            //         case sf::Keyboard::S:     return CommandType::SIMPAN;
+            //         default: break;
+            //     }
+            // }
         }
 
         renderBoard();
     }
 
     return CommandType::UNKNOWN_COMMAND;
+}
+
+void SFMLView::addLog(const std::string& msg) {
+    rightSide.addHistoryEntry(msg);
 }

@@ -17,4 +17,5 @@ public:
     virtual int getPopupResponse() = 0;
 
     virtual CommandType getGUICommand() = 0;
+    virtual void addLog(const std::string& msg) = 0;
 };
