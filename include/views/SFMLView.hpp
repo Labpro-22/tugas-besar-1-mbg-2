@@ -86,7 +86,7 @@ public:
     // Implementasi GameView
     void updateBoardState(GameContext& G) override;
     void showDiceAnimation(int dice1, int dice2) override;
-    void triggerPopup(const std::string& popupType, Tile* tileData) override;
+    void triggerPopup(const std::string& popupType, Tile* tileData, const std::string& popupMessage = "") override;
     void closeUI() override;
     bool isAnimationPlaying() const override;
     int getPopupResponse() override;

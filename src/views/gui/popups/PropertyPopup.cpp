@@ -13,8 +13,9 @@ void PropertyPopup::render(sf::RenderWindow& window) {
     window.draw(createText("Buy", popupRect.left + (popupRect.width/2.f) - 20.f, popupRect.top + 4.f, 18, sf::Color::White));
 
     window.draw(createText(playerName + ",", popupRect.left + 20.f, popupRect.top + 50.f, 22, sf::Color::Black));
-    window.draw(createText("You may purchase this property or", popupRect.left + 40.f, popupRect.top + 85.f, 18, sf::Color::Black));
-    window.draw(createText("allow it to go up for auction.", popupRect.left + 30.f, popupRect.top + 115.f, 18, sf::Color::Black));
+    const float descX = popupRect.left + 40.f;
+    window.draw(createText("You may purchase this property or", descX, popupRect.top + 85.f, 18, sf::Color::Black));
+    window.draw(createText("allow it to go up for auction.", descX, popupRect.top + 115.f, 18, sf::Color::Black));
 
     window.draw(createText(propertyName, popupRect.left + 240.f, popupRect.top + 175.f, 20, sf::Color::Black));
     window.draw(createText("Price: $" + std::to_string(price), popupRect.left + 260.f, popupRect.top + 205.f, 18, sf::Color::Black));

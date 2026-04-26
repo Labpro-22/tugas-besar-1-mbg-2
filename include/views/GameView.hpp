@@ -10,7 +10,7 @@ public:
 
     virtual void updateBoardState(GameContext& G) = 0;
     virtual void showDiceAnimation(int dice1, int dice2) = 0;
-    virtual void triggerPopup(const string& popupType, Tile* tileData) = 0;
+    virtual void triggerPopup(const string& popupType, Tile* tileData, const std::string& popupMessage = "") = 0;
     virtual void closeUI() = 0;
 
     virtual bool isAnimationPlaying() const = 0;

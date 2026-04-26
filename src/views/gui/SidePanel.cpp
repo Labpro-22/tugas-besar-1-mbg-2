@@ -1,6 +1,66 @@
 #include "SidePanel.hpp"
 #include <iostream>
 #include <algorithm>
+#include <sstream>
+
+namespace {
+std::vector<std::string> wrapTextToWidth(const sf::Font& font, unsigned int size, const std::string& text, float maxWidth) {
+    std::vector<std::string> lines;
+    if (text.empty()) {
+        lines.push_back("");
+        return lines;
+    }
+
+    sf::Text measure;
+    measure.setFont(font);
+    measure.setCharacterSize(size);
+
+    std::istringstream iss(text);
+    std::string word;
+    std::string current;
+
+    auto textWidth = [&](const std::string& s) {
+        measure.setString(s);
+        return measure.getLocalBounds().width;
+    };
+
+    while (iss >> word) {
+        std::string candidate = current.empty() ? word : current + " " + word;
+        if (textWidth(candidate) <= maxWidth) {
+            current = candidate;
+            continue;
+        }
+
+        if (!current.empty()) {
+            lines.push_back(current);
+            current.clear();
+        }
+
+        if (textWidth(word) <= maxWidth) {
+            current = word;
+            continue;
+        }
+
+        std::string chunk;
+        for (char c : word) {
+            std::string nextChunk = chunk + c;
+            if (!chunk.empty() && textWidth(nextChunk) > maxWidth) {
+                lines.push_back(chunk);
+                chunk = std::string(1, c);
+            } else {
+                chunk = nextChunk;
+            }
+        }
+        current = chunk;
+    }
+
+    if (!current.empty()) {
+        lines.push_back(current);
+    }
+
+    return lines;
+}
+}
 
 SidePanel::SidePanel() {
     currentState = PanelState::PLAYER_SETUP;
@@ -428,14 +488,43 @@ void SidePanel::renderInGameState(sf::RenderWindow& window) {
     window.draw(createText("Game History", startX + 20.f, currentY + 3.f, 15, sf::Color::White));
     currentY += 25.f;
 
-    sf::FloatRect histRect(startX + 10.f, currentY, innerW - 20.f, panelArea.height - (currentY - panelArea.top) - 50.f);
+    const float cmdAreaHeight = 34.f;
+    const float spacingAboveCmd = 8.f;
+    const float bottomMargin = 8.f;
+    float remainingHeight = (panelArea.top + panelArea.height) - currentY - cmdAreaHeight - spacingAboveCmd - bottomMargin;
+    if (remainingHeight < 80.f) {
+        remainingHeight = 80.f;
+    }
+
+    sf::FloatRect histRect(startX + 10.f, currentY, innerW - 20.f, remainingHeight);
     draw3DPanel(window, histRect, sf::Color::White, true);
-    
-    float textY = currentY + 5.f;
-    int startIdx = std::max(0, (int)gameHistory.size() - 7); 
-    for (int i = startIdx; i < (int)gameHistory.size(); ++i) {
-        window.draw(createText("> " + gameHistory[i], startX + 18.f, textY, 13, sf::Color(40, 40, 40)));
-        textY += 18.f;
+
+    const unsigned int historyFontSize = 12;
+    const float historyLineHeight = 16.f;
+    const float textLeftPadding = 8.f;
+    const float textTopBottomPadding = 6.f;
+    const float maxTextWidth = histRect.width - (2.f * textLeftPadding);
+
+    std::vector<std::string> wrappedHistoryLines;
+    wrappedHistoryLines.reserve(gameHistory.size() * 2);
+    for (const std::string& entry : gameHistory) {
+        std::vector<std::string> wrapped = wrapTextToWidth(mainFont, historyFontSize, "> " + entry, maxTextWidth);
+        wrappedHistoryLines.insert(wrappedHistoryLines.end(), wrapped.begin(), wrapped.end());
+    }
+
+    int maxVisibleLines = static_cast<int>((histRect.height - (2.f * textTopBottomPadding)) / historyLineHeight);
+    if (maxVisibleLines < 1) {
+        maxVisibleLines = 1;
+    }
+
+    int totalLines = static_cast<int>(wrappedHistoryLines.size());
+    int startLine = std::max(0, totalLines - maxVisibleLines);
+    int visibleCount = totalLines - startLine;
+    float textY = histRect.top + histRect.height - textTopBottomPadding - (visibleCount * historyLineHeight);
+
+    for (int i = startLine; i < totalLines; ++i) {
+        window.draw(createText(wrappedHistoryLines[i], histRect.left + textLeftPadding, textY, historyFontSize, sf::Color(40, 40, 40)));
+        textY += historyLineHeight;
     }
 
     currentY += histRect.height + 8.f;

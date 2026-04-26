@@ -112,13 +112,19 @@ void SFMLView::processInput() {
                 if (res != PopupResult::NONE) {
                     if (res == PopupResult::BUY_PROPERTY) lastPopupResponse = 1;
                     else if (res == PopupResult::AUCTION_PROPERTY) lastPopupResponse = 2;
-                    else if (res == PopupResult::OK_CLOSE) lastPopupResponse = 0;
-                    else lastPopupResponse = 99; 
-                    
-                    if (res != PopupResult::AUCTION_BID && res != PopupResult::AUCTION_PASS) {
-                        delete activePopup; 
-                        activePopup = nullptr; 
+                    else if (res == PopupResult::TAX_FLAT) lastPopupResponse = 1;
+                    else if (res == PopupResult::TAX_PERCENTAGE) lastPopupResponse = 2;
+                    else if (res == PopupResult::AUCTION_BID) lastPopupResponse = 3;
+                    else if (res == PopupResult::AUCTION_PASS) lastPopupResponse = 4;
+                    else if (res == PopupResult::APPLY_FESTIVAL) lastPopupResponse = 1;
+                    else lastPopupResponse = 0;
+
+                    if (FestivalPopup* festivalPopup = dynamic_cast<FestivalPopup*>(activePopup)) {
+                        lastPopupTileIndex = festivalPopup->getSelectedTileIndex();
                     }
+
+                    delete activePopup;
+                    activePopup = nullptr;
                 }
             }
             continue; 
@@ -173,23 +179,52 @@ void SFMLView::updateBoardState(GameContext& G) {
     rightSide.setActivePlayerTurn(currentTurnVisual);
 
     visualPlayerActive.fill(false); // Kalau ada yang bankrut 
+    for (auto& status : visualPropertyData) {
+        status.setOwnerIndex(-1);
+        status.setLevel(0);
+    }
 
-        for (size_t i = 0; i < players.size() && i < 4; ++i) {
-            rightSide.setPlayerBalance(i, players[i].getBalance());
+    for (int tileIdx = 0; tileIdx < G.getBoard().getTotalTile() && tileIdx < 40; ++tileIdx) {
+        Tile* tile = G.getBoard().getTile(tileIdx);
+        PropertyTile* property = dynamic_cast<PropertyTile*>(tile);
+        if (property == nullptr) continue;
 
-            if (players[i].getStatus() != PlayerStatus::BANKRUPT){
-                visualPlayerActive[i] = true;
-            } else {
-                rightSide.setPlayerData(i, players[i].getName(), false);
+        Player* owner = property->getOwner();
+        if (owner == nullptr) continue;
+
+        int ownerIdx = -1;
+        for (size_t pIdx = 0; pIdx < players.size() && pIdx < 4; ++pIdx) {
+            if (&players[pIdx] == owner) {
+                ownerIdx = static_cast<int>(pIdx);
+                break;
             }
-
-            if (isAnimatingToken && (int)i == animatingPlayerIdx) {
-                continue; 
-            }
-
-            visualPlayerPositions[i] = players[i].getPosition();
-
         }
+        if (ownerIdx < 0) continue;
+
+        int level = 1;
+        if (StreetTile* street = dynamic_cast<StreetTile*>(property)) {
+            if (street->getHasHotel()) {
+                level = 5;
+            } else {
+                level = std::max(1, std::min(4, street->getHouseCount() + 1));
+            }
+        }
+
+        visualPropertyData[tileIdx].setOwnerIndex(ownerIdx);
+        visualPropertyData[tileIdx].setLevel(level);
+    }
+
+    for (size_t i = 0; i < players.size() && i < 4; ++i) {
+        rightSide.setPlayerBalance(i, players[i].getBalance());
+
+        if (players[i].getStatus() != PlayerStatus::BANKRUPT) {
+            visualPlayerActive[i] = true;
+        } else {
+            rightSide.setPlayerData(i, players[i].getName(), false);
+        }
+
+        visualPlayerPositions[i] = players[i].getPosition();
+    }
 }
 
 void SFMLView::showDiceAnimation(int dice1, int dice2) {
@@ -244,7 +279,7 @@ void SFMLView::showDiceAnimation(int dice1, int dice2) {
     }
 }
 
-void SFMLView::triggerPopup(const std::string& popupType, Tile* tileData) {
+void SFMLView::triggerPopup(const std::string& popupType, Tile* tileData, const std::string& popupMessage) {
     if (activePopup != nullptr) {
         delete activePopup;
         activePopup = nullptr;
@@ -269,9 +304,31 @@ void SFMLView::triggerPopup(const std::string& popupType, Tile* tileData) {
         if (tileData != nullptr) {
             tileInfo = tileData->getName() + " (" + tileData->getCode() + ")";
         }
-        activePopup = new AlertPopup("Tile", "You landed on " + tileInfo, activePlayerName, "OK");
+        std::string message = popupMessage.empty() ? ("You landed on " + tileInfo) : popupMessage;
+        activePopup = new AlertPopup("Tile", message, activePlayerName, "OK");
     } else if (popupType == "TAX_PPH") {
         activePopup = new AlertPopup("Tax", "Choose payment mode", activePlayerName, "% Wealth", "Flat");
+    } else if (popupType == "TAX_PPBM") {
+        activePopup = new AlertPopup("Tax", "You must pay PBM luxury tax.", activePlayerName, "OK");
+    } else if (popupType == "JAIL") {
+        activePopup = new AlertPopup("Jail", "You are sent to jail.", activePlayerName, "OK");
+    } else if (popupType == "CHANCE") {
+        std::string desc = popupMessage.empty() ? "Take and apply the chance card." : popupMessage;
+        activePopup = new CardPopup("Kesempatan", desc, "OK");
+    } else if (popupType == "COMMUNITY") {
+        std::string desc = popupMessage.empty() ? "Take and apply the community card." : popupMessage;
+        activePopup = new CardPopup("Dana Umum", desc, "OK");
+    } else if (popupType == "AUCTION") {
+        PropertyTile* pTile = dynamic_cast<PropertyTile*>(tileData);
+        std::string propertyName = (pTile != nullptr) ? pTile->getName() : "Property";
+        int starterIdx = 0;
+        if (latestContext != nullptr && !latestContext->getPlayers().empty()) {
+            starterIdx = (latestContext->getCurrentPlayerIndex() + 1) % latestContext->getPlayers().size();
+        }
+        activePopup = new AuctionPopup(propertyName, 0, starterIdx);
+    } else if (popupType == "INFO") {
+        std::string message = popupMessage.empty() ? "Feature is not available in GUI yet." : popupMessage;
+        activePopup = new AlertPopup("Info", message, activePlayerName, "OK");
     } else if (popupType == "FESTIVAL") {
         std::vector<FestivalItem> items;
 
@@ -344,6 +401,10 @@ int SFMLView::getPopupResponse() {
                         lastPopupResponse = 1;
                     } else if (res == PopupResult::TAX_PERCENTAGE) {
                         lastPopupResponse = 2;
+                    } else if (res == PopupResult::AUCTION_BID) {
+                        lastPopupResponse = 3;
+                    } else if (res == PopupResult::AUCTION_PASS) {
+                        lastPopupResponse = 4;
                     } else if (res == PopupResult::APPLY_FESTIVAL) {
                         lastPopupResponse = 1;
                     } else {
@@ -354,10 +415,8 @@ int SFMLView::getPopupResponse() {
                         lastPopupTileIndex = festivalPopup->getSelectedTileIndex();
                     }
                     
-                    if (res != PopupResult::AUCTION_BID && res != PopupResult::AUCTION_PASS) {
-                        delete activePopup; 
-                        activePopup = nullptr;
-                    }
+                    delete activePopup; 
+                    activePopup = nullptr;
                     return lastPopupResponse;
                 }
             }
@@ -392,6 +451,8 @@ CommandType SFMLView::getGUICommand() {
                         else if (res == PopupResult::AUCTION_PROPERTY) lastPopupResponse = 2;
                         else if (res == PopupResult::TAX_FLAT) lastPopupResponse = 1;
                         else if (res == PopupResult::TAX_PERCENTAGE) lastPopupResponse = 2;
+                        else if (res == PopupResult::AUCTION_BID) lastPopupResponse = 3;
+                        else if (res == PopupResult::AUCTION_PASS) lastPopupResponse = 4;
                         else if (res == PopupResult::APPLY_FESTIVAL) lastPopupResponse = 1;
                         else lastPopupResponse = 0;
 
@@ -399,10 +460,8 @@ CommandType SFMLView::getGUICommand() {
                             lastPopupTileIndex = festivalPopup->getSelectedTileIndex();
                         }
 
-                        if (res != PopupResult::AUCTION_BID && res != PopupResult::AUCTION_PASS) {
-                            delete activePopup;
-                            activePopup = nullptr;
-                        }
+                        delete activePopup;
+                        activePopup = nullptr;
                     }
                 }
             }
@@ -413,6 +472,7 @@ CommandType SFMLView::getGUICommand() {
 
         std::string cmdStr = rightSide.pollCommandString();
         if (!cmdStr.empty()) {
+            std::string rawInput = cmdStr;
             std::transform(cmdStr.begin(), cmdStr.end(), cmdStr.begin(), ::toupper);
             
             if (cmdStr == "LEMPAR_DADU") return CommandType::LEMPAR_DADU;
@@ -424,8 +484,30 @@ CommandType SFMLView::getGUICommand() {
             if (cmdStr == "GADAI") return CommandType::GADAI;
             if (cmdStr == "TEBUS") return CommandType::TEBUS;
             if (cmdStr == "GUNAKAN_KEMAMPUAN") return CommandType::GUNAKAN_KEMAMPUAN;
+            if (cmdStr == "HELP") return CommandType::HELP;
+
+            if (cmdStr.rfind("ATUR_DADU", 0) == 0) {
+                triggerPopup("INFO", nullptr, "ATUR_DADU in GUI is not supported yet. Use LEMPAR_DADU.");
+                rightSide.addHistoryEntry("[INFO] ATUR_DADU belum didukung di GUI.");
+                continue;
+            }
+            if (cmdStr.rfind("SIMPAN", 0) == 0) {
+                triggerPopup("INFO", nullptr, "SIMPAN via GUI input is not supported yet.");
+                rightSide.addHistoryEntry("[INFO] SIMPAN via GUI belum didukung.");
+                continue;
+            }
+            if (cmdStr.rfind("CETAK_LOG", 0) == 0) {
+                triggerPopup("INFO", nullptr, "CETAK_LOG via GUI input is not supported yet.");
+                rightSide.addHistoryEntry("[INFO] CETAK_LOG via GUI belum didukung.");
+                continue;
+            }
+            if (cmdStr.rfind("BID", 0) == 0 || cmdStr == "PASS") {
+                triggerPopup("INFO", nullptr, "BID/PASS command in panel is disabled. Use auction popup buttons.");
+                rightSide.addHistoryEntry("[INFO] Gunakan tombol pada popup auction untuk BID/PASS.");
+                continue;
+            }
             
-            rightSide.addHistoryEntry("[ERROR] Invalid Command.");
+            rightSide.addHistoryEntry("[ERROR] Invalid Command: " + rawInput);
         }
 
         sf::Event event;
