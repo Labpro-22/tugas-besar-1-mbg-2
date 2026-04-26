@@ -136,8 +136,14 @@ vector<LiquidationOption> BankruptcyController::generateOptions(Player& player, 
         const LiquidationOption& opt = *optIt;
         if (opt.getType() == LiquidationType::SELL) {
             StreetTile* s = dynamic_cast<StreetTile*>(opt.getTile());
-                if (s != NULL) {
-                houses[s]--;
+            if (s != NULL) {
+                if (houses[s] > 0) {
+                    houses[s]--;
+                } else {
+                    mortgage[opt.getTile()] = true;
+                }
+            } else {
+                mortgage[opt.getTile()] = true;
             }
         } else if (opt.getType() == LiquidationType::MORTGAGE) {
             mortgage[opt.getTile()] = true;
@@ -180,8 +186,8 @@ vector<LiquidationOption> BankruptcyController::generateOptions(Player& player, 
             for (vector<StreetTile*>::iterator tileIt = tiles.begin(); tileIt != tiles.end(); ++tileIt){
                 StreetTile* t = *tileIt;
                 if (!mortgage[t]){
-                    LiquidationOption* option = new LiquidationOption(t, LiquidationType::MORTGAGE, t->getMortgageValue());
-                    options.push_back(*option);
+                    options.push_back(LiquidationOption(t, LiquidationType::SELL, t->getPrice()));
+                    options.push_back(LiquidationOption(t, LiquidationType::MORTGAGE, t->getMortgageValue()));
                 }
             }
         }
@@ -190,8 +196,8 @@ vector<LiquidationOption> BankruptcyController::generateOptions(Player& player, 
     for (PropertyTile* p : player.getOwnedProperties()){
         if (!p) continue;
         if (!dynamic_cast<StreetTile*>(p) && !mortgage[p] && p->getStatus() == OWNED){
-            LiquidationOption option = LiquidationOption(p, LiquidationType::MORTGAGE, p->getMortgageValue());
-            options.push_back(option);
+            options.push_back(LiquidationOption(p, LiquidationType::SELL, p->getPrice()));
+            options.push_back(LiquidationOption(p, LiquidationType::MORTGAGE, p->getMortgageValue()));
         }
     }
     
@@ -203,13 +209,18 @@ void BankruptcyController::applyAction(GameContext& ctx, Player& player,Liquidat
     
     if (opt.getType() == LiquidationType::SELL) {
         StreetTile* street = dynamic_cast<StreetTile*>(opt.getTile());
-            if (street != NULL) {
+        if (street != NULL && (street->getHouseCount() > 0 || street->getHasHotel())) {
             eco.sellBuilding(player, street);
+        }else {
+            player += opt.getValue();
+            opt.getTile()->setOwner(nullptr);
+            opt.getTile()->setStatus(BANK);
+            player.removeProperty(opt.getTile());
         }
     }
     else if (opt.getType() == LiquidationType::MORTGAGE) {
             eco.mortgageProperty(player, opt.getTile());
-        }
+     }
         
 }
 
@@ -232,33 +243,52 @@ void BankruptcyController::liquidateAssets(GameContext& ctx,Player& debitor,Play
         return;
     }
 
-    view.renderBankruptFirstSceneRent(ctx, &debitor, creditor, amount);
+    vector<string> best = bestLiquidation(debitor, result);
+    int total = calculateTotal(debitor,result);
+
+    if (creditor){
+        view.renderBankruptFirstSceneRent(ctx, &debitor, creditor, amount, best, total);
+    } else {
+        TaxTile* taxTile = dynamic_cast<TaxTile*>(bankruptTile);
+        view.renderBankruptFirstSceneTax(ctx, &debitor, taxTile,amount, best, total);
+    }
     vector<LiquidationOption> cart;
     bool confirmed = false;
     while (!confirmed){
-        int initBalance = 0;
+        int initBalance = debitor.getBalance();
         vector<LiquidationOption> options = generateOptions(debitor, cart, initBalance);
 
-        view.liquidatePanel(ctx, &debitor, creditor, amount, options);
+        if (options.empty()) {
+            view.renderWarning("There's no property left to put in your cart.");
+            if (initBalance >= amount) {
+                confirmed = true;
+            } else {
+                view.renderWarning("Total liquidation hasn't paid off the amount of debt.");
+                confirmed = true;
+            }
+            break;
+        }
+
+        view.liquidatePanel(ctx, &debitor, creditor, amount, options, initBalance);
 
         input.getIntInput();
         int choice = input.getIntValue1();
 
-        if (choice == -1) {
+        if (choice == 0) {
             if (initBalance >= amount) {
                 confirmed = true;
             } else {
-                view.renderInfo("Total liquidation hasn't sufficient funds. Total likuidasi belum mencukupi kewajiban! Please choose another combination of property.\n"); // BIKININ JEJE TOLONG VIEW NYA YA
+                view.renderPrompt("Total liquidation hasn't paid off the amount of debt! Please choose another combination of property.\n");
             }
         } 
-        else if (choice == 0) {
+        else if (choice == -1) {
             cart.clear();
-            view.renderInfo("Keranjang likuidasi dikosongkan.\n"); =
+            view.renderPrompt("Clearing cart...\n");
         } 
         else if (choice >= 1 && choice <= static_cast<int>(options.size())) {
             LiquidationOption selected = options[choice - 1];
             cart.push_back(selected);
-            view.renderLiquidateChoose(ctx, &debitor, selected.getTile()); 
+            view.renderLiquidateChoose(ctx, &debitor, selected, initBalance+selected.getValue()); 
         }
     }
 
@@ -308,9 +338,6 @@ void BankruptcyController::declareBankruptcy(GameContext& ctx, Player& player, i
     player.setStatus(BANKRUPT);
 }
 
-
-
-// Unused declareBankruptcy, for when the player goes bankrupt to the bank without being on a tax tile
 void BankruptcyController::declareBankruptcy(GameContext& ctx, Player& player, int amount, DisplayView& view, EconomyController& eco, InputHandler& input) {
     view.renderBankruptThirdScene(ctx, &player, NULL, amount);
 
@@ -349,3 +376,106 @@ void BankruptcyController::handleInsufficientFunds(GameContext& ctx, Player& deb
 
     this->declareBankruptcy(ctx, ctx.getCurrentPlayer(), amount, view, eco, input);
 };
+
+int BankruptcyController::calculateTotal(Player& player,const vector<LiquidationTile>& best) {
+    int total = 0;
+    map<StreetTile*, int> temp;
+    for (PropertyTile* p : player.getOwnedProperties()) {
+        if (StreetTile* s = dynamic_cast<StreetTile*>(p)) {
+            temp[s] = s->getHasHotel() ? 5 : s->getHouseCount();
+        }
+    }
+    for (const LiquidationTile& l : best) {
+        PropertyTile* pt = l.getTile();
+        LiquidationType ltype = l.getType();
+
+        if (ltype == LiquidationType::SELL) {
+            StreetTile* st = dynamic_cast<StreetTile*>(pt);
+            if (st) {
+                if (temp[st] == 5) {
+                    total += st->getHotelCost() / 2;
+                } else if (temp[st] > 0) {
+                    total += st->getHouseCost() / 2;
+                } else {
+                    total += st->getPrice();
+                }
+                temp[st]--;
+            } else {
+                total += pt->getPrice(); 
+            }
+        } else if (ltype == LiquidationType::MORTGAGE) {
+            total += pt->getMortgageValue();
+        }
+    }
+    return total;
+}
+
+vector<string> BankruptcyController::bestLiquidation(Player& player, const vector<LiquidationTile>& best) {
+    vector<string> result;
+    vector<PropertyTile*> tiles;
+    vector<LiquidationType> types;
+    vector<int> counts;
+    vector<int> values;
+
+    map<StreetTile*, int> temp; 
+    for (PropertyTile* p : player.getOwnedProperties()) {
+        if (StreetTile* s = dynamic_cast<StreetTile*>(p)) {
+            temp[s] = s->getHasHotel() ? 5 : s->getHouseCount();
+        }
+    }
+
+    for (const LiquidationTile& l : best) {
+        PropertyTile* pt = l.getTile();
+        LiquidationType ltype = l.getType();
+        int actionValue = 0;
+
+        if (ltype == LiquidationType::SELL) {
+            StreetTile* st = dynamic_cast<StreetTile*>(pt);
+            if (st) {
+                if (temp[st] == 5) {
+                    actionValue = st->getHotelCost() / 2;
+                } else if (temp[st] > 0) {
+                    actionValue = st->getHouseCost() / 2;
+                } else {
+                    actionValue = st->getPrice();
+                }
+                temp[st]--;
+            } else {
+                actionValue = pt->getPrice();
+            }
+        } else if (ltype == LiquidationType::MORTGAGE) {
+            actionValue = pt->getMortgageValue();
+        }
+
+        bool found = false;
+        for (int i = 0; i < int(tiles.size()); i++) {
+            if (tiles[i] == pt && types[i] == ltype) {
+                counts[i]++;
+                values[i] += actionValue;
+                found = true;
+                break;
+            }
+        }
+        
+        if (!found) {
+            tiles.push_back(pt);
+            types.push_back(ltype);
+            counts.push_back(1);
+            values.push_back(actionValue);
+        }
+    }
+
+    for (int i = 0; i < int(tiles.size()); i++) {
+        if (types[i] == LiquidationType::SELL) {
+            StreetTile* st = dynamic_cast<StreetTile*>(tiles[i]);
+            if (st != nullptr && (st->getHouseCount() > 0 || st->getHasHotel())) {
+                result.push_back("   - SELL " + to_string(counts[i]) + " building(s) on " + st->getName() + " for M" + to_string(values[i]));
+            } else {
+                result.push_back("   - SELL property " + tiles[i]->getName() + " for M" + to_string(values[i]));
+            }
+        } else if (types[i] == LiquidationType::MORTGAGE) {
+            result.push_back("   - MORTGAGE " + tiles[i]->getName() + " for M" + to_string(values[i]));
+        }
+    }
+    return result;
+}
