@@ -1,6 +1,7 @@
 #include "AuctionController.hpp"
+#include "GameLogger.hpp"
 
-void AuctionController::startAuctionSkipBuy(GameContext &gameContext, DisplayView &dv, InputHandler &inputHandler) {
+void AuctionController::startAuctionSkipBuy(GameContext &gameContext, DisplayView &dv, InputHandler &inputHandler, GameLogger &logger) {
     PropertyTile* property = dynamic_cast<PropertyTile*>(gameContext.getBoard().getTile(gameContext.getCurrentPlayer().getPosition()));
     
     vector<Player*> participants;
@@ -21,10 +22,10 @@ void AuctionController::startAuctionSkipBuy(GameContext &gameContext, DisplayVie
     }
 
     dv.renderAuctionStart(gameContext, property);
-    runAuctionLogic(gameContext, dv, inputHandler, participants, startIdx, property);
+    runAuctionLogic(gameContext, dv, inputHandler, participants, startIdx, property, logger);
 }
 
-void AuctionController::startAuctionBankrupt(GameContext &gameContext, DisplayView &dv, InputHandler &inputHandler, PropertyTile* property) {
+void AuctionController::startAuctionBankrupt(GameContext &gameContext, DisplayView &dv, InputHandler &inputHandler, PropertyTile* property, GameLogger &logger) {
     Player &bankruptPlayer = gameContext.getCurrentPlayer();
     
     vector<Player*> participants;
@@ -37,10 +38,10 @@ void AuctionController::startAuctionBankrupt(GameContext &gameContext, DisplayVi
     if (participants.size() <= 1) return;
 
     dv.renderAuctionStart(gameContext, property);
-    runAuctionLogic(gameContext, dv, inputHandler, participants, 0, property);
+    runAuctionLogic(gameContext, dv, inputHandler, participants, 0, property, logger);
 }
 
-void AuctionController::runAuctionLogic(GameContext &gameContext, DisplayView &dv, InputHandler &inputHandler, vector<Player*> participants, int startIndex, PropertyTile* property) {
+void AuctionController::runAuctionLogic(GameContext &gameContext, DisplayView &dv, InputHandler &inputHandler, vector<Player*> participants, int startIndex, PropertyTile* property, GameLogger &logger) {
     int maxBid = -1; 
     int passCount = 0;
     int currentIndex = startIndex;
@@ -54,7 +55,7 @@ void AuctionController::runAuctionLogic(GameContext &gameContext, DisplayView &d
         Player* lastBidder = bidHistory.empty() ? nullptr : bidHistory.back().first;
         bool forceBidMode = (lastBidder == nullptr && passCount == numParticipants - 1);
 
-        placeBid(*currentBidder, bidHistory, dv, inputHandler, maxBid, currentBidSuccess, passCount, forceBidMode);
+        placeBid(gameContext, *currentBidder, bidHistory, dv, inputHandler, maxBid, currentBidSuccess, passCount, forceBidMode, property, logger);
 
         if (maxBid != -1 && passCount == numParticipants - 1) {
             break;
@@ -64,11 +65,11 @@ void AuctionController::runAuctionLogic(GameContext &gameContext, DisplayView &d
     }
 
     if (!bidHistory.empty()) {
-        resolveAuction(bidHistory, dv, property);
+        resolveAuction(gameContext, bidHistory, dv, property, logger);
     }
 }
 
-void AuctionController::placeBid(Player &bidder, vector<pair<Player *, int>> &bidHistory, DisplayView &dv, InputHandler &inputHandler, int &maxBid, bool &currentBidSuccess, int &passCount, bool forceBidMode) {
+void AuctionController::placeBid(GameContext &gameContext, Player &bidder, vector<pair<Player *, int>> &bidHistory, DisplayView &dv, InputHandler &inputHandler, int &maxBid, bool &currentBidSuccess, int &passCount, bool forceBidMode, PropertyTile* property, GameLogger &logger) {
     int bidAmount = 0;
     bool hasAmount = false;
     currentBidSuccess = false;
@@ -105,6 +106,7 @@ void AuctionController::placeBid(Player &bidder, vector<pair<Player *, int>> &bi
                 currentBidSuccess = true;
                 passCount = 0; 
                 dv.HighestBidder(bidder.getName(), bidAmount);
+                logger.addLog(gameContext.getCurrentTurn(), bidder.getName(), "AUCTION_BID", property->getName() + " bid M" + to_string(bidAmount));
                 return;
             } else {
                 dv.renderPrompt("Bid must be higher than the current maximum bid of M" + to_string(maxBid == -1 ? 0 : maxBid));
@@ -115,7 +117,7 @@ void AuctionController::placeBid(Player &bidder, vector<pair<Player *, int>> &bi
     }
 }
 
-void AuctionController::resolveAuction(vector<pair<Player *, int>> &bid, DisplayView &dv, PropertyTile* property) {
+void AuctionController::resolveAuction(GameContext &gameContext, vector<pair<Player *, int>> &bid, DisplayView &dv, PropertyTile* property, GameLogger &logger) {
     if (bid.empty()) {
         return;
     }
@@ -132,4 +134,5 @@ void AuctionController::resolveAuction(vector<pair<Player *, int>> &bid, Display
     }
 
     winner->addProperty(property);
+    logger.addLog(gameContext.getCurrentTurn(), winner->getName(), "AUCTION_RESULT", property->getName() + " acquired for M" + to_string(finalPrice));
 }
