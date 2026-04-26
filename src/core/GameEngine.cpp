@@ -73,6 +73,7 @@ void GameEngine::run() {
 
     initGame(gameContext, turnController, configReader, economyController);
 
+    int startingIndex = 0;
     bool gameReady = false;
 
     while (!gameReady) {
@@ -104,7 +105,7 @@ void GameEngine::run() {
             }
             
             srand(static_cast<unsigned>(time(0)));
-            int startingIndex = rand() % numPlayers;
+            startingIndex = rand() % numPlayers;
 
             gameContext.setCurrentPlayerIndex(startingIndex);
             
@@ -142,7 +143,7 @@ void GameEngine::run() {
 
     while (!gameContext.isGameOver()) {
         
-        if (gameContext.getCurrentPlayerIndex() == 0) {
+        if (gameContext.getCurrentPlayerIndex() == startingIndex) {
             turnController.distributeSkillCards(gameContext, inputHandler, displayView);
         }
 
@@ -243,7 +244,6 @@ void GameEngine::run() {
                                 turnEnded = true;
                             }
                             hasRolledDice = true;
-                            isDoubleRoll = true;
                         } else {
                             displayView.renderInfo("Failed to roll doubles. You remain in jail.");
                             turnEnded = true;
@@ -469,7 +469,7 @@ void GameEngine::run() {
         } 
         else {
             gameContext.nextPlayer();
-            if (gameContext.getCurrentPlayerIndex() == 0) {
+            if (gameContext.getCurrentPlayerIndex() == startingIndex) {
                 gameContext.setCurrentTurn(gameContext.getCurrentTurn() + 1);
             }
         }
