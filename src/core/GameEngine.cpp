@@ -103,9 +103,30 @@ void GameEngine::run() {
             }
 
             for (int i = 0; i < numPlayers; ++i) {
-                cliView.renderInfo("Input name of Player " + to_string(i + 1) + ": ");
-                inputHandler.getStringInput();
-                string pName = inputHandler.getLastStringInput();
+                string pName;
+                bool isUnique = false;
+
+                while (!isUnique) {
+                    displayView.renderInfo("Input name of Player " + to_string(i + 1) + ": ");
+                    inputHandler.getStringInput();
+                    pName = inputHandler.getLastStringInput();
+
+                    isUnique = true;
+
+                    if (pName == "" || pName == "BANK") {
+                        displayView.renderWarning("[ERROR] Invalid name! You cannot use an empty name or 'BANK'.");
+                        isUnique = false;
+                        continue;
+                    }
+
+                    for (const Player& p : gameContext.getPlayers()) {
+                        if (p.getName() == pName) {
+                            displayView.renderWarning("[ERROR] Name '" + pName + "' is already taken! Please choose a different name.");
+                            isUnique = false;
+                            break;
+                        }
+                    }
+                }
                 
                 Player newPlayer(pName);
                 newPlayer.setBalance(gameContext.getStartingMoney()); 
@@ -291,6 +312,7 @@ void GameEngine::run() {
                         break;
                     }
                     dice.roll();
+                    gameContext.getDice().setRoll(dice.getDice1(), dice.getDice2());
                     if (dice.isDouble()) {
                         int currentDoubleCount = currentPlayer->getDoubleCount() + 1;
                         currentPlayer->setDoubleCount(currentDoubleCount);
@@ -353,6 +375,7 @@ void GameEngine::run() {
                     int x = inputHandler.getIntValue1();
                     int y = inputHandler.getIntValue2();
                     dice.setRoll(x, y);
+                    gameContext.getDice().setRoll(dice.getDice1(), dice.getDice2());
                     if (dice.isDouble()) {
                         int currentDoubleCount = currentPlayer->getDoubleCount() + 1;
                         currentPlayer->setDoubleCount(currentDoubleCount);
@@ -425,8 +448,116 @@ void GameEngine::run() {
                     cliView.renderProperty(gameContext);
                     break;
 
-                case CommandType::GADAI:
-                case CommandType::TEBUS:
+                case CommandType::GADAI: {
+                    vector<PropertyTile*> mortgageProperty = currentPlayer->getUnmortgagedProperties();
+                    displayView.renderMortgageStart(gameContext, mortgageProperty);
+
+                    if (mortgageProperty.empty()){
+                        displayView.renderInfo("You have no properties available to mortgage!");
+                        break;
+                    }
+
+                    inputHandler.getIntInput();
+                    int choice = inputHandler.getIntValue1();
+
+                    if (choice == 0) {
+                        displayView.renderInfo("Mortgage cancelled.");
+                        break;
+                    }
+                    if (choice < 1 || choice >( int )mortgageProperty.size()) {
+                        displayView.renderWarning("Invalid choice! Mortgage cancelled.");
+                        break;
+                    }
+                    PropertyTile* tile = mortgageProperty[choice - 1];
+
+                    if (auto* railroadTile = dynamic_cast<RailroadTile*>(tile)) {
+                        economyController.mortgageProperty( *currentPlayer, railroadTile );
+                        displayView.renderMortgageResult( gameContext, mortgageProperty[choice - 1] );
+                        break;
+                    }
+
+                    if (auto* utilityTile = dynamic_cast<UtilityTile*>(tile)) {
+                        economyController.mortgageProperty( *currentPlayer, utilityTile );
+                        displayView.renderMortgageResult( gameContext, mortgageProperty[choice - 1] );
+                        break;
+                    }
+
+                    if (auto* streetTile = dynamic_cast<StreetTile*>(tile)) {
+                        vector<StreetTile*> sameColorTiles = economyController.getColorGroupTiles( &gameContext, streetTile->getColor() );
+                        bool hasBuildingInGroup = false;
+
+                        for (StreetTile* street : sameColorTiles) {
+                            if (street->getOwner() == currentPlayer && (street->getHouseCount() > 0 || street->getHasHotel())) {
+                                hasBuildingInGroup = true;
+                                break;
+                            }
+                        }
+                        if (hasBuildingInGroup) {
+                            inputHandler.getStringInput();
+                            string sellChoice = inputHandler.getLastStringInput();
+
+                            displayView.renderMortgageGroupColorStart(gameContext, sameColorTiles);
+                            displayView.renderMortgageGroupColorResult(gameContext, sellChoice, sameColorTiles);
+                            if (sellChoice != "y" && sellChoice != "Y") {
+                                break;
+                            }
+                            economyController.sellAllBuildingsInColorGroup(&gameContext, *currentPlayer,streetTile->getColor());
+                            
+                            displayView.renderPrompt("Continue to mortgage " + streetTile->getName() + "? (y/n): "); 
+                            inputHandler.getStringInput();
+                            string continueChoice = inputHandler.getLastStringInput();
+
+                            if (continueChoice != "y" && continueChoice != "Y") {
+                                displayView.renderInfo("Mortgage cancelled.");
+                                break;
+                            }
+                        }
+                        displayView.renderMortgageResult( gameContext, mortgageProperty[choice - 1] );
+                        economyController.mortgageProperty( *currentPlayer, tile );
+                    
+                    }
+                    
+                    break;
+                }
+                case CommandType::TEBUS:{
+                    vector<PropertyTile*> mortgageProperty = currentPlayer->getMortgagedProperties();
+
+                    if (mortgageProperty.empty()){
+                        displayView.renderInfo("You have no properties available to redeem!");
+                        break;  
+                    }
+
+                    displayView.renderRedeemStart(gameContext, mortgageProperty);   
+                    inputHandler.getIntInput();
+                    int choice = inputHandler.getIntValue1();
+                    while (choice < 0 || choice > mortgageProperty.size()){
+                        if (choice == 0){
+                            break;
+                        }
+                        inputHandler.getIntInput();
+                        choice = inputHandler.getIntValue1();
+                        displayView.renderRedeemChoose(gameContext, mortgageProperty, choice, 0);   
+                    }
+                    
+                    
+                    if (choice == 0) {
+                        displayView.renderRedeemChoose(gameContext, mortgageProperty, choice, 0);   
+                        break;
+                    }
+                    PropertyTile* selected = mortgageProperty[choice - 1];
+                    try {
+                        int redeemPrice = selected->getPrice();
+                        *currentPlayer -= redeemPrice;
+                        selected->setStatus( OWNED );
+                        displayView.renderRedeemChoose(gameContext, mortgageProperty, choice, redeemPrice);
+                    }
+                    catch (const InsufficientFundsException& ex) {
+                        displayView.renderInfo("You don't have enough balance to redeem this property.");
+                        displayView.renderInfo("Required: M" + to_string(ex.getRequired()) + "| Your Balance: M" + to_string(currentPlayer->getBalance()));
+                        break;
+                    }
+                    break;
+                }   
                 case CommandType::BANGUN:
                     turnController.handleBuildHouse(&gameContext, currentPlayer, economyController, inputHandler, cliView);
                     if (isGUIMode && guiView != nullptr) guiView->updateBoardState(gameContext);
@@ -567,9 +698,7 @@ void GameEngine::run() {
 
         effectController.decrementDurations(&gameContext);
 
-        int activePlayers = count_if(gameContext.getPlayers().begin(), gameContext.getPlayers().end(), [](const Player& p) {
-            return p.getStatus() != PlayerStatus::BANKRUPT;
-        });
+        int activePlayers = gameContext.countActivePlayers();
 
         if (gameContext.getMaxTurns() > 0 && gameContext.getCurrentTurn() > gameContext.getMaxTurns() || activePlayers == 1) {
             gameContext.setGameOver(true);
@@ -581,5 +710,51 @@ void GameEngine::run() {
                 gameContext.setCurrentTurn(gameContext.getCurrentTurn() + 1);
             }
         }
+    }
+
+    int finalActivePlayers = gameContext.countActivePlayers();
+
+    if (finalActivePlayers == 1) {
+        Player* winner = nullptr;
+        for (Player& p : gameContext.getPlayers()) {
+            if (p.getStatus() != PlayerStatus::BANKRUPT) {
+                winner = &p;
+                break;
+            }
+        }
+        displayView.renderGameOverBankruptcy(winner);
+    }
+    else {
+        vector<Player*> remainingPlayers;
+        for (Player& p : gameContext.getPlayers()) {
+            if (p.getStatus() != PlayerStatus::BANKRUPT) {
+                remainingPlayers.push_back(&p);
+            }
+        }
+
+        sort(remainingPlayers.begin(), remainingPlayers.end(), [](Player* a, Player* b) {
+            if (a->getBalance() != b->getBalance()) {
+                return a->getBalance() > b->getBalance();
+            }
+            if (a->getOwnedProperties().size() != b->getOwnedProperties().size()) {
+                return a->getOwnedProperties().size() > b->getOwnedProperties().size();
+            }
+            return a->getSkillCardCount() > b->getSkillCardCount();
+        });
+
+        vector<Player*> winners;
+        winners.push_back(remainingPlayers[0]);
+        for (int i = 1; i < remainingPlayers.size(); ++i) {
+            if (remainingPlayers[i]->getBalance() == winners[0]->getBalance() &&
+                remainingPlayers[i]->getOwnedProperties().size() == winners[0]->getOwnedProperties().size() &&
+                remainingPlayers[i]->getSkillCardCount() == winners[0]->getSkillCardCount()) {
+                
+                winners.push_back(remainingPlayers[i]);
+            } 
+            else {
+                break;
+            }
+        }
+        displayView.renderGameOverMaxTurn(remainingPlayers, winners);
     }
 }

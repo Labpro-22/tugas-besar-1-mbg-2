@@ -89,7 +89,7 @@ void EconomyController::redeemProperty(Player &player, PropertyTile *tile) {
         return;
     }
 
-    int redeemCost = (tile->getMortgageValue() * 11 + 9) / 10;
+    int redeemCost = (tile->getPrice());
     if (!player.canAfford(redeemCost)) {
         throw InsufficientFundsException(redeemCost, player.getBalance());
     }
@@ -303,31 +303,34 @@ vector<StreetTile *> EconomyController::getColorGroupTiles(GameContext *gameCont
 }
 
 bool EconomyController::canBuildOnTile(GameContext *gameContext, StreetTile *tile)  {
-    if (tile == nullptr || tile->getOwner() == nullptr) {
-        return false;
-    }
+    if (tile == nullptr || tile->getOwner() == nullptr || tile->getStatus() != OWNED) return false;
+    if (tile->getHasHotel()) return false;
 
-    if (tile->getStatus() != OWNED || tile->getHasHotel()) {
-        return false;
-    }
+    if (!isMonopoly(gameContext, tile)) return false;
+
+    if (tile->getHouseCount() >= 4) return false;
 
     string colorGroup = tile->getColor();
-    int minHouseOnColorGroup = getMinBuildingsInColorGroup(colorGroup);
-    if (tile->getHouseCount() > minHouseOnColorGroup) {
+    int minHouse = getMinBuildingsInColorGroup(gameContext, colorGroup);
+    
+    if (tile->getHouseCount() > minHouse) {
         return false;
     }
 
-    return tile->getHouseCount() < 4 && isMonopoly(gameContext, tile);
+    return true;
 }
 
-int EconomyController::getMinBuildingsInColorGroup(string &colorGroup) {
-    int minHouse = 99;
-    for (StreetTile* tile : getColorGroupTiles(nullptr, colorGroup)) {
+int EconomyController::getMinBuildingsInColorGroup(GameContext *ctx, string &colorGroup) {
+    vector<StreetTile*> tiles = getColorGroupTiles(ctx, colorGroup);
+    if (tiles.empty()) return 0;
+
+    int minHouse = tiles[0]->getHouseCount();
+    for (StreetTile* tile : tiles) {
         if (tile != nullptr) {
             minHouse = min(minHouse, tile->getHouseCount());
         }
     }
-    return minHouse == 99 ? 0 : minHouse;
+    return minHouse;
 }
 
 bool EconomyController::canUpgradeToHotel(GameContext *gameContext, const std::string &colorGroup)  {
@@ -433,7 +436,6 @@ void EconomyController::payRent(Player &payer, Player &receiver, PropertyTile *t
 map<string, vector<StreetTile*>> EconomyController::buildableStreet(map<string, vector<StreetTile*>> colorGroupMap, GameContext *gameContext, Player &player) {
     map<string, vector<StreetTile*>> buildableGroups;
     map<string, vector<StreetTile*>> properties = gameContext->getBoard().getMapColorProperty();
-
 
     for (const auto& entry : colorGroupMap) {
         const vector<StreetTile*>& streets = entry.second;

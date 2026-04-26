@@ -1,4 +1,6 @@
 #include "EffectController.hpp"
+#include "EconomyController.hpp"
+#include "BankruptcyController.hpp"
 #include "ActionCard.hpp"
 #include "SkillCard.hpp"
 #include "MoveCard.hpp"       
@@ -6,6 +8,7 @@
 #include "RailroadTile.hpp"
 #include "InputHandler.hpp"
 #include "DisplayView.hpp"
+#include "GameException.hpp"
 #include <iostream>
 
 void EffectController::handleFestival(GameContext* gameContext, DisplayView* display, InputHandler* inputHandler){
@@ -17,10 +20,15 @@ void EffectController::handleFestival(GameContext* gameContext, DisplayView* dis
             streetTile.push_back(tile);
         }
     }
+    if (streetTile.empty()){
+        // gada
+        break;
+    }
     // display->renderFestivalTile(&gameContext);
-    inputHandler->getStringInput();
-    string choice = inputHandler->getLastStringInput();
+    string choice;
     while(true){
+        inputHandler->getStringInput();
+        choice = inputHandler->getLastStringInput();
         if (codeInOwned(choice, streetTile)){
             break;
         }
@@ -41,12 +49,16 @@ void EffectController::handleFestival(GameContext* gameContext, DisplayView* dis
 }
 
 void EffectController::decrementDurations(GameContext* context){
+    
     Tile* tile = context->getBoard().getTile(context->getCurrentPlayer().getPosition());
     StreetTile* s = dynamic_cast<StreetTile*>(tile);
-    s->decreaseFestivalTurn();
+    if (s != nullptr) {
+        s->decreaseFestivalTurn();
+    }
     // minimal kosong dulu
 }
-void EffectController::execute(ActionCard& card, Player& currentPlayer, GameContext& ctx) {
+
+void EffectController::execute(ActionCard& card, Player& currentPlayer, GameContext& ctx, BankruptcyController& bank, InputHandler& inputHandler, DisplayView& display, EconomyController& eco) {
     switch (card.getActionType()) {
         case ActionCardType::MOVE_TO_STATION: {
             int currentPos = currentPlayer.getPosition();
@@ -85,18 +97,27 @@ void EffectController::execute(ActionCard& card, Player& currentPlayer, GameCont
         case ActionCardType::BIRTHDAY: {
             for (Player& p : ctx.getPlayers()) {
                 if (&p != &currentPlayer && p.getStatus() != PlayerStatus::BANKRUPT) {
-                    p -= 100;
-                    currentPlayer += 100;
+                    try {
+                        p -= 100;
+                        currentPlayer += 100;
+                    } catch (const InsufficientFundsException& ex) {
+                        bank.liquidateAssets(ctx, p, &currentPlayer, ex.getRequired(), display, eco, inputHandler, ctx.getBoard().getTile(p.getPosition()));
+                    }
                 }
             }
             break;
         }
         case ActionCardType::DOCTOR_FEE: {
+
             if (currentPlayer.hasShield()) {
                 break;
             }
 
-            currentPlayer -= 700;
+            try {
+                currentPlayer -= 700;
+            } catch (const InsufficientFundsException& ex) {
+                throw BankruptcyException("You don't have enough money to pay the doctor's fee.", ex.getRequired(), currentPlayer.getBalance(), nullptr,  ctx.getBoard().getTile(currentPlayer.getPosition()));
+            }
             break;
         }
         case ActionCardType::NYALEG: {
@@ -106,8 +127,13 @@ void EffectController::execute(ActionCard& card, Player& currentPlayer, GameCont
 
             for (Player& p : ctx.getPlayers()) {
                 if (&p != &currentPlayer && p.getStatus() != PlayerStatus::BANKRUPT) {
-                    currentPlayer -= 200;
-                    p += 200;
+                    try {
+                        currentPlayer -= 200;
+                        p += 200;
+                    }
+                    catch (const InsufficientFundsException& ex) {
+                        bank.liquidateAssets(ctx, currentPlayer, &p, ex.getRequired(), display, eco, inputHandler, ctx.getBoard().getTile(currentPlayer.getPosition()));
+                    }
                 }
             }
             break;
