@@ -111,8 +111,8 @@ public:
     void renderBankruptFirstSceneTax(GameContext G, Player* bankruptPlayer, TaxTile* bankruptTile, int amountToPay);
     void renderBankruptSecondScene(GameContext G, Player* bankruptPlayer, Player* creditorPlayer, PropertyTile* bankruptTile, int amountToPay);
     void renderBankruptThirdScene(GameContext G, Player* bankruptPlayer, TaxTile* Tile, int amountToPay);
-    void liquidatePanel(GameContext G, Player* bankruptPlayer, Player* creditorPlayer, int amountToPay, vector<LiquidationOption> options);
-    void renderLiquidateChoose(GameContext G, Player* bankruptPlayer, PropertyTile* chosenTile);
+    void liquidatePanel(GameContext G, Player* bankruptPlayer, Player* creditorPlayer, int amountToPay, vector<LiquidationOption> options, int initBalance);
+    void renderLiquidateChoose(GameContext G, Player* bankruptPlayer, LiquidationOption selected, int initBalance);
     void renderNotEnoughLiquidate(GameContext G, Player* bankruptPlayer, int amountToPay);
     void renderEnoughLiquidate(GameContext G, Player* bankruptPlayer, Player* creditorPlayer, int amountToPay);
 

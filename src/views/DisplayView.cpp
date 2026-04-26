@@ -1022,7 +1022,8 @@ void DisplayView::renderBankruptFirstSceneTax(GameContext G, Player* bankruptPla
     cout << "Your current balance: M" << bankruptPlayer->getBalance() << endl;
     cout << "Amount owed: M" << amountToPay << endl;
     cout << "Your shortfall: M" << amountToPay - bankruptPlayer->getBalance() << endl;
-
+    printf("\n");
+    cout << "=== BEST LIQUIDATION ASSET ===" << endl; 
     int totalAssetValue = 0;
     for (PropertyTile* tile : bankruptPlayer->getOwnedProperties()) {
         if (tile->getStatus() == MORTGAGED) {
@@ -1044,9 +1045,9 @@ void DisplayView::renderBankruptFirstSceneTax(GameContext G, Player* bankruptPla
     cout << "You should liquidate assets to pay off your debt." << endl;
 }
 
-void DisplayView::liquidatePanel(GameContext G, Player* bankruptPlayer, Player* creditorPlayer, int amountToPay, vector<LiquidationOption> options){
+void DisplayView::liquidatePanel(GameContext G, Player* bankruptPlayer, Player* creditorPlayer, int amountToPay, vector<LiquidationOption> options, int initBalance){
     cout << "=== Liquidation Panel ===" << endl;
-    cout << "Your current balance: M" << bankruptPlayer->getBalance() << "| Amount owed: M" << amountToPay << endl;
+    cout << "Your current balance: M" << initBalance << "| Amount owed: M" << amountToPay << endl;
     int i = 1;
     cout << "[Sell to BANK]" << endl;
     // for (PropertyTile* tile : bankruptPlayer->getOwnedProperties()) {
@@ -1091,25 +1092,17 @@ void DisplayView::liquidatePanel(GameContext G, Player* bankruptPlayer, Player* 
         }
     }
 
-    cout << "Choose an asset to liquidate (0 if enough): ";
+    cout << "Choose an asset to liquidate (0 if enough, -1 to clear cart): ";
 }
 
-void DisplayView::renderLiquidateChoose(GameContext G, Player* bankruptPlayer, PropertyTile* chosenTile){
-    if (chosenTile->getStatus() == OWNED) {
-        if (StreetTile* streetTile = dynamic_cast<StreetTile*>(chosenTile)) {
-            int totalValue = chosenTile->getPrice() + streetTile->getBuildingValue() / 2;
-            cout << "You sold " << chosenTile->getName() << " to the bank for M" << totalValue << "." << endl;
-            cout << "Your new balance: M" << bankruptPlayer->getBalance() + totalValue << endl;
-        } else {
-            cout << "You sold " << chosenTile->getName() << " to the bank for M"<< chosenTile->getMortgageValue() << "." << endl;
-            cout << "Your new balance: M" << bankruptPlayer->getBalance() + chosenTile->getMortgageValue() << endl;
-        }
+void DisplayView::renderLiquidateChoose(GameContext G, Player* bankruptPlayer, LiquidationOption selected, int initBalance){
+    if (selected.getType() == LiquidationType::SELL) {
+        cout << "=> You added 'Sell Building on " << selected.getTile()->getName() << "' to the cart for M" << selected.getValue() << "." << endl;
+    } 
+    else if (selected.getType() == LiquidationType::MORTGAGE) {
+        cout << "=> You added 'Mortgage " << selected.getTile()->getName() << "' to the cart for M" << selected.getValue() << "." << endl;
     }
-    else if (chosenTile->getStatus() == MORTGAGED)
-    {
-        cout << "You mortgaged " << chosenTile->getName() << " to the bank for M" << chosenTile->getMortgageValue() << "." << endl;
-        cout << "Your new balance: M" << bankruptPlayer->getBalance() + chosenTile->getMortgageValue() << endl;
-    }
+    cout << "Your current balance will be : M" << initBalance << endl << endl;
 }
 
 void DisplayView::renderNotEnoughLiquidate(GameContext G, Player* bankruptPlayer, int amountToPay){

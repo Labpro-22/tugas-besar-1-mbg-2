@@ -236,29 +236,29 @@ void BankruptcyController::liquidateAssets(GameContext& ctx,Player& debitor,Play
     vector<LiquidationOption> cart;
     bool confirmed = false;
     while (!confirmed){
-        int initBalance = 0;
+        int initBalance = debitor.getBalance();
         vector<LiquidationOption> options = generateOptions(debitor, cart, initBalance);
 
-        view.liquidatePanel(ctx, &debitor, creditor, amount, options);
+        view.liquidatePanel(ctx, &debitor, creditor, amount, options, initBalance);
 
         input.getIntInput();
         int choice = input.getIntValue1();
 
-        if (choice == -1) {
+        if (choice == 0) {
             if (initBalance >= amount) {
                 confirmed = true;
             } else {
-                cout << "Total liquidation hasn't Total likuidasi belum mencukupi kewajiban! Please choose another combination of property.\n"; // BIKININ JEJE TOLONG VIEW NYA YA
+                view.renderPrompt("Total liquidation hasn't paid off the amount of debt! Please choose another combination of property.\n");
             }
         } 
-        else if (choice == 0) {
+        else if (choice == -1) {
             cart.clear();
-            cout << "Keranjang likuidasi dikosongkan.\n"; // BIKININ JEJE TOLONG SEKARANG
+            view.renderPrompt("Clearing cart...\n");
         } 
         else if (choice >= 1 && choice <= static_cast<int>(options.size())) {
             LiquidationOption selected = options[choice - 1];
             cart.push_back(selected);
-            view.renderLiquidateChoose(ctx, &debitor, selected.getTile()); 
+            view.renderLiquidateChoose(ctx, &debitor, selected, initBalance+selected.getValue()); 
         }
     }
 
