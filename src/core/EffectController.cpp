@@ -9,7 +9,6 @@
 #include <iostream>
 
 void EffectController::handleFestival(GameContext* gameContext, DisplayView* display, InputHandler* inputHandler){
-    display->renderFestivalTile(gameContext, streetTile);
     
     Player& currentPlayer = gameContext->getCurrentPlayer();
     vector<StreetTile*> streetTile;
@@ -18,9 +17,8 @@ void EffectController::handleFestival(GameContext* gameContext, DisplayView* dis
             streetTile.push_back(tile);
         }
     }
-    display->renderFestivalTile( gameContext, streetTile );
+    // display->renderFestivalTile(&gameContext);
     inputHandler->getStringInput();
-    display->renderFestivalTile(*gameContext, streetTile);
     string choice = inputHandler->getLastStringInput();
     while(true){
         if (codeInOwned(choice, streetTile)){
@@ -28,9 +26,9 @@ void EffectController::handleFestival(GameContext* gameContext, DisplayView* dis
         }
         else {
             if (codeInBoard( choice, gameContext)) {
-                display->InputUnvalidFestivalProperty(gameContext, true);
+                // display->InputUnvalidFestivalProperty(gameContext, true);
             }else{
-                display->InputUnvalidFestivalProperty(gameContext, false);
+                // display->InputUnvalidFestivalProperty(gameContext, false);
             }
         }
     }

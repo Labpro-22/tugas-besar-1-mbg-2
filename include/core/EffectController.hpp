@@ -22,7 +22,7 @@ public:
     void execute(SkillCard& card, Player& currentPlayer, GameContext& ctx, InputHandler& input, DisplayView& display);
 
     //helper
-    bool EffectController::codeInOwned( string code, vector<StreetTile*> streetTile );
-    bool EffectController::codeInBoard( string code, GameContext* g );
+    bool codeInOwned( string code, vector<StreetTile*> streetTile );
+    bool codeInBoard( string code, GameContext* g );
 };
 
