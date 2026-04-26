@@ -21,6 +21,9 @@ void EffectController::handleFestival(Tile *tile){
 void EffectController::decrementDurations(GameContext* context){
     Tile* tile = context->getBoard().getTile(context->getCurrentPlayer().getPosition());
     StreetTile* s = dynamic_cast<StreetTile*>(tile);
+    if (s == nullptr) {
+        return;
+    }
     s->decreaseFestivalTurn();
     // minimal kosong dulu
 }
