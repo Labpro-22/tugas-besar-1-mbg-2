@@ -91,9 +91,9 @@ public:
     void renderPrompt(const string& message);
 
     // Festival
-    void renderFestivalTile(GameContext G, FestivalTile *tile);
+    void renderFestivalTile(GameContext G, vector<StreetTile*> festivalTiles);
     void renderFestivalResult(GameContext G, StreetTile* tile);
-    void InputUnvalidFestivalProperty(GameContext G);
+    void InputUnvalidFestivalProperty(GameContext G, vector<StreetTile*> streetTiles, bool notOwner);
 
     //SaveLoad
     void renderSaveSuccess(GameContext G, string filename);

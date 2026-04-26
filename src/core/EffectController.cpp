@@ -15,16 +15,19 @@ void EffectController::handleFestival(GameContext* gameContext, DisplayView* dis
     
     Player& currentPlayer = gameContext->getCurrentPlayer();
     vector<StreetTile*> streetTile;
+
     for (auto i : currentPlayer.getOwnedProperties()){
         if (auto* tile = dynamic_cast<StreetTile*>(i)){
             streetTile.push_back(tile);
         }
     }
+
     if (streetTile.empty()){
-        // gada
-        break;
+        display->renderInfo("You don't have any street tile to apply festival on!\n");
+        return;
     }
-    // display->renderFestivalTile(&gameContext);
+
+    display->renderFestivalTile(*gameContext, streetTile);
     string choice;
     while(true){
         inputHandler->getStringInput();
@@ -34,9 +37,9 @@ void EffectController::handleFestival(GameContext* gameContext, DisplayView* dis
         }
         else {
             if (codeInBoard( choice, gameContext)) {
-                // display->InputUnvalidFestivalProperty(gameContext, true);
+                display->InputUnvalidFestivalProperty(*gameContext, streetTile, true);
             }else{
-                // display->InputUnvalidFestivalProperty(gameContext, false);
+                display->InputUnvalidFestivalProperty(*gameContext, streetTile, false);
             }
         }
     }
@@ -49,13 +52,11 @@ void EffectController::handleFestival(GameContext* gameContext, DisplayView* dis
 }
 
 void EffectController::decrementDurations(GameContext* context){
-    
     Tile* tile = context->getBoard().getTile(context->getCurrentPlayer().getPosition());
     StreetTile* s = dynamic_cast<StreetTile*>(tile);
     if (s != nullptr) {
         s->decreaseFestivalTurn();
     }
-    // minimal kosong dulu
 }
 
 void EffectController::execute(ActionCard& card, Player& currentPlayer, GameContext& ctx, BankruptcyController& bank, InputHandler& inputHandler, DisplayView& display, EconomyController& eco) {
@@ -175,8 +176,8 @@ void EffectController::execute(SkillCard& card, Player& currentPlayer, GameConte
                     break; 
                 } 
                 else {
-                    cout << "[ERROR] Tile code '" << targetCode << "' not found!\n";
-                    cout << "Please enter a valid tile code: ";
+                    display.renderInfo("[ERROR] Tile code '" + targetCode + "' not found!\n");
+                    display.renderInfo("Please enter a valid tile code: ");
                 }
             }
 
@@ -187,11 +188,11 @@ void EffectController::execute(SkillCard& card, Player& currentPlayer, GameConte
         }
         case SkillCardType::LASSO: {
             int currentPos = currentPlayer.getPosition();
-            cout << "List of opponent players that can be pulled:\n";
+            display.renderInfo("List of opponent players that can be pulled:\n");
             display.renderPlayer(ctx);
 
-            cout << "Enter the name of the opponent player you want to pull: ";
-            
+            display.renderInfo("Enter the name of the opponent player you want to pull: ");
+
             Player* targetPlayer = nullptr;
 
             while (true) {
@@ -208,20 +209,20 @@ void EffectController::execute(SkillCard& card, Player& currentPlayer, GameConte
                 }
 
                 if (targetPlayer == nullptr) {
-                    cout << "[ERROR] Player with the name '" << targetName << "' not found!\n";
-                    cout << "Enter the name correctly (case-sensitive): ";
+                    display.renderInfo("[ERROR] Player with the name '" + targetName + "' not found!\n");
+                    display.renderInfo("Enter the name correctly (case-sensitive): ");
                     continue;
                 }
 
                 if (targetPlayer == &currentPlayer) {
-                    cout << "[ERROR] You cannot use Lasso on yourself!\n";
-                    cout << "Enter an OPPONENT'S name: ";
+                    display.renderInfo("[ERROR] You cannot use Lasso on yourself!\n");
+                    display.renderInfo("Enter an OPPONENT'S name: ");
                     continue;
                 }
 
                 if (targetPlayer->getStatus() == PlayerStatus::BANKRUPT) {
-                    cout << "[ERROR] " << targetName << " is already bankrupt and out of the game!\n";
-                    cout << "Enter the name of an active player: ";
+                    display.renderInfo("[ERROR] " + targetName + " is already bankrupt and out of the game!\n");
+                    display.renderInfo("Enter the name of an active player: ");
                     continue;
                 }
 
@@ -243,35 +244,35 @@ void EffectController::execute(SkillCard& card, Player& currentPlayer, GameConte
                 targetTile = ctx.getBoard().getTileByCode(targetCode);
 
                 if (targetTile == nullptr) {
-                    cout << "[ERROR] Tile code '" << targetCode << "' not found!\n";
-                    cout << "Enter the opponent's street tile code: ";
+                    display.renderInfo("[ERROR] Tile code '" + targetCode + "' not found!\n");
+                    display.renderInfo("Enter the opponent's street tile code: ");
                     continue;
                 }
 
                 targetStreet = dynamic_cast<StreetTile*>(targetTile);
                 if (targetStreet == nullptr) {
-                    cout << "[ERROR] Tile " << targetTile->getName() << " is not a destructible tile!\n";
-                    cout << "Enter the opponent's street tile code: ";
+                    display.renderInfo("[ERROR] Tile " + targetTile->getName() + " is not a destructible tile!\n");
+                    display.renderInfo("Enter the opponent's street tile code: ");
                     continue; 
                 }
 
                 Player* owner = targetStreet->getOwner();
                 
                 if (owner == nullptr) {
-                    cout << "[ERROR] This property is an empty land / not owned by anyone!\n";
-                    cout << "Enter the opponent's street tile code: ";
+                    display.renderInfo("[ERROR] This property is an empty land / not owned by anyone!\n");
+                    display.renderInfo("Enter the opponent's street tile code: ");
                     continue;
                 }
 
                 if (owner == &currentPlayer) {
-                    cout << "[ERROR] You cannot destroy your own property!\n";
-                    cout << "Enter an OPPONENT'S street tile code: ";
+                    display.renderInfo("[ERROR] You cannot destroy your own property!\n");
+                    display.renderInfo("Enter an OPPONENT'S street tile code: ");
                     continue;
                 }
 
                 if (owner->getStatus() == PlayerStatus::BANKRUPT) {
-                    cout << "[ERROR] The owner of this property is already bankrupt!\n";
-                    cout << "Enter the street tile code of an active opponent: ";
+                    display.renderInfo("[ERROR] The owner of this property is already bankrupt!\n");
+                    display.renderInfo("Enter the street tile code of an active opponent: ");
                     continue;
                 }
 

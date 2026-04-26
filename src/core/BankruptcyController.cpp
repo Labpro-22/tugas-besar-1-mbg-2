@@ -248,12 +248,12 @@ void BankruptcyController::liquidateAssets(GameContext& ctx,Player& debitor,Play
             if (initBalance >= amount) {
                 confirmed = true;
             } else {
-                cout << "Total liquidation hasn't Total likuidasi belum mencukupi kewajiban! Please choose another combination of property.\n"; // BIKININ JEJE TOLONG VIEW NYA YA
+                view.renderInfo("Total liquidation hasn't sufficient funds. Total likuidasi belum mencukupi kewajiban! Please choose another combination of property.\n"); // BIKININ JEJE TOLONG VIEW NYA YA
             }
         } 
         else if (choice == 0) {
             cart.clear();
-            cout << "Keranjang likuidasi dikosongkan.\n"; // BIKININ JEJE TOLONG SEKARANG
+            view.renderInfo("Keranjang likuidasi dikosongkan.\n"); =
         } 
         else if (choice >= 1 && choice <= static_cast<int>(options.size())) {
             LiquidationOption selected = options[choice - 1];
