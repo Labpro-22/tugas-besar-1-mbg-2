@@ -1,0 +1,83 @@
+#include "gui/popups/FestivalPopup.hpp"
+
+FestivalPopup::FestivalPopup(const std::vector<FestivalItem>& playerProperties) 
+    : items(playerProperties), showResultState(false), selectedTileIndex(-1) {
+    
+    float height = std::max(250.f, 100.f + (items.size() * 45.f));
+    popupRect = sf::FloatRect(280.f, 200.f, 540.f, height);
+    
+    for (size_t i = 0; i < items.size(); ++i) {
+        float yPos = popupRect.top + 80.f + (i * 45.f);
+        actionBtnRects.push_back(sf::FloatRect(popupRect.left + 420.f, yPos, 90.f, 30.f));
+    }
+
+    closeBtnRect = sf::FloatRect(popupRect.left + 220.f, popupRect.top + height - 50.f, 100.f, 35.f);
+}
+
+void FestivalPopup::render(sf::RenderWindow& window) {
+    draw3DPanel(window, popupRect, sf::Color(220, 220, 220), false);
+    
+    draw3DPanel(window, sf::FloatRect(popupRect.left, popupRect.top, popupRect.width, 35.f), sf::Color(138, 43, 226), false);
+    window.draw(createText("=== FESTIVAL ===", popupRect.left + 180.f, popupRect.top + 6.f, 18, sf::Color::White));
+
+    if (!showResultState) {
+        window.draw(createText("Kamu mendarat di petak Festival!", popupRect.left + 20.f, popupRect.top + 45.f, 18, sf::Color::Black));
+        
+        for (size_t i = 0; i < items.size(); ++i) {
+            float yPos = popupRect.top + 80.f + (i * 45.f);
+            
+            std::string info = std::to_string(i + 1) + ". " + items[i].name + " (Sewa: M" + std::to_string(items[i].baseRent * items[i].currentMultiplier) + ")";
+            window.draw(createText(info, popupRect.left + 20.f, yPos + 5.f, 16, sf::Color::Black));
+
+            draw3DPanel(window, actionBtnRects[i], sf::Color(200, 200, 200), false);
+            window.draw(createText("PILIH", actionBtnRects[i].left + 20.f, actionBtnRects[i].top + 5.f, 14, sf::Color::Black));
+        }
+
+        if (items.empty()) {
+            window.draw(createText("Kamu belum memiliki properti apapun.", popupRect.left + 20.f, popupRect.top + 100.f, 16, sf::Color::Red));
+            draw3DPanel(window, closeBtnRect, sf::Color(200, 200, 200), false);
+            window.draw(createText("Tutup", closeBtnRect.left + 25.f, closeBtnRect.top + 8.f, 16, sf::Color::Black));
+        }
+    } else {
+        window.draw(createText(resultMessage, popupRect.left + 30.f, popupRect.top + 60.f, 18, sf::Color::Black));
+        
+        draw3DPanel(window, closeBtnRect, sf::Color(200, 200, 200), false);
+        window.draw(createText("OK", closeBtnRect.left + 35.f, closeBtnRect.top + 8.f, 18, sf::Color::Black));
+    }
+}
+
+PopupResult FestivalPopup::handleMouseClick(float mouseX, float mouseY) {
+    if (!showResultState) {
+        if (items.empty() && containsPoint(closeBtnRect, mouseX, mouseY)) {
+            return PopupResult::CLOSE_POPUP;
+        }
+
+        for (size_t i = 0; i < actionBtnRects.size(); ++i) {
+            if (containsPoint(actionBtnRects[i], mouseX, mouseY)) {
+                selectedTileIndex = items[i].tileIndex;
+                
+                int currentSewa = items[i].baseRent * items[i].currentMultiplier;
+                
+                if (items[i].currentMultiplier >= 8) {
+                    resultMessage = "Efek sudah maksimum!\n(Harga sewa sudah digandakan 3 kali)\n\nDurasi di-reset menjadi: 3 giliran";
+                } 
+                else if (items[i].currentMultiplier > 1) {
+                    int newSewa = currentSewa * 2;
+                    resultMessage = "Efek diperkuat!\n\nSewa sebelumnya: M" + std::to_string(currentSewa) + "\nSewa sekarang: M" + std::to_string(newSewa) + "\nDurasi di-reset menjadi: 3 giliran";
+                } 
+                else {
+                    int newSewa = currentSewa * 2;
+                    resultMessage = "Efek festival aktif!\n\nSewa awal: M" + std::to_string(currentSewa) + "\nSewa sekarang: M" + std::to_string(newSewa) + "\nDurasi: 3 giliran";
+                }
+                
+                showResultState = true; 
+                return PopupResult::NONE; 
+            }
+        }
+    } else {
+        if (containsPoint(closeBtnRect, mouseX, mouseY)) {
+            return PopupResult::APPLY_FESTIVAL;
+        }
+    }
+    return PopupResult::NONE;
+}
