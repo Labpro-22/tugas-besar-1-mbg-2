@@ -596,25 +596,26 @@ void GameEngine::run() {
                     hasUsedSkillThisTurn = true;
 
                     for (int i = 0; i < gameContext.getPlayers().size(); i++) {
-                        Player* targetP = &gameContext.getPlayers()[i];
-                        if (targetP->getStatus() == PlayerStatus::BANKRUPT) continue;
+                        int oldPos = preSkillPositions[i];
+                        Player& targetP = gameContext.getPlayers()[i];
+                        if (targetP.getStatus() == PlayerStatus::BANKRUPT) continue;
 
-                        if (targetP->getPosition() != preSkillPositions[i]) {
-                            if (targetP == currentPlayer) {
+                        if (targetP.getPosition() != oldPos) {
+                            if (&targetP == currentPlayer) {
                                 displayView.renderInfo("\n[CARD EFFECT] You have moved to a new tile!");
                             } else {
-                                displayView.renderInfo("\n[CARD EFFECT] Player " + targetP->getName() + " has moved to a new tile!");
+                                displayView.renderInfo("\n[CARD EFFECT] Player " + targetP.getName() + " has moved to a new tile!");
                             }
 
                             try {
-                                turnController.resolveTileLanding(&gameContext, targetP, economyController, effectController, auctionController, bankruptcyController, dice, saveLoader, inputHandler, logger, displayView);
+                                turnController.resolveTileLanding(&gameContext, &targetP, economyController, effectController, auctionController, bankruptcyController, dice, saveLoader, inputHandler, logger, displayView);
                             } catch (const AuctionTriggerException&) {
                                 auctionController.startAuctionSkipBuy(gameContext, displayView, inputHandler, logger);
                             } catch (const BankruptcyException& ex) {
-                                bankruptcyController.liquidateAssets(gameContext, *targetP, nullptr, ex.getRequired(), displayView, economyController, inputHandler, ex.getBankruptTile(), logger);
+                                bankruptcyController.liquidateAssets(gameContext, targetP, nullptr, ex.getRequired(), displayView, economyController, inputHandler, ex.getBankruptTile(), logger);
                             }
 
-                            if (targetP == currentPlayer && (currentPlayer->getStatus() == PlayerStatus::JAILED || currentPlayer->getStatus() == PlayerStatus::BANKRUPT)) {
+                            if (&targetP == currentPlayer && (currentPlayer->getStatus() == PlayerStatus::JAILED || currentPlayer->getStatus() == PlayerStatus::BANKRUPT)) {
                                 // Bankrupt controller handles assets and cards here.
                                 turnEnded = true;
                             }
@@ -634,6 +635,10 @@ void GameEngine::run() {
                 }
 
                 case CommandType::SIMPAN:
+                    if (isCommand){
+                        displayView.renderWarning("You have already entered a command this turn! Please complete it before saving.");
+                        break;
+                    }
                     inputHandler.getStringInput();
                     saveLoader.saveGame(inputHandler.getLastStringInput(), gameContext, logger);
                     logger.addLog(gameContext.getCurrentTurn(), currentPlayer->getName(), "SIMPAN", inputHandler.getLastStringInput());
@@ -664,7 +669,7 @@ void GameEngine::run() {
                     break;
 
                 }
-
+            isCommand = true;
             if (isDoubleRoll && currentPlayer->getStatus() == PlayerStatus::ACTIVE && currentPlayer->getJailTurns() == 0) {
                 hasRolledDice = false;
                 isDoubleRoll = false;

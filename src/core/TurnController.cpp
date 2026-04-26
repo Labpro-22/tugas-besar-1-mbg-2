@@ -39,7 +39,7 @@ void TurnController::resolveTileLanding(GameContext* context, Player* player, Ec
     
     Tile* currentTile = context->getBoard().getTile(player->getPosition());
     display.renderTile(*context);
-    LandResult result = currentTile->land(*context);
+    LandResult result = currentTile->land(*player);
 
     switch (result.getType()) {
         case LandEventType::OFFERBUYPROPERTY:{
@@ -78,19 +78,28 @@ void TurnController::resolveTileLanding(GameContext* context, Player* player, Ec
             try {
                 display.renderRent(*context, dynamic_cast<PropertyTile*>(currentTile));
                 int rentAmount = eco.calculateRent(context, dynamic_cast<PropertyTile*>(currentTile), dice.getTotal());
+
+                if(player->hasShield()){
+                    display.renderShieldPay(*context, player, rentAmount);
+                    break;
+                }
+
                 Player* owner = dynamic_cast<PropertyTile*>(currentTile)->getOwner();
                 eco.payRent(*player, *owner, dynamic_cast<PropertyTile*>(currentTile), dice.getTotal());
-                display.renderCurrentBalancePayed(*context, rentAmount);
+
                 logger.addLog(context->getCurrentTurn(), player->getName(), "PAY_RENT", "Paid M" + to_string(rentAmount) + " to " + owner->getName() + " for " + currentTile->getName());
             } catch (const InsufficientFundsException& ex) {
                 display.renderCantPay(*context, ex.getRequired());
                 throw BankruptcyException("Player cannot afford to pay rent.", ex.getRequired(), player->getBalance(), dynamic_cast<PropertyTile*>(currentTile)->getOwner(), currentTile);
             }
-            // eco.handlePayRent(result, context, bank, diceTotal);
             break;
 
         case LandEventType::PAYTAX:
             display.renderTax(*context, dynamic_cast<TaxTile*>(currentTile));
+            if(player->hasShield()){
+                display.renderInfo("Your shield protected you from paying the tax!");
+                break;
+            }
             if (auto* taxTile = dynamic_cast<TaxTile*>(currentTile)) {
                 if (taxTile->getIsPPH()) {
                     input.getIntInput();
@@ -131,8 +140,16 @@ void TurnController::resolveTileLanding(GameContext* context, Player* player, Ec
             display.renderCardTile(*context, drawnCard);
             if (drawnCard != nullptr) {
                 logger.addLog(context->getCurrentTurn(), player->getName(), "DRAW_CHANCE_CARD", drawnCard->getName());
+                
+                int posisiAwal = player->getPosition(); 
+                
                 eff.execute(*drawnCard, *player, *context, bank, input, display, eco, logger);
                 context->getChanceDeck().returnAndShuffle(drawnCard);
+
+                if (player->getPosition() != posisiAwal) {
+                    display.renderInfo("\n[CARD EFFECT] " + player->getName() + " landed on a new tile!");
+                    resolveTileLanding(context, player, eco, eff, auc, bank, dice, sl, input, logger, display);
+                }
             }
             break;
         }
@@ -143,8 +160,16 @@ void TurnController::resolveTileLanding(GameContext* context, Player* player, Ec
                 display.renderCardTile(*context, drawnCard);
                 if (drawnCard != nullptr) {
                     logger.addLog(context->getCurrentTurn(), player->getName(), "DRAW_COMMUNITY_CHEST_CARD", drawnCard->getName());
+                    
+                    int posisiAwal = player->getPosition(); 
+
                     eff.execute(*drawnCard, *player, *context, bank, input, display, eco, logger);
                     context->getCommunityChestDeck().returnAndShuffle(drawnCard);
+
+                    if (player->getPosition() != posisiAwal) {
+                        display.renderInfo("\n[CARD EFFECT] " + player->getName() + " landed on a new tile!");
+                        resolveTileLanding(context, player, eco, eff, auc, bank, dice, sl, input, logger, display);
+                    }
                 }
             } catch (const InsufficientFundsException& ex) {
                 display.renderCantPay(*context, ex.getRequired());

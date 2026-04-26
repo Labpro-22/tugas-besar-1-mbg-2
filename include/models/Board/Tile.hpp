@@ -24,7 +24,7 @@ protected:
     TileType type; 
     string color = "DEFAULT"; // default color, bisa diubah untuk property tile @suggestion by me
 public:
-    virtual LandResult land(GameContext &G) = 0; // pure virtual function
+    virtual LandResult land(Player &p) = 0; // pure virtual function
     Tile(int idx, string code, string name, TileType type, string color);
     virtual ~Tile() = default; // virtual destructor
 
