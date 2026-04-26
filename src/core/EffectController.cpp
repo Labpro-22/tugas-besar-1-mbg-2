@@ -8,13 +8,35 @@
 #include "DisplayView.hpp"
 #include <iostream>
 
-void handleFestival(Tile *tile){
-    StreetTile* festivalTile = dynamic_cast<StreetTile*>(tile);
-    if (festivalTile->isFestivalActive()) {
-        festivalTile->playerReenterFestival();
+void EffectController::handleFestival(GameContext* gameContext, DisplayView* display, InputHandler* inputHandler){
+    
+    Player& currentPlayer = gameContext->getCurrentPlayer();
+    vector<StreetTile*> streetTile;
+    for (auto i : currentPlayer.getOwnedProperties()){
+        if (auto* tile = dynamic_cast<StreetTile*>(i)){
+            streetTile.push_back(tile);
+        }
     }
-    else {
-        festivalTile->applyFestival();
+    // display->renderFestivalTile(&gameContext);
+    inputHandler->getStringInput();
+    string choice = inputHandler->getLastStringInput();
+    while(true){
+        if (codeInOwned(choice, streetTile)){
+            break;
+        }
+        else {
+            if (codeInBoard( choice, gameContext)) {
+                // display->InputUnvalidFestivalProperty(gameContext, true);
+            }else{
+                // display->InputUnvalidFestivalProperty(gameContext, false);
+            }
+        }
+    }
+    StreetTile* choosed = dynamic_cast<StreetTile*>(gameContext->getBoard().getTileByCode( choice ));
+    if (choosed->isFestivalActive()){
+        choosed->playerReenterFestival();
+    }else{
+        choosed->applyFestival();
     }
 }
 
@@ -238,4 +260,24 @@ void EffectController::execute(SkillCard& card, Player& currentPlayer, GameConte
             currentPlayer.setJailTurns(0);
         }
     }
+}
+
+bool EffectController::codeInOwned(string code, vector<StreetTile*> streetTile){
+
+    for (auto i : streetTile){
+        if (code == i->getCode()){
+            return true;
+        }
+    }
+    return false;
+}
+
+
+bool EffectController::codeInBoard(string code, GameContext* g){
+    for (auto i : g->getBoard().getPropertyTile()){
+        if (code == i->getCode()){
+            return true;
+        }
+    }
+    return false;
 }
