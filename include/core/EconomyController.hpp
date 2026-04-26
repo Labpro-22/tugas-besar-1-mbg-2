@@ -13,8 +13,8 @@ private:
     int calculateStreetRent(GameContext *gameContext, StreetTile *tile);
     int calculateRailroadRent(GameContext *gameContext, RailroadTile *tile);
     int calculateUtilityRent(GameContext *gameContext, UtilityTile *tile, int diceTotal);
-    int getMinBuildingsInColorGroup(string &colorGroup);
-    int getMaxBuildingsInColorGroup(string &colorGroup);
+    int getMinBuildingsInColorGroup(GameContext *ctx, string &colorGroup);
+    int getMaxBuildingsInColorGroup(GameContext *ctx, string &colorGroup);
 
 public:
     EconomyController() = default;

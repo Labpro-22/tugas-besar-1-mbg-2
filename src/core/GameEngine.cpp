@@ -632,9 +632,7 @@ void GameEngine::run() {
 
         effectController.decrementDurations(&gameContext);
 
-        int activePlayers = count_if(gameContext.getPlayers().begin(), gameContext.getPlayers().end(), [](const Player& p) {
-            return p.getStatus() != PlayerStatus::BANKRUPT;
-        });
+        int activePlayers = gameContext.countActivePlayers();
 
         if (gameContext.getMaxTurns() > 0 && gameContext.getCurrentTurn() > gameContext.getMaxTurns() || activePlayers == 1) {
             gameContext.setGameOver(true);
