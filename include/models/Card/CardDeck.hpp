@@ -59,4 +59,16 @@ public:
     const vector<T*>& getDiscardDeck() const {
         return discardDeck;
     }
+
+    void clear() {
+        for (T* card : mainDeck) {
+            delete card;
+        }
+        mainDeck.clear();
+
+        for (T* card : discardDeck) {
+            delete card;
+        }
+        discardDeck.clear();
+    }
 };
